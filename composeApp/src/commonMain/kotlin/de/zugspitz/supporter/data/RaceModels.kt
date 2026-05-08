@@ -1,8 +1,10 @@
 package de.zugspitz.supporter.data
 
 import androidx.compose.runtime.Immutable
+import kotlinx.serialization.Serializable
 
 @Immutable
+@Serializable
 data class RaceEstimate(
     val startTimeMinutes: Int = 22 * 60,
     val targetMode: TargetTimeMode = TargetTimeMode.Range,
@@ -11,6 +13,7 @@ data class RaceEstimate(
     val maxDurationMinutes: Int = 18 * 60,
 )
 
+@Serializable
 enum class TargetTimeMode {
     Fixed,
     Range,
@@ -32,6 +35,7 @@ data class AidStation(
 )
 
 @Immutable
+@Serializable
 data class CheckIn(
     val stationSection: Int,
     val actualArrivalMinutes: Int,

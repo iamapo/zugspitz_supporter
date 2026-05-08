@@ -1,0 +1,58 @@
+package de.zugspitz.supporter.data
+
+import com.russhwolf.settings.Settings
+import de.zugspitz.supporter.components.AppTab
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+
+class AppSessionStore(
+    private val settings: Settings = Settings(),
+    private val json: Json = Json { ignoreUnknownKeys = true },
+) {
+    fun load(): AppSessionSnapshot {
+        val raw = settings.getStringOrNull(KEY_SESSION) ?: return AppSessionSnapshot()
+        return runCatching { json.decodeFromString<AppSessionSnapshot>(raw) }.getOrElse { AppSessionSnapshot() }
+    }
+
+    fun save(snapshot: AppSessionSnapshot) {
+        settings.putString(KEY_SESSION, json.encodeToString(snapshot))
+    }
+
+    fun clear() {
+        settings.remove(KEY_SESSION)
+    }
+
+    private companion object {
+        const val KEY_SESSION = "app_session_v1"
+    }
+}
+
+@Serializable
+data class AppSessionSnapshot(
+    val estimate: RaceEstimate = RaceEstimate(),
+    val tab: SavedTab = SavedTab.Setup,
+    val selectedIndex: Int = 0,
+    val checkIns: List<CheckIn> = emptyList(),
+)
+
+@Serializable
+enum class SavedTab {
+    Setup,
+    Vp,
+    List,
+    Settings,
+}
+
+fun SavedTab.toAppTab(): AppTab = when (this) {
+    SavedTab.Setup -> AppTab.Setup
+    SavedTab.Vp -> AppTab.Vp
+    SavedTab.List -> AppTab.List
+    SavedTab.Settings -> AppTab.Settings
+}
+
+fun AppTab.toSavedTab(): SavedTab = when (this) {
+    AppTab.Setup -> SavedTab.Setup
+    AppTab.Vp -> SavedTab.Vp
+    AppTab.List -> SavedTab.List
+    AppTab.Settings -> SavedTab.Settings
+}
