@@ -62,8 +62,7 @@ fun SupporterAppRoot() {
                 AppTab.Vp -> VpCardScreen(
                     projection = state.vp.projection,
                     selectedIndex = state.vp.selectedIndex,
-                    onPrevious = viewModel::onPreviousVp,
-                    onNext = viewModel::onNextVp,
+                    onPageChanged = viewModel::onVpPageChanged,
                     onCheckInClick = viewModel::onCheckInOpen,
                 )
                 AppTab.List -> VpListScreen(

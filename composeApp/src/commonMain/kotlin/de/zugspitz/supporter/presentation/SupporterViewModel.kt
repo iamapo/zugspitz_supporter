@@ -45,7 +45,12 @@ class SupporterViewModel(
         copy(setup = setup.copy(estimate = updateEstimate(estimate)))
     }
 
-    fun onCalculateClick() = updateState { copy(tab = AppTab.Vp) }
+    fun onCalculateClick() = updateState {
+        copy(
+            tab = AppTab.Vp,
+            vp = vp.copy(selectedIndex = 0),
+        )
+    }
 
     fun onPreviousVp() = updateState {
         copy(vp = vp.copy(selectedIndex = selectVp(vp.selectedIndex - 1, vp.projection.stations.lastIndex)))
@@ -60,6 +65,10 @@ class SupporterViewModel(
             tab = AppTab.Vp,
             vp = vp.copy(selectedIndex = selectVp(index, vp.projection.stations.lastIndex)),
         )
+    }
+
+    fun onVpPageChanged(index: Int) = updateState {
+        copy(vp = vp.copy(selectedIndex = selectVp(index, vp.projection.stations.lastIndex)))
     }
 
     fun onCheckInOpen() = updateState {

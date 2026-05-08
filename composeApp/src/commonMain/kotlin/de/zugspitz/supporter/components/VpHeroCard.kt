@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.StationProjection
-import de.zugspitz.supporter.data.ZugspitzStations
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.change_time
 import zugspitz_supporter.composeapp.generated.resources.check_in
@@ -36,7 +35,7 @@ import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-fun VpHeroCard(
+fun VpCard(
     projection: StationProjection,
     completedElevation: Pair<Int, Int>,
     onCheckInClick: () -> Unit,
@@ -124,10 +123,10 @@ fun VpHeroCard(
 
 @Preview
 @Composable
-fun VpHeroCardPreview() {
+fun VpCardPreview() {
     val projection = RaceCalculator().project(RaceEstimate(), emptyList(), 2).stations[2]
     SupporterTheme {
-        VpHeroCard(
+        VpCard(
             projection = projection,
             completedElevation = 1750 to 834,
             onCheckInClick = {},

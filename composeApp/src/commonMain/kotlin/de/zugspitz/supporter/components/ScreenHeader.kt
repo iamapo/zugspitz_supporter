@@ -22,7 +22,7 @@ import de.zugspitz.supporter.theme.SupporterTheme
 fun ScreenHeader(
     eyebrow: String,
     title: String,
-    subtitle: String?,
+    subtitle: String? = null,
     pill: String? = null,
     modifier: Modifier = Modifier,
 ) {
