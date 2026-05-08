@@ -24,12 +24,11 @@ import zugspitz_supporter.composeapp.generated.resources.reset_all_data_hint
 import zugspitz_supporter.composeapp.generated.resources.settings_subtitle
 import zugspitz_supporter.composeapp.generated.resources.settings_title
 
-class SettingsScreen {
-    @Composable
-    fun Content(
-        onResetClick: () -> Unit,
-        modifier: Modifier = Modifier,
-    ) {
+@Composable
+fun SettingsScreen(
+    onResetClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
         Column(
             modifier = modifier
                 .fillMaxSize()
@@ -37,7 +36,7 @@ class SettingsScreen {
                 .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            ScreenHeader().Content(
+            ScreenHeader(
                 eyebrow = "",
                 title = stringResource(Res.string.settings_title),
                 subtitle = stringResource(Res.string.settings_subtitle),
@@ -65,5 +64,4 @@ class SettingsScreen {
                 }
             }
         }
-    }
 }

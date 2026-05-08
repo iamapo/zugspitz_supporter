@@ -38,66 +38,64 @@ enum class AppTab {
     Settings,
 }
 
-class AppBottomBar {
-    @Composable
-    fun Content(
-        selectedTab: AppTab,
-        onTabSelected: (AppTab) -> Unit,
-        modifier: Modifier = Modifier,
-    ) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .height(66.dp)
-                .background(SupporterColors.Paper)
-                .drawBehind {
-                    drawLine(
-                        color = SupporterColors.Line,
-                        start = androidx.compose.ui.geometry.Offset(0f, 0f),
-                        end = androidx.compose.ui.geometry.Offset(size.width, 0f),
-                        strokeWidth = 1.dp.toPx(),
-                    )
-                }
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            BottomItem(stringResource(Res.string.tab_vp), selectedTab == AppTab.Vp, Modifier.weight(1f)) { onTabSelected(AppTab.Vp) }
-            BottomItem(stringResource(Res.string.tab_list), selectedTab == AppTab.List, Modifier.weight(1f)) { onTabSelected(AppTab.List) }
-            BottomItem(stringResource(Res.string.tab_settings), selectedTab == AppTab.Settings, Modifier.weight(1f)) { onTabSelected(AppTab.Settings) }
-        }
-    }
-
-    @Composable
-    private fun BottomItem(label: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
-        Surface(
-            onClick = onClick,
-            color = Color.Transparent,
-            modifier = modifier.clip(RoundedCornerShape(8.dp)),
-        ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .width(24.dp)
-                        .height(12.dp)
-                        .border(
-                            width = 2.dp,
-                            color = if (selected) SupporterColors.Moss else SupporterColors.Muted,
-                            shape = RoundedCornerShape(6.dp),
-                        ),
-                )
-                Text(
-                    text = label,
-                    color = if (selected) SupporterColors.Moss else SupporterColors.Muted,
-                    fontWeight = FontWeight.ExtraBold,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
+@Composable
+fun AppBottomBar(
+    selectedTab: AppTab,
+    onTabSelected: (AppTab) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(66.dp)
+            .background(SupporterColors.Paper)
+            .drawBehind {
+                drawLine(
+                    color = SupporterColors.Line,
+                    start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                    end = androidx.compose.ui.geometry.Offset(size.width, 0f),
+                    strokeWidth = 1.dp.toPx(),
                 )
             }
+            .padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        BottomItem(stringResource(Res.string.tab_vp), selectedTab == AppTab.Vp, Modifier.weight(1f)) { onTabSelected(AppTab.Vp) }
+        BottomItem(stringResource(Res.string.tab_list), selectedTab == AppTab.List, Modifier.weight(1f)) { onTabSelected(AppTab.List) }
+        BottomItem(stringResource(Res.string.tab_settings), selectedTab == AppTab.Settings, Modifier.weight(1f)) { onTabSelected(AppTab.Settings) }
+    }
+}
+
+@Composable
+private fun BottomItem(label: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        color = Color.Transparent,
+        modifier = modifier.clip(RoundedCornerShape(8.dp)),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(24.dp)
+                    .height(12.dp)
+                    .border(
+                        width = 2.dp,
+                        color = if (selected) SupporterColors.Moss else SupporterColors.Muted,
+                        shape = RoundedCornerShape(6.dp),
+                    ),
+            )
+            Text(
+                text = label,
+                color = if (selected) SupporterColors.Moss else SupporterColors.Muted,
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+            )
         }
     }
 }
@@ -106,6 +104,6 @@ class AppBottomBar {
 @Composable
 fun AppBottomBarPreview() {
     SupporterTheme {
-        AppBottomBar().Content(selectedTab = AppTab.Vp, onTabSelected = {})
+        AppBottomBar(selectedTab = AppTab.Vp, onTabSelected = {})
     }
 }

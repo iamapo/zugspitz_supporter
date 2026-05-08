@@ -33,17 +33,16 @@ import de.zugspitz.supporter.theme.SupporterTheme
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 
-class CheckInSheet {
-    @Composable
-    fun Content(
-        projection: StationProjection,
-        inputTime: String,
-        onDecrease: () -> Unit,
-        onIncrease: () -> Unit,
-        onSave: () -> Unit,
-        onDismiss: () -> Unit,
-        modifier: Modifier = Modifier,
-    ) {
+@Composable
+fun CheckInSheet(
+    projection: StationProjection,
+    inputTime: String,
+    onDecrease: () -> Unit,
+    onIncrease: () -> Unit,
+    onSave: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
         Box(
             modifier = modifier
                 .fillMaxSize()
@@ -93,10 +92,10 @@ class CheckInSheet {
                 }
             }
         }
-    }
+}
 
-    @Composable
-    private fun TimeOption(label: String, active: Boolean, modifier: Modifier = Modifier) {
+@Composable
+private fun TimeOption(label: String, active: Boolean, modifier: Modifier = Modifier) {
         Box(
             modifier = modifier
                 .background(if (active) SupporterColors.Pine else Color(0xFFF1F4EF), RoundedCornerShape(8.dp))
@@ -106,10 +105,10 @@ class CheckInSheet {
         ) {
             Text(label, color = if (active) Color.White else SupporterColors.Ink, fontWeight = FontWeight.Black)
         }
-    }
+}
 
-    @Composable
-    private fun Stepper(label: String, onClick: () -> Unit) {
+@Composable
+private fun Stepper(label: String, onClick: () -> Unit) {
         Surface(
             onClick = onClick,
             color = SupporterColors.Card,
@@ -124,7 +123,6 @@ class CheckInSheet {
                 modifier = Modifier.padding(horizontal = 17.dp, vertical = 8.dp),
             )
         }
-    }
 }
 
 @Preview
@@ -134,6 +132,6 @@ fun CheckInSheetPreview() {
         .project(de.zugspitz.supporter.data.RaceEstimate(), listOf(CheckIn(3, 281)), 2)
         .stations[2]
     SupporterTheme {
-        CheckInSheet().Content(projection, "02:41", {}, {}, {}, {})
+        CheckInSheet(projection, "02:41", {}, {}, {}, {})
     }
 }

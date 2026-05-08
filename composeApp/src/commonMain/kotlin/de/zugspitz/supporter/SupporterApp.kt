@@ -6,10 +6,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import de.zugspitz.supporter.components.AppBottomBar
 import de.zugspitz.supporter.components.AppTab
 import de.zugspitz.supporter.presentation.SupporterViewModel
@@ -25,68 +25,66 @@ import androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun SupporterApp() {
     SupporterTheme {
-        SupporterAppRoot().Content()
+        SupporterAppRoot()
     }
 }
 
-class SupporterAppRoot {
-    @Composable
-    fun Content() {
-        val viewModel = remember { SupporterViewModel() }
-        val state by viewModel.uiState.collectAsState()
+@Composable
+fun SupporterAppRoot() {
+    val viewModel = remember { SupporterViewModel() }
+    val state by viewModel.uiState.collectAsState()
 
-        Scaffold(
-            containerColor = SupporterColors.Paper,
-            bottomBar = if (state.tab == AppTab.Setup) {
-                {}
-            } else {
-                {
-                    AppBottomBar().Content(
-                        selectedTab = state.tab,
-                        onTabSelected = viewModel::onTabSelected,
-                    )
-                }
-            },
-        ) { padding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(SupporterColors.Paper)
-                    .padding(padding),
-            ) {
-                when (state.tab) {
-                    AppTab.Setup -> SetupScreen().Content(
-                        estimate = state.setup.estimate,
-                        onEstimateChange = viewModel::onEstimateChange,
-                        onCalculateClick = viewModel::onCalculateClick,
-                    )
-                    AppTab.Vp -> VpCardScreen().Content(
-                        projection = state.vp.projection,
-                        selectedIndex = state.vp.selectedIndex,
-                        onPrevious = viewModel::onPreviousVp,
-                        onNext = viewModel::onNextVp,
-                        onCheckInClick = viewModel::onCheckInOpen,
-                    )
-                    AppTab.List -> VpListScreen().Content(
-                        projection = state.vp.projection,
-                        onStationClick = viewModel::onStationSelected,
-                    )
-                    AppTab.Settings -> SettingsScreen().Content(
-                        onResetClick = viewModel::onResetAllData,
-                    )
-                }
+    Scaffold(
+        containerColor = SupporterColors.Paper,
+        bottomBar = if (state.tab == AppTab.Setup) {
+            {}
+        } else {
+            {
+                AppBottomBar(
+                    selectedTab = state.tab,
+                    onTabSelected = viewModel::onTabSelected,
+                )
+            }
+        },
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(SupporterColors.Paper)
+                .padding(padding),
+        ) {
+            when (state.tab) {
+                AppTab.Setup -> SetupScreen(
+                    estimate = state.setup.estimate,
+                    onEstimateChange = viewModel::onEstimateChange,
+                    onCalculateClick = viewModel::onCalculateClick,
+                )
+                AppTab.Vp -> VpCardScreen(
+                    projection = state.vp.projection,
+                    selectedIndex = state.vp.selectedIndex,
+                    onPrevious = viewModel::onPreviousVp,
+                    onNext = viewModel::onNextVp,
+                    onCheckInClick = viewModel::onCheckInOpen,
+                )
+                AppTab.List -> VpListScreen(
+                    projection = state.vp.projection,
+                    onStationClick = viewModel::onStationSelected,
+                )
+                AppTab.Settings -> SettingsScreen(
+                    onResetClick = viewModel::onResetAllData,
+                )
+            }
 
-                if (state.vp.checkInOpen) {
-                    val selectedProjection = state.vp.projection.stations[state.vp.selectedIndex]
-                    CheckInSheet().Content(
-                        projection = selectedProjection,
-                        inputTime = state.vp.checkInInputTime,
-                        onDecrease = viewModel::onCheckInTimeDecrease,
-                        onIncrease = viewModel::onCheckInTimeIncrease,
-                        onSave = viewModel::onCheckInSave,
-                        onDismiss = viewModel::onCheckInDismiss,
-                    )
-                }
+            if (state.vp.checkInOpen) {
+                val selectedProjection = state.vp.projection.stations[state.vp.selectedIndex]
+                CheckInSheet(
+                    projection = selectedProjection,
+                    inputTime = state.vp.checkInInputTime,
+                    onDecrease = viewModel::onCheckInTimeDecrease,
+                    onIncrease = viewModel::onCheckInTimeIncrease,
+                    onSave = viewModel::onCheckInSave,
+                    onDismiss = viewModel::onCheckInDismiss,
+                )
             }
         }
     }

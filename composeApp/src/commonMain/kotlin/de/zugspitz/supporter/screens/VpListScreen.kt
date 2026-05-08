@@ -25,13 +25,12 @@ import de.zugspitz.supporter.theme.SupporterTheme
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 
-class VpListScreen {
-    @Composable
-    fun Content(
-        projection: RaceProjection,
-        onStationClick: (Int) -> Unit,
-        modifier: Modifier = Modifier,
-    ) {
+@Composable
+fun VpListScreen(
+    projection: RaceProjection,
+    onStationClick: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
         Column(
             modifier = modifier
                 .fillMaxSize()
@@ -39,7 +38,7 @@ class VpListScreen {
                 .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            ScreenHeader().Content(
+            ScreenHeader(
                 eyebrow = stringResource(Res.string.race_name),
                 title = stringResource(Res.string.all_vps),
                 subtitle = stringResource(Res.string.all_vps_subtitle),
@@ -47,21 +46,20 @@ class VpListScreen {
             )
             LazyColumn(verticalArrangement = Arrangement.spacedBy(9.dp)) {
                 itemsIndexed(projection.stations) { index, station ->
-                    VpListRow().Content(
+                    VpListRow(
                         projection = station,
                         onClick = { onStationClick(index) },
                     )
                 }
             }
         }
-    }
 }
 
 @Preview
 @Composable
 fun VpListScreenPreview() {
     SupporterTheme {
-        VpListScreen().Content(
+        VpListScreen(
             projection = RaceCalculator().project(RaceEstimate(), listOf(CheckIn(3, 281)), 2),
             onStationClick = {},
         )
