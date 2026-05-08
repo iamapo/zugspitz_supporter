@@ -4,6 +4,7 @@
     <string name="tab_setup">Setup</string>
     <string name="tab_vp">VP</string>
     <string name="tab_list">Liste</string>
+    <string name="tab_settings">Settings</string>
     <string name="setup_title">Support Plan erstellen</string>
     <string name="setup_subtitle">Wähle, wie lange die Läuferin ungefähr benötigen wird. Daraus entstehen die VP-Zeitfenster.</string>
     <string name="race_name">Zugspitz Ultratrail</string>
@@ -42,4 +43,8 @@
     <string name="swipe_hint">Wischen für vorherigen oder nächsten VP.</string>
     <string name="arrival_window">Ankunftsfenster</string>
     <string name="custom_time">Eigene Zeit</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_subtitle">Verwaltung der lokal gespeicherten App-Daten.</string>
+    <string name="reset_all_data">Alle Daten zurücksetzen</string>
+    <string name="reset_all_data_hint">Löscht Setup, Check-ins und letzte Ansicht. Danach startet die App wieder im Setup.</string>
 </resources>

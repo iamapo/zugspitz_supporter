@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.serialization")
     id("com.android.application")
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
@@ -32,6 +33,13 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.components.resources)
             implementation("org.jetbrains.compose.ui:ui-tooling-preview:1.10.3")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+            implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
+        }
+
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation("com.russhwolf:multiplatform-settings-test:1.3.0")
         }
 
         androidMain.dependencies {

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -16,11 +17,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import de.zugspitz.supporter.components.AppBottomBar
 import de.zugspitz.supporter.components.AppTab
+import de.zugspitz.supporter.data.AppSessionSnapshot
+import de.zugspitz.supporter.data.AppSessionStore
 import de.zugspitz.supporter.data.CheckIn
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.formatRaceTime
+import de.zugspitz.supporter.data.toAppTab
+import de.zugspitz.supporter.data.toSavedTab
 import de.zugspitz.supporter.screens.CheckInSheet
+import de.zugspitz.supporter.screens.SettingsScreen
 import de.zugspitz.supporter.screens.SetupScreen
 import de.zugspitz.supporter.screens.VpCardScreen
 import de.zugspitz.supporter.screens.VpListScreen
@@ -38,15 +44,27 @@ fun SupporterApp() {
 class SupporterAppRoot {
     @Composable
     fun Content() {
-        var tab by remember { mutableStateOf(AppTab.Setup) }
-        var estimate by remember { mutableStateOf(RaceEstimate()) }
-        var selectedIndex by remember { mutableIntStateOf(2) }
-        val checkIns = remember { mutableStateListOf<CheckIn>() }
+        val sessionStore = remember { AppSessionStore() }
+        val initialSession = remember { sessionStore.load() }
+        var tab by remember { mutableStateOf(initialSession.tab.toAppTab()) }
+        var estimate by remember { mutableStateOf(initialSession.estimate) }
+        var selectedIndex by remember { mutableIntStateOf(initialSession.selectedIndex.coerceAtLeast(0).coerceAtMost(10)) }
+        val checkIns = remember { mutableStateListOf<CheckIn>().also { it.addAll(initialSession.checkIns) } }
         val calculator = remember { RaceCalculator() }
         val projection = calculator.project(estimate, checkIns, selectedIndex)
         var checkInOpen by remember { mutableStateOf(false) }
         var checkInMinutes by remember {
             mutableIntStateOf(projection.stations[selectedIndex].station.plannedArrivalMinutes + 10)
+        }
+        LaunchedEffect(tab, estimate, selectedIndex, checkIns.toList()) {
+            sessionStore.save(
+                AppSessionSnapshot(
+                    estimate = estimate,
+                    tab = tab.toSavedTab(),
+                    selectedIndex = selectedIndex,
+                    checkIns = checkIns.toList(),
+                ),
+            )
         }
 
         Scaffold(
@@ -89,6 +107,16 @@ class SupporterAppRoot {
                         onStationClick = {
                             selectedIndex = it
                             tab = AppTab.Vp
+                        },
+                    )
+                    AppTab.Settings -> SettingsScreen().Content(
+                        onResetClick = {
+                            sessionStore.clear()
+                            checkIns.clear()
+                            estimate = RaceEstimate()
+                            selectedIndex = 0
+                            checkInOpen = false
+                            tab = AppTab.Setup
                         },
                     )
                 }
