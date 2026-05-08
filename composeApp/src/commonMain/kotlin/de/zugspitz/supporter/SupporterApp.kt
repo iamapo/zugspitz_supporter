@@ -79,6 +79,7 @@ fun SupporterAppRoot() {
                 CheckInSheet(
                     projection = selectedProjection,
                     inputTime = state.vp.checkInInputTime,
+                    onNow = viewModel::onCheckInNow,
                     onDecrease = viewModel::onCheckInTimeDecrease,
                     onIncrease = viewModel::onCheckInTimeIncrease,
                     onSave = viewModel::onCheckInSave,

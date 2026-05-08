@@ -26,7 +26,6 @@ import de.zugspitz.supporter.data.StationProjection
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.arrival_input
 import zugspitz_supporter.composeapp.generated.resources.now
-import zugspitz_supporter.composeapp.generated.resources.plan
 import zugspitz_supporter.composeapp.generated.resources.save_check_in
 import zugspitz_supporter.composeapp.generated.resources.stepper_minus
 import zugspitz_supporter.composeapp.generated.resources.stepper_plus
@@ -42,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 fun CheckInSheet(
     projection: StationProjection,
     inputTime: String,
+    onNow: () -> Unit,
     onDecrease: () -> Unit,
     onIncrease: () -> Unit,
     onSave: () -> Unit,
@@ -68,9 +68,13 @@ fun CheckInSheet(
                         style = MaterialTheme.typography.bodySmall,
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TimeOption(stringResource(Res.string.now), false, Modifier.weight(1f))
-                        TimeOption(inputTime, true, Modifier.weight(1f))
-                        TimeOption(stringResource(Res.string.plan), false, Modifier.weight(1f))
+                        TimeOption(
+                            label = stringResource(Res.string.now),
+                            active = false,
+                            modifier = Modifier.weight(1f),
+                            onClick = onNow,
+                        )
+                        TimeOption(label = inputTime, active = true, modifier = Modifier.weight(1f))
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                         Stepper(stringResource(Res.string.stepper_minus), onDecrease)
@@ -100,11 +104,36 @@ fun CheckInSheet(
 }
 
 @Composable
-private fun TimeOption(label: String, active: Boolean, modifier: Modifier = Modifier) {
+private fun TimeOption(
+    label: String,
+    active: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+) {
+    val backgroundColor = if (active) SupporterColors.Pine else Color(0xFFF1F4EF)
+    val borderColor = if (active) SupporterColors.Pine else SupporterColors.Line
+
+    if (onClick != null) {
+        Surface(
+            onClick = onClick,
+            color = backgroundColor,
+            shape = RoundedCornerShape(8.dp),
+            modifier = modifier.border(1.dp, borderColor, RoundedCornerShape(8.dp)),
+        ) {
+            Box(
+                modifier = Modifier.padding(vertical = 13.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(label, color = if (active) Color.White else SupporterColors.Ink, fontWeight = FontWeight.Black)
+            }
+        }
+        return
+    }
+
         Box(
             modifier = modifier
-                .background(if (active) SupporterColors.Pine else Color(0xFFF1F4EF), RoundedCornerShape(8.dp))
-                .border(1.dp, if (active) SupporterColors.Pine else SupporterColors.Line, RoundedCornerShape(8.dp))
+                .background(backgroundColor, RoundedCornerShape(8.dp))
+                .border(1.dp, borderColor, RoundedCornerShape(8.dp))
                 .padding(vertical = 13.dp),
             contentAlignment = Alignment.Center,
         ) {
@@ -137,6 +166,6 @@ fun CheckInSheetPreview() {
         .project(de.zugspitz.supporter.data.RaceEstimate(), listOf(CheckIn(3, 281)), 2)
         .stations[2]
     SupporterTheme {
-        CheckInSheet(projection, "02:41", {}, {}, {}, {})
+        CheckInSheet(projection, "02:41", {}, {}, {}, {}, {})
     }
 }

@@ -61,6 +61,23 @@ class SupporterViewModelTest {
         assertTrue(state.checkIns.isEmpty())
         assertEquals(AppTab.Setup, SupporterViewModel(sessionRepository = repository).uiState.value.tab)
     }
+
+    @Test
+    fun `check in now uses current time of day relative to start`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = repository,
+            currentMinutesOfDay = { 23 * 60 + 15 },
+        )
+
+        viewModel.onCalculateClick()
+        viewModel.onCheckInOpen()
+        viewModel.onCheckInNow()
+
+        val state = viewModel.uiState.value
+        assertEquals(75, state.vp.checkInMinutes)
+        assertEquals("23:15", state.vp.checkInInputTime)
+    }
 }
 
 private class FakeSessionRepository(
