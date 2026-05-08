@@ -1,0 +1,66 @@
+package de.zugspitz.supporter.data
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class RaceCalculatorTest {
+    private val calculator = RaceCalculator()
+
+    @Test
+    fun `range projection distributes target time from segment effort and stops`() {
+        val projection = calculator.project(
+            estimate = RaceEstimate(
+                targetMode = TargetTimeMode.Range,
+                minDurationMinutes = 17 * 60,
+                maxDurationMinutes = 18 * 60,
+            ),
+            checkIns = emptyList(),
+            selectedIndex = 0,
+        )
+
+        val finish = projection.stations.last().station
+        assertEquals(17 * 60, finish.plannedArrivalMinutes)
+        assertEquals(17 * 60, finish.windowStartMinutes)
+        assertEquals(18 * 60, finish.windowEndMinutes)
+        assertEquals("15:00-16:00", projection.stations.last().window)
+    }
+
+    @Test
+    fun `fixed projection uses the fixed duration for plan and window`() {
+        val projection = calculator.project(
+            estimate = RaceEstimate(
+                targetMode = TargetTimeMode.Fixed,
+                fixedDurationMinutes = 17 * 60 + 30,
+            ),
+            checkIns = emptyList(),
+            selectedIndex = 0,
+        )
+
+        val finish = projection.stations.last().station
+        assertEquals(17 * 60 + 30, finish.plannedArrivalMinutes)
+        assertEquals(17 * 60 + 30, finish.windowStartMinutes)
+        assertEquals(17 * 60 + 30, finish.windowEndMinutes)
+        assertEquals("15:30-15:30", projection.stations.last().window)
+    }
+
+    @Test
+    fun `latest check-in shifts future stations from effort based plan`() {
+        val baseProjection = calculator.project(RaceEstimate(), emptyList(), selectedIndex = 0)
+        val checkedStation = baseProjection.stations[2].station
+        val actualArrivalMinutes = checkedStation.plannedArrivalMinutes + 12
+
+        val projection = calculator.project(
+            estimate = RaceEstimate(),
+            checkIns = listOf(CheckIn(checkedStation.section, actualArrivalMinutes)),
+            selectedIndex = 3,
+        )
+
+        assertEquals(12, projection.activeShiftMinutes)
+        assertEquals(checkedStation.plannedArrivalMinutes, projection.stations[2].station.plannedArrivalMinutes)
+        assertEquals(formatRaceTime(RaceEstimate().startTimeMinutes + actualArrivalMinutes), projection.stations[2].actualArrival)
+        assertEquals(
+            baseProjection.stations[3].station.plannedArrivalMinutes + 12,
+            projection.stations[3].station.plannedArrivalMinutes,
+        )
+    }
+}

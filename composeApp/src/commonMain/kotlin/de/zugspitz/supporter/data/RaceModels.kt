@@ -44,6 +44,8 @@ data class CheckIn(
 @Immutable
 data class StationProjection(
     val station: AidStation,
+    val projectedArrivalMinutes: Int,
+    val actualArrivalMinutes: Int?,
     val plannedArrival: String,
     val window: String,
     val windowStart: String,
