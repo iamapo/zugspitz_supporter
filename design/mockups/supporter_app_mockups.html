@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zugspitz Supporter App Mockups</title>
+  <style>
+    :root {
+      --ink: #15201b;
+      --muted: #627067;
+      --paper: #f5f7f3;
+      --card: #ffffff;
+      --line: #d9e0d8;
+      --moss: #537b52;
+      --pine: #17352a;
+      --mint: #dff0df;
+      --amber: #d99632;
+      --sky: #3d7ea6;
+      --danger: #d6664b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #e4e9e1;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .board {
+      width: min(1480px, 100%);
+      margin: 0 auto;
+      padding: 36px 28px 48px;
+    }
+
+    .intro { margin-bottom: 26px; }
+
+    .intro h1 {
+      margin: 0 0 8px;
+      font-size: 34px;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .intro p {
+      max-width: 900px;
+      margin: 0;
+      color: #4f5d55;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(280px, 1fr));
+      gap: 24px;
+      align-items: start;
+    }
+
+    .concept-title {
+      width: min(100%, 390px);
+      margin: 0 auto 12px;
+      color: #24302a;
+    }
+
+    .concept-title h2 {
+      margin: 0 0 4px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .concept-title p {
+      margin: 0;
+      color: #5e6a62;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .phone {
+      width: min(100%, 390px);
+      margin: 0 auto;
+      padding: 12px;
+      border-radius: 34px;
+      background: #070908;
+      box-shadow: 0 24px 70px rgba(26, 35, 30, 0.28);
+    }
+
+    .screen {
+      position: relative;
+      min-height: 780px;
+      overflow: hidden;
+      border-radius: 26px;
+      background: var(--paper);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .content { padding: 20px 18px 86px; }
+
+    .status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 22px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .screen-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .screen-head h3,
+    .hero h3 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .screen-head p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .label {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .pill {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: var(--mint);
+      color: var(--pine);
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .setup-card,
+    .card,
+    .vp-row,
+    .hero,
+    .sheet {
+      border-radius: 8px;
+    }
+
+    .setup-card,
+    .card,
+    .vp-row {
+      background: var(--card);
+      border: 1px solid var(--line);
+    }
+
+    .setup-card {
+      padding: 15px;
+      margin-bottom: 12px;
+    }
+
+    .field {
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fbfcfa;
+      margin-top: 8px;
+    }
+
+    .field strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .range-control {
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .stepper {
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: var(--moss);
+      background: #fff;
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .slider {
+      height: 10px;
+      border-radius: 999px;
+      background: #d8dfd8;
+      position: relative;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      left: 30%;
+      right: 18%;
+      top: 0;
+      bottom: 0;
+      border-radius: inherit;
+      background: var(--moss);
+    }
+
+    .slider::after {
+      content: "";
+      position: absolute;
+      right: 18%;
+      top: 50%;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--pine);
+      transform: translate(50%, -50%);
+      box-shadow: 0 3px 10px rgba(23, 53, 42, 0.25);
+    }
+
+    .primary {
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      padding: 14px 12px;
+      background: var(--pine);
+      color: #fff;
+      font-weight: 900;
+      font-size: 15px;
+      margin-top: 14px;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .segment {
+      padding: 10px 6px;
+      border-radius: 8px;
+      background: #eef2ec;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .segment.active {
+      background: var(--mint);
+      color: var(--pine);
+      border: 1px solid rgba(83, 123, 82, 0.35);
+    }
+
+    .hero {
+      padding: 16px;
+      background: var(--pine);
+      color: #eef5ee;
+      margin-bottom: 12px;
+    }
+
+    .hero-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .hero .label { color: rgba(255, 255, 255, 0.68); }
+
+    .arrival {
+      min-width: 92px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      background: rgba(127, 211, 107, 0.14);
+      border: 1px solid rgba(127, 211, 107, 0.45);
+      color: #8ce075;
+      text-align: center;
+      font-weight: 950;
+    }
+
+    .arrival span {
+      display: block;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 10px;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .metric {
+      padding: 11px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 18px;
+    }
+
+    .subline {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .hero .subline { color: rgba(255, 255, 255, 0.72); }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .ghost-button,
+    .check-button {
+      border-radius: 8px;
+      padding: 12px 10px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .check-button {
+      border: 0;
+      background: #8ce075;
+      color: #0f1b12;
+    }
+
+    .ghost-button {
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.08);
+      color: #eef5ee;
+      text-align: center;
+    }
+
+    .swipe {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin: 10px 0 14px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #cbd4cb;
+    }
+
+    .dot.active { width: 22px; border-radius: 999px; background: var(--moss); }
+
+    .card {
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .card h4,
+    .sheet h4 {
+      margin: 0 0 9px;
+      font-size: 15px;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      padding: 11px;
+      border-radius: 8px;
+      background: #f8faf7;
+      border: 1px solid var(--line);
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 20px;
+    }
+
+    .delta {
+      padding: 9px 11px;
+      border-radius: 8px;
+      background: rgba(217, 150, 50, 0.12);
+      border: 1px solid rgba(217, 150, 50, 0.38);
+      color: #916017;
+      font-size: 13px;
+      font-weight: 850;
+      margin-top: 10px;
+    }
+
+    .bottom-nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 66px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-item {
+      display: grid;
+      place-items: center;
+      gap: 4px;
+      padding: 8px 0;
+      color: #7a867f;
+      font-size: 11px;
+      font-weight: 850;
+    }
+
+    .nav-item.active { color: var(--moss); }
+
+    .icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      border: 2px solid currentColor;
+    }
+
+    .vp-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .vp-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+    }
+
+    .vp-row.active {
+      border-color: rgba(83, 123, 82, 0.55);
+      background: #f9fcf8;
+      box-shadow: 0 10px 24px rgba(38, 60, 45, 0.08);
+    }
+
+    .vp-row.done {
+      background: #eef5ee;
+    }
+
+    .vp-row strong {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 14px;
+    }
+
+    .vp-time {
+      text-align: right;
+      color: var(--pine);
+      font-weight: 950;
+    }
+
+    .vp-time small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .sheet-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 18, 0.34);
+    }
+
+    .sheet {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 18px 18px 22px;
+      background: #fff;
+      border-radius: 22px 22px 0 0;
+      box-shadow: 0 -18px 40px rgba(28, 39, 33, 0.24);
+    }
+
+    .time-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .time-option {
+      padding: 13px 8px;
+      border-radius: 8px;
+      text-align: center;
+      background: #f1f4ef;
+      color: var(--ink);
+      font-weight: 900;
+      border: 1px solid var(--line);
+    }
+
+    .time-option.active {
+      background: var(--pine);
+      color: #fff;
+      border-color: var(--pine);
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      gap: 10px;
+      align-items: center;
+      margin: 12px 0;
+    }
+
+    .current-time {
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: #fbfcfa;
+      border: 1px solid var(--line);
+      font-size: 22px;
+      font-weight: 950;
+    }
+
+    @media (max-width: 1240px) {
+      .mockup-grid { grid-template-columns: repeat(2, minmax(280px, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+      .mockup-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <header class="intro">
+      <h1>Supporter App Mockups</h1>
+      <p>Design A als Basis: Supporter geben eine erwartete Laufzeit ein, sehen pro VP eine übersichtliche Karte, können per Check-in die tatsächliche Ankunft korrigieren und bekommen alle folgenden VP-Prognosen neu gedacht.</p>
+    </header>
+
+    <section class="mockup-grid">
+      <article>
+        <div class="concept-title">
+          <h2>1. Setup: Laufzeit wählen</h2>
+          <p>Vor dem Rennen oder unterwegs: Zielzeit als Range oder fixe Zeit auswählen.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="content">
+              <div class="status"><span>20:41</span><span>96%</span></div>
+              <div class="screen-head">
+                <div>
+                  <span class="label">Zugspitz Ultratrail</span>
+                  <h3>Support Plan erstellen</h3>
+                  <p>Wähle, wie lange die Läuferin ungefähr benötigen wird. Daraus entstehen die VP-Zeitfenster.</p>
+                </div>
+              </div>
+
+              <section class="setup-card">
+                <span class="label">Zielzeit-Modus</span>
+                <div class="segmented">
+                  <div class="segment">Fix</div>
+                  <div class="segment active">Range</div>
+                  <div class="segment">Pace</div>
+                </div>
+              </section>
+
+              <section class="setup-card">
+                <span class="label">Erwartete Laufzeit</span>
+                <div class="field"><span class="subline">Von</span><strong>17:00 h</strong></div>
+                <div class="field"><span class="subline">Bis</span><strong>18:00 h</strong></div>
+                <div class="range-control">
+                  <div class="stepper">-</div>
+                  <div class="slider"></div>
+                  <div class="stepper">+</div>
+                </div>
+              </section>
+
+              <section class="setup-card">
+                <span class="label">Startzeit</span>
+                <div class="field"><span class="subline">Geplanter Start</span><strong>22:00</strong></div>
+              </section>
+
+              <button class="primary">VP-Zeitplan berechnen</button>
+
+              <section class="card" style="margin-top: 14px;">
+                <h4>Vorschau</h4>
+                <div class="grid2">
+                  <div class="stat"><span class="label">Ziel</span><strong>15-16</strong></div>
+                  <div class="stat"><span class="label">VPs</span><strong>11</strong></div>
+                </div>
+                <div class="delta">Ankunftsfenster werden je VP aus der gewählten Range berechnet.</div>
+              </section>
+            </div>
+            <nav class="bottom-nav">
+              <div class="nav-item active"><span class="icon"></span><span>Setup</span></div>
+              <div class="nav-item"><span class="icon"></span><span>VP</span></div>
+              <div class="nav-item"><span class="icon"></span><span>Liste</span></div>
+            </nav>
+          </div>
+        </div>
+      </article>
+
+      <article>
+        <div class="concept-title">
+          <h2>2. VP-Karte: Wischbar</h2>
+          <p>Jeder VP bekommt eine eigene Seite. Links/rechts wischen wechselt zum vorherigen oder nächsten VP.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="content">
+              <div class="status"><span>01:58</span><span>89%</span></div>
+              <div class="screen-head">
+                <div>
+                  <span class="label">VP 3 von 11</span>
+                  <h3>Z3 Pestkapelle</h3>
+                  <p>Wischen für vorherigen oder nächsten VP.</p>
+                </div>
+                <div class="pill">17-18 h</div>
+              </div>
+
+              <section class="hero">
+                <div class="hero-title">
+                  <div>
+                    <span class="label">Erwartete Ankunft</span>
+                    <h3>02:23-02:38</h3>
+                  </div>
+                  <div class="arrival"><span>Plan</span>02:31</div>
+                </div>
+                <div class="metrics">
+                  <div class="metric"><span class="label">Absolviert</span><strong>27.3 km</strong><div class="subline">+1,750 / -834 hm</div></div>
+                  <div class="metric"><span class="label">Bis hier</span><strong>7.9 km</strong><div class="subline">+605 / -301 hm</div></div>
+                </div>
+                <div class="actions">
+                  <button class="check-button">Check-in</button>
+                  <div class="ghost-button">Zeit ändern</div>
+                </div>
+              </section>
+
+              <div class="swipe"><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div>
+
+              <section class="card">
+                <h4>Nächster Abschnitt</h4>
+                <div class="grid2">
+                  <div class="stat"><span class="label">Nach</span><strong>Z4</strong><div class="subline">Hämmermoosalm</div></div>
+                  <div class="stat"><span class="label">Ankunft dort</span><strong>04:49-05:14</strong></div>
+                  <div class="stat"><span class="label">Distanz</span><strong>13.8 km</strong></div>
+                  <div class="stat"><span class="label">Höhenmeter</span><strong>+898 / -1095</strong></div>
+                </div>
+              </section>
+
+              <section class="card">
+                <h4>Support-Info</h4>
+                <div class="subline">Für diesen VP spätestens 02:15 vor Ort sein. Nach dem Check-in werden spätere VP-Fenster automatisch verschoben.</div>
+              </section>
+            </div>
+            <nav class="bottom-nav">
+              <div class="nav-item"><span class="icon"></span><span>Setup</span></div>
+              <div class="nav-item active"><span class="icon"></span><span>VP</span></div>
+              <div class="nav-item"><span class="icon"></span><span>Liste</span></div>
+            </nav>
+          </div>
+        </div>
+      </article>
+
+      <article>
+        <div class="concept-title">
+          <h2>3. Check-in: Prognose korrigieren</h2>
+          <p>Supporter tragen die tatsächliche Ankunft ein. Die App berechnet alle folgenden VPs relativ dazu neu.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="content">
+              <div class="status"><span>02:41</span><span>87%</span></div>
+              <div class="screen-head">
+                <div>
+                  <span class="label">VP 3 von 11</span>
+                  <h3>Z3 Pestkapelle</h3>
+                  <p>Planfenster war 02:23-02:38.</p>
+                </div>
+                <div class="pill">Check-in</div>
+              </div>
+
+              <section class="hero">
+                <div class="hero-title">
+                  <div>
+                    <span class="label">Neue Basiszeit</span>
+                    <h3>02:41</h3>
+                  </div>
+                  <div class="arrival" style="color: #ffd17a; border-color: rgba(217,150,50,.55); background: rgba(217,150,50,.14);"><span>Versatz</span>+9 min</div>
+                </div>
+                <div class="subline">Diese Abweichung wird auf die kommenden Abschnitte übertragen.</div>
+              </section>
+
+              <section class="card">
+                <h4>Nach Check-in</h4>
+                <div class="grid2">
+                  <div class="stat"><span class="label">Nächster VP</span><strong>Z4</strong><div class="subline">Hämmermoosalm</div></div>
+                  <div class="stat"><span class="label">Neue Ankunft</span><strong>04:58-05:23</strong></div>
+                  <div class="stat"><span class="label">Z5 danach</span><strong>07:15-07:48</strong></div>
+                  <div class="stat"><span class="label">Ziel neu</span><strong>15:09-16:09</strong></div>
+                </div>
+                <div class="delta">Alle folgenden Zeiten +9 min gegenüber dem ursprünglichen 17-18h Plan.</div>
+              </section>
+            </div>
+
+            <div class="sheet-backdrop"></div>
+            <section class="sheet">
+              <h4>Ankunft eintragen</h4>
+              <div class="subline">Z3 Pestkapelle · erwartetes Fenster 02:23-02:38</div>
+              <div class="time-options">
+                <div class="time-option">Jetzt</div>
+                <div class="time-option active">02:41</div>
+                <div class="time-option">Plan</div>
+              </div>
+              <div class="input-row">
+                <div class="stepper">-</div>
+                <div class="current-time">02:41</div>
+                <div class="stepper">+</div>
+              </div>
+              <button class="primary">Check-in speichern</button>
+            </section>
+          </div>
+        </div>
+      </article>
+
+      <article>
+        <div class="concept-title">
+          <h2>4. Liste: Alle VPs</h2>
+          <p>Separater Tab mit allen VP-Fenstern. Nach Check-ins erscheinen korrigierte Ankünfte.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="content">
+              <div class="status"><span>02:44</span><span>86%</span></div>
+              <div class="screen-head">
+                <div>
+                  <span class="label">Gesamtliste</span>
+                  <h3>Alle VPs</h3>
+                  <p>Berechnet aus 17-18h, korrigiert durch Z3 Check-in.</p>
+                </div>
+                <div class="pill">+9 min</div>
+              </div>
+
+              <div class="vp-list">
+                <div class="vp-row done"><div><strong>Z1 Eibsee</strong><span class="subline">10.7 km · +433 / -112 hm</span></div><div class="vp-time">23:30<small>Check-in</small></div></div>
+                <div class="vp-row done"><div><strong>Z2 Gamsalm</strong><span class="subline">19.4 km · +712 / -421 hm</span></div><div class="vp-time">01:10<small>Check-in</small></div></div>
+                <div class="vp-row active"><div><strong>Z3 Pestkapelle</strong><span class="subline">27.3 km · +605 / -301 hm</span></div><div class="vp-time">02:41<small>Check-in</small></div></div>
+                <div class="vp-row"><div><strong>Z4 Hämmermoosalm</strong><span class="subline">41.1 km · nächster Abschnitt 13.8 km</span></div><div class="vp-time">04:58-05:23<small>neu</small></div></div>
+                <div class="vp-row"><div><strong>Z5 Hubertushof</strong><span class="subline">54.6 km · +708 / -1052 hm</span></div><div class="vp-time">07:15-07:48<small>neu</small></div></div>
+                <div class="vp-row"><div><strong>Z6 Mittenwald</strong><span class="subline">63.1 km · +38 / -181 hm</span></div><div class="vp-time">08:19-08:54<small>neu</small></div></div>
+                <div class="vp-row"><div><strong>Ziel Garmisch</strong><span class="subline">107.4 km · Zielkorridor</span></div><div class="vp-time">15:09-16:09<small>neu</small></div></div>
+              </div>
+            </div>
+            <nav class="bottom-nav">
+              <div class="nav-item"><span class="icon"></span><span>Setup</span></div>
+              <div class="nav-item"><span class="icon"></span><span>VP</span></div>
+              <div class="nav-item active"><span class="icon"></span><span>Liste</span></div>
+            </nav>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

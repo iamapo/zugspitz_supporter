@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Zugspitz Supporter</string>
+    <string name="tab_setup">Setup</string>
+    <string name="tab_vp">VP</string>
+    <string name="tab_list">Liste</string>
+    <string name="setup_title">Support Plan erstellen</string>
+    <string name="setup_subtitle">Wähle, wie lange die Läuferin ungefähr benötigen wird. Daraus entstehen die VP-Zeitfenster.</string>
+    <string name="race_name">Zugspitz Ultratrail</string>
+    <string name="target_time_mode">Zielzeit-Modus</string>
+    <string name="fixed_time">Fix</string>
+    <string name="range_time">Range</string>
+    <string name="pace_time">Pace</string>
+    <string name="expected_duration">Erwartete Laufzeit</string>
+    <string name="from">Von</string>
+    <string name="to">Bis</string>
+    <string name="start_time">Startzeit</string>
+    <string name="planned_start">Geplanter Start</string>
+    <string name="calculate_plan">VP-Zeitplan berechnen</string>
+    <string name="preview">Vorschau</string>
+    <string name="finish">Ziel</string>
+    <string name="vps">VPs</string>
+    <string name="preview_note">Ankunftsfenster werden je VP aus der gewählten Range berechnet.</string>
+    <string name="expected_arrival">Erwartete Ankunft</string>
+    <string name="plan">Plan</string>
+    <string name="completed">Absolviert</string>
+    <string name="to_here">Bis hier</string>
+    <string name="check_in">Check-in</string>
+    <string name="change_time">Zeit ändern</string>
+    <string name="next_section">Nächster Abschnitt</string>
+    <string name="after_check_in">Nach Check-in</string>
+    <string name="new_base_time">Neue Basiszeit</string>
+    <string name="delay">Versatz</string>
+    <string name="save_check_in">Check-in speichern</string>
+    <string name="arrival_input">Ankunft eintragen</string>
+    <string name="now">Jetzt</string>
+    <string name="all_vps">Alle VPs</string>
+    <string name="all_vps_subtitle">Berechnet aus der Zielzeit, korrigiert durch Check-ins.</string>
+    <string name="new_label">neu</string>
+    <string name="support_info">Support-Info</string>
+    <string name="support_info_text">Nach dem Check-in werden spätere VP-Fenster automatisch verschoben.</string>
+    <string name="swipe_hint">Wischen für vorherigen oder nächsten VP.</string>
+    <string name="arrival_window">Ankunftsfenster</string>
+    <string name="custom_time">Eigene Zeit</string>
+</resources>

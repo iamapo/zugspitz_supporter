@@ -1,0 +1,51 @@
+package de.zugspitz.supporter.data
+
+import androidx.compose.runtime.Immutable
+
+@Immutable
+data class RaceEstimate(
+    val startTimeMinutes: Int = 22 * 60,
+    val minDurationMinutes: Int = 17 * 60,
+    val maxDurationMinutes: Int = 18 * 60,
+)
+
+@Immutable
+data class AidStation(
+    val section: Int,
+    val name: String,
+    val from: String,
+    val totalKm: Double,
+    val sectionKm: Double,
+    val climbMeters: Int,
+    val descentMeters: Int,
+    val plannedArrivalMinutes: Int,
+    val windowStartMinutes: Int,
+    val windowEndMinutes: Int,
+    val stopMinutes: Int,
+)
+
+@Immutable
+data class CheckIn(
+    val stationSection: Int,
+    val actualArrivalMinutes: Int,
+)
+
+@Immutable
+data class StationProjection(
+    val station: AidStation,
+    val plannedArrival: String,
+    val window: String,
+    val windowStart: String,
+    val windowEnd: String,
+    val actualArrival: String?,
+    val diffMinutes: Int,
+    val isDone: Boolean,
+    val isCurrent: Boolean,
+)
+
+@Immutable
+data class RaceProjection(
+    val estimate: RaceEstimate,
+    val stations: List<StationProjection>,
+    val activeShiftMinutes: Int,
+)

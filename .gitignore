@@ -1,0 +1,12 @@
+.gradle/
+.kotlin/
+.idea/
+build/
+composeApp/build/
+*.iml
+.DS_Store
+local.properties
+
+# Kotlin/Native and Xcode user-specific files
+*.xcuserstate
+xcuserdata/
