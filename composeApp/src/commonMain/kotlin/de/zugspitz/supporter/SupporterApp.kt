@@ -51,11 +51,15 @@ class SupporterAppRoot {
 
         Scaffold(
             containerColor = SupporterColors.Paper,
-            bottomBar = {
-                AppBottomBar().Content(
-                    selectedTab = tab,
-                    onTabSelected = { tab = it },
-                )
+            bottomBar = if (tab == AppTab.Setup) {
+                {}
+            } else {
+                {
+                    AppBottomBar().Content(
+                        selectedTab = tab,
+                        onTabSelected = { tab = it },
+                    )
+                }
             },
         ) { padding ->
             Box(
