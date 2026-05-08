@@ -29,6 +29,17 @@
     <string name="check_in">Check-in</string>
     <string name="change_time">Zeit ändern</string>
     <string name="next_section">Nächster Abschnitt</string>
+    <string name="vp_of_total">VP %1$d von %2$d</string>
+    <string name="duration_hours_range">%1$d-%2$d h</string>
+    <string name="section_to">Nach</string>
+    <string name="arrival_there">Ankunft dort</string>
+    <string name="distance">Distanz</string>
+    <string name="elevation">Höhenmeter</string>
+    <string name="start_time_placeholder">17:00</string>
+    <string name="planned_start_time">22:00</string>
+    <string name="time_separator_dot"> · </string>
+    <string name="stepper_minus">-</string>
+    <string name="stepper_plus">+</string>
     <string name="after_check_in">Nach Check-in</string>
     <string name="new_base_time">Neue Basiszeit</string>
     <string name="delay">Versatz</string>

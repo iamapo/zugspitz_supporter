@@ -28,7 +28,12 @@ import zugspitz_supporter.composeapp.generated.resources.arrival_input
 import zugspitz_supporter.composeapp.generated.resources.now
 import zugspitz_supporter.composeapp.generated.resources.plan
 import zugspitz_supporter.composeapp.generated.resources.save_check_in
+import zugspitz_supporter.composeapp.generated.resources.stepper_minus
+import zugspitz_supporter.composeapp.generated.resources.stepper_plus
+import zugspitz_supporter.composeapp.generated.resources.time_separator_dot
 import de.zugspitz.supporter.theme.SupporterColors
+import de.zugspitz.supporter.theme.SupporterRadius
+import de.zugspitz.supporter.theme.SupporterSpacing
 import de.zugspitz.supporter.theme.SupporterTheme
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,13 +57,13 @@ fun CheckInSheet(
             Surface(onClick = onDismiss, color = Color.Transparent, modifier = Modifier.fillMaxSize()) {}
             Surface(
                 color = SupporterColors.Card,
-                shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+                shape = RoundedCornerShape(topStart = SupporterRadius.SheetTop, topEnd = SupporterRadius.SheetTop),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.padding(SupporterSpacing.Xl), verticalArrangement = Arrangement.spacedBy(SupporterSpacing.Md)) {
                     Text(stringResource(Res.string.arrival_input), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
                     Text(
-                        "${projection.station.name} · ${projection.window}",
+                        "${projection.station.name}${stringResource(Res.string.time_separator_dot)}${projection.window}",
                         color = SupporterColors.Muted,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -68,7 +73,7 @@ fun CheckInSheet(
                         TimeOption(stringResource(Res.string.plan), false, Modifier.weight(1f))
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Stepper("-", onDecrease)
+                        Stepper(stringResource(Res.string.stepper_minus), onDecrease)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -79,15 +84,15 @@ fun CheckInSheet(
                         ) {
                             Text(inputTime, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
                         }
-                        Stepper("+", onIncrease)
+                        Stepper(stringResource(Res.string.stepper_plus), onIncrease)
                     }
                     Button(
                         onClick = onSave,
                         colors = ButtonDefaults.buttonColors(containerColor = SupporterColors.Pine),
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(SupporterRadius.Card),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text(stringResource(Res.string.save_check_in), fontWeight = FontWeight.Black, modifier = Modifier.padding(6.dp))
+                        Text(stringResource(Res.string.save_check_in), fontWeight = FontWeight.Black, modifier = Modifier.padding(SupporterSpacing.Sm))
                     }
                 }
             }

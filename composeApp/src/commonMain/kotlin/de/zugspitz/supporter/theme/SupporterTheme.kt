@@ -1,9 +1,14 @@
 package de.zugspitz.supporter.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 object SupporterColors {
     val Ink = Color(0xFF15201B)
@@ -18,6 +23,28 @@ object SupporterColors {
     val Danger = Color(0xFFD6664B)
 }
 
+object SupporterSpacing {
+    val Xs = 4.dp
+    val Sm = 8.dp
+    val Md = 12.dp
+    val Lg = 16.dp
+    val Xl = 18.dp
+    val Xxl = 24.dp
+}
+
+object SupporterRadius {
+    val Card = 8.dp
+    val Pill = 999.dp
+    val SheetTop = 22.dp
+}
+
+object SupporterTextSize {
+    val Label = 11.sp
+    val Body = 13.sp
+    val Title = 16.sp
+    val Headline = 24.sp
+}
+
 private val LightScheme = lightColorScheme(
     primary = SupporterColors.Pine,
     secondary = SupporterColors.Moss,
@@ -29,10 +56,19 @@ private val LightScheme = lightColorScheme(
     onSurface = SupporterColors.Ink,
 )
 
+private val SupporterTypography = Typography(
+    labelSmall = TextStyle(fontSize = SupporterTextSize.Label, fontWeight = FontWeight.SemiBold),
+    bodySmall = TextStyle(fontSize = SupporterTextSize.Body),
+    titleSmall = TextStyle(fontSize = SupporterTextSize.Title),
+    titleLarge = TextStyle(fontSize = SupporterTextSize.Title, fontWeight = FontWeight.Bold),
+    headlineSmall = TextStyle(fontSize = SupporterTextSize.Headline, fontWeight = FontWeight.Black),
+)
+
 @Composable
 fun SupporterTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = LightScheme,
+        typography = SupporterTypography,
         content = content,
     )
 }
