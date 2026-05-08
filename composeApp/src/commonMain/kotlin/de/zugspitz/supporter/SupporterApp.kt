@@ -2,29 +2,17 @@ package de.zugspitz.supporter
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.collectAsState
 import de.zugspitz.supporter.components.AppBottomBar
 import de.zugspitz.supporter.components.AppTab
-import de.zugspitz.supporter.data.AppSessionSnapshot
-import de.zugspitz.supporter.data.AppSessionStore
-import de.zugspitz.supporter.data.CheckIn
-import de.zugspitz.supporter.data.RaceCalculator
-import de.zugspitz.supporter.data.RaceEstimate
-import de.zugspitz.supporter.data.formatRaceTime
-import de.zugspitz.supporter.data.toAppTab
-import de.zugspitz.supporter.data.toSavedTab
+import de.zugspitz.supporter.presentation.SupporterViewModel
 import de.zugspitz.supporter.screens.CheckInSheet
 import de.zugspitz.supporter.screens.SettingsScreen
 import de.zugspitz.supporter.screens.SetupScreen
@@ -44,38 +32,18 @@ fun SupporterApp() {
 class SupporterAppRoot {
     @Composable
     fun Content() {
-        val sessionStore = remember { AppSessionStore() }
-        val initialSession = remember { sessionStore.load() }
-        var tab by remember { mutableStateOf(initialSession.tab.toAppTab()) }
-        var estimate by remember { mutableStateOf(initialSession.estimate) }
-        var selectedIndex by remember { mutableIntStateOf(initialSession.selectedIndex.coerceAtLeast(0).coerceAtMost(10)) }
-        val checkIns = remember { mutableStateListOf<CheckIn>().also { it.addAll(initialSession.checkIns) } }
-        val calculator = remember { RaceCalculator() }
-        val projection = calculator.project(estimate, checkIns, selectedIndex)
-        var checkInOpen by remember { mutableStateOf(false) }
-        var checkInMinutes by remember {
-            mutableIntStateOf(projection.stations[selectedIndex].station.plannedArrivalMinutes + 10)
-        }
-        LaunchedEffect(tab, estimate, selectedIndex, checkIns.toList()) {
-            sessionStore.save(
-                AppSessionSnapshot(
-                    estimate = estimate,
-                    tab = tab.toSavedTab(),
-                    selectedIndex = selectedIndex,
-                    checkIns = checkIns.toList(),
-                ),
-            )
-        }
+        val viewModel = remember { SupporterViewModel() }
+        val state by viewModel.uiState.collectAsState()
 
         Scaffold(
             containerColor = SupporterColors.Paper,
-            bottomBar = if (tab == AppTab.Setup) {
+            bottomBar = if (state.tab == AppTab.Setup) {
                 {}
             } else {
                 {
                     AppBottomBar().Content(
-                        selectedTab = tab,
-                        onTabSelected = { tab = it },
+                        selectedTab = state.tab,
+                        onTabSelected = viewModel::onTabSelected,
                     )
                 }
             },
@@ -86,55 +54,37 @@ class SupporterAppRoot {
                     .background(SupporterColors.Paper)
                     .padding(padding),
             ) {
-                when (tab) {
+                when (state.tab) {
                     AppTab.Setup -> SetupScreen().Content(
-                        estimate = estimate,
-                        onEstimateChange = { estimate = it },
-                        onCalculateClick = { tab = AppTab.Vp },
+                        estimate = state.setup.estimate,
+                        onEstimateChange = viewModel::onEstimateChange,
+                        onCalculateClick = viewModel::onCalculateClick,
                     )
                     AppTab.Vp -> VpCardScreen().Content(
-                        projection = projection,
-                        selectedIndex = selectedIndex,
-                        onPrevious = { selectedIndex = (selectedIndex - 1).coerceAtLeast(0) },
-                        onNext = { selectedIndex = (selectedIndex + 1).coerceAtMost(projection.stations.lastIndex) },
-                        onCheckInClick = {
-                            checkInMinutes = projection.stations[selectedIndex].station.plannedArrivalMinutes + 10
-                            checkInOpen = true
-                        },
+                        projection = state.vp.projection,
+                        selectedIndex = state.vp.selectedIndex,
+                        onPrevious = viewModel::onPreviousVp,
+                        onNext = viewModel::onNextVp,
+                        onCheckInClick = viewModel::onCheckInOpen,
                     )
                     AppTab.List -> VpListScreen().Content(
-                        projection = projection,
-                        onStationClick = {
-                            selectedIndex = it
-                            tab = AppTab.Vp
-                        },
+                        projection = state.vp.projection,
+                        onStationClick = viewModel::onStationSelected,
                     )
                     AppTab.Settings -> SettingsScreen().Content(
-                        onResetClick = {
-                            sessionStore.clear()
-                            checkIns.clear()
-                            estimate = RaceEstimate()
-                            selectedIndex = 0
-                            checkInOpen = false
-                            tab = AppTab.Setup
-                        },
+                        onResetClick = viewModel::onResetAllData,
                     )
                 }
 
-                if (checkInOpen) {
-                    val selectedProjection = projection.stations[selectedIndex]
+                if (state.vp.checkInOpen) {
+                    val selectedProjection = state.vp.projection.stations[state.vp.selectedIndex]
                     CheckInSheet().Content(
                         projection = selectedProjection,
-                        inputTime = formatRaceTime(estimate.startTimeMinutes + checkInMinutes),
-                        onDecrease = { checkInMinutes -= 1 },
-                        onIncrease = { checkInMinutes += 1 },
-                        onSave = {
-                            checkIns.removeAll { it.stationSection == selectedProjection.station.section }
-                            checkIns.add(CheckIn(selectedProjection.station.section, checkInMinutes))
-                            checkInOpen = false
-                            tab = AppTab.List
-                        },
-                        onDismiss = { checkInOpen = false },
+                        inputTime = state.vp.checkInInputTime,
+                        onDecrease = viewModel::onCheckInTimeDecrease,
+                        onIncrease = viewModel::onCheckInTimeIncrease,
+                        onSave = viewModel::onCheckInSave,
+                        onDismiss = viewModel::onCheckInDismiss,
                     )
                 }
             }
