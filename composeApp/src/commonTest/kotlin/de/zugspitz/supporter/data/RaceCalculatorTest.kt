@@ -44,6 +44,37 @@ class RaceCalculatorTest {
     }
 
     @Test
+    fun `segment factors shift intermediate station timings`() {
+        val stations = listOf(
+            AidStation(1, "A", "Start", 10.0, 10.0, 0, 0, 0, 0, 0, 0),
+            AidStation(2, "B", "A", 20.0, 10.0, 0, 0, 0, 0, 0, 0),
+        )
+
+        val withoutFactors = RaceCalculator(segmentFactors = emptyMap()).project(
+            estimate = RaceEstimate(
+                targetMode = TargetTimeMode.Fixed,
+                fixedDurationMinutes = 100,
+            ),
+            checkIns = emptyList(),
+            selectedIndex = 0,
+            stations = stations,
+        )
+        val withFactors = RaceCalculator(segmentFactors = mapOf(1 to 2.0, 2 to 1.0)).project(
+            estimate = RaceEstimate(
+                targetMode = TargetTimeMode.Fixed,
+                fixedDurationMinutes = 100,
+            ),
+            checkIns = emptyList(),
+            selectedIndex = 0,
+            stations = stations,
+        )
+
+        assertEquals(50, withoutFactors.stations[0].station.plannedArrivalMinutes)
+        assertEquals(67, withFactors.stations[0].station.plannedArrivalMinutes)
+        assertEquals(100, withFactors.stations[1].station.plannedArrivalMinutes)
+    }
+
+    @Test
     fun `latest check-in shifts future stations from effort based plan`() {
         val baseProjection = calculator.project(RaceEstimate(), emptyList(), selectedIndex = 0)
         val checkedStation = baseProjection.stations[2].station

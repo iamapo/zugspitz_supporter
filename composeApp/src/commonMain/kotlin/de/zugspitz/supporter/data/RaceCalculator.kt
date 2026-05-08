@@ -2,7 +2,9 @@ package de.zugspitz.supporter.data
 
 import kotlin.math.roundToInt
 
-class RaceCalculator {
+class RaceCalculator(
+    private val segmentFactors: Map<Int, Double> = ZutSegmentFactors,
+) {
     fun project(
         estimate: RaceEstimate,
         checkIns: List<CheckIn>,
@@ -110,13 +112,33 @@ class RaceCalculator {
     private fun AidStation.effortKm(
         metersUpPerKm: Double,
         metersDownPerKm: Double,
-    ): Double = sectionKm + climbMeters / metersUpPerKm + descentMeters / metersDownPerKm
+    ): Double {
+        val baseEffortKm = sectionKm + climbMeters / metersUpPerKm + descentMeters / metersDownPerKm
+        val factor = segmentFactors[section] ?: 1.0
+        return baseEffortKm * factor
+    }
 
     private fun proportionalMinutes(
         totalMovingMinutes: Int,
         cumulativeEffortKm: Double,
         totalEffortKm: Double,
     ): Int = (totalMovingMinutes * cumulativeEffortKm / totalEffortKm).roundToInt()
+
+    companion object {
+        private val ZutSegmentFactors = mapOf(
+            1 to 0.82,
+            2 to 0.81,
+            3 to 0.77,
+            4 to 0.99,
+            5 to 0.98,
+            6 to 1.08,
+            7 to 1.06,
+            8 to 1.12,
+            9 to 1.23,
+            10 to 1.21,
+            11 to 1.02,
+        )
+    }
 }
 
 fun formatRaceTime(minutes: Int): String {
