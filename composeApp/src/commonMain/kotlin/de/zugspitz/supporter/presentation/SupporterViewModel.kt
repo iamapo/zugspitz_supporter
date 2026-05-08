@@ -20,14 +20,18 @@ import de.zugspitz.supporter.presentation.state.AppUiState
 import de.zugspitz.supporter.presentation.state.SettingsUiState
 import de.zugspitz.supporter.presentation.state.SetupUiState
 import de.zugspitz.supporter.presentation.state.VpUiState
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlin.time.Clock
 
 class SupporterViewModel(
     sessionRepository: SessionRepository = DefaultSessionRepository(),
     private val calculator: RaceCalculator = RaceCalculator(),
+    private val currentMinutesOfDay: () -> Int = ::systemMinutesOfDay,
 ) {
     private val loadSession = LoadSessionUseCase(sessionRepository)
     private val saveSession = SaveSessionUseCase(sessionRepository)
@@ -79,6 +83,10 @@ class SupporterViewModel(
     fun onCheckInTimeDecrease() = updateState { copy(vp = vp.copy(checkInMinutes = vp.checkInMinutes - 1)) }
 
     fun onCheckInTimeIncrease() = updateState { copy(vp = vp.copy(checkInMinutes = vp.checkInMinutes + 1)) }
+
+    fun onCheckInNow() = updateState {
+        copy(vp = vp.copy(checkInMinutes = currentMinutesOfDay() - setup.estimate.startTimeMinutes))
+    }
 
     fun onCheckInDismiss() = updateState { copy(vp = vp.copy(checkInOpen = false)) }
 
@@ -162,4 +170,9 @@ class SupporterViewModel(
             ),
         )
     }
+}
+
+private fun systemMinutesOfDay(): Int {
+    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    return now.hour * 60 + now.minute
 }
