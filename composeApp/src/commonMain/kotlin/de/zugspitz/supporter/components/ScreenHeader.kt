@@ -15,55 +15,54 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import de.zugspitz.supporter.theme.SupporterColors
-import de.zugspitz.supporter.theme.SupporterTheme
 import androidx.compose.ui.tooling.preview.Preview
+import de.zugspitz.supporter.theme.SupporterTheme
 
-class ScreenHeader {
-    @Composable
-    fun Content(
-        eyebrow: String,
-        title: String,
-        subtitle: String?,
-        pill: String? = null,
-        modifier: Modifier = Modifier,
+@Composable
+fun ScreenHeader(
+    eyebrow: String,
+    title: String,
+    subtitle: String?,
+    pill: String? = null,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top,
     ) {
-        Row(
-            modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = eyebrow.uppercase(),
+                color = SupporterColors.Muted,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.ExtraBold,
+            )
+            Text(
+                text = title,
+                color = SupporterColors.Ink,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Black,
+            )
+            if (subtitle != null) {
                 Text(
-                    text = eyebrow.uppercase(),
+                    text = subtitle,
                     color = SupporterColors.Muted,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                )
-                Text(
-                    text = title,
-                    color = SupporterColors.Ink,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Black,
-                )
-                if (subtitle != null) {
-                    Text(
-                        text = subtitle,
-                        color = SupporterColors.Muted,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 6.dp),
-                    )
-                }
-            }
-            if (pill != null) {
-                Text(
-                    text = pill,
-                    color = SupporterColors.Pine,
-                    fontWeight = FontWeight.Black,
+                    style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier
-                        .background(SupporterColors.Mint, RoundedCornerShape(999.dp))
-                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                        .padding(top = 6.dp),
                 )
             }
+        }
+        if (pill != null) {
+            Text(
+                text = pill,
+                color = SupporterColors.Pine,
+                fontWeight = FontWeight.Black,
+                modifier = Modifier
+                    .background(SupporterColors.Mint, RoundedCornerShape(999.dp))
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+            )
         }
     }
 }
@@ -72,7 +71,7 @@ class ScreenHeader {
 @Composable
 fun ScreenHeaderPreview() {
     SupporterTheme {
-        ScreenHeader().Content(
+        ScreenHeader(
             eyebrow = "VP 3 von 11",
             title = "Z3 Pestkapelle",
             subtitle = "Wischen für vorherigen oder nächsten VP.",

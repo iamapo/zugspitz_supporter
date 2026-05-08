@@ -28,57 +28,54 @@ import de.zugspitz.supporter.theme.SupporterTheme
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 
-class TimeRangeInput {
-    @Composable
-    fun Content(
-        minHours: Int,
-        maxHours: Int,
-        onDecrease: () -> Unit,
-        onIncrease: () -> Unit,
-        modifier: Modifier = Modifier,
+@Composable
+fun TimeRangeInput(
+    minHours: Int,
+    maxHours: Int,
+    onDecrease: () -> Unit,
+    onIncrease: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        TimeField(stringResource(Res.string.from), "${minHours}:00 h")
+        TimeField(stringResource(Res.string.to), "${maxHours}:00 h")
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            StepperButton("-", onDecrease)
+            StepperButton("+", onIncrease)
+        }
+    }
+}
+
+@Composable
+private fun TimeField(label: String, value: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(androidx.compose.ui.graphics.Color(0xFFFBFCFA), RoundedCornerShape(8.dp))
+            .border(1.dp, SupporterColors.Line, RoundedCornerShape(8.dp))
+            .padding(12.dp),
     ) {
-        Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            TimeField(stringResource(Res.string.from), "${minHours}:00 h")
-            TimeField(stringResource(Res.string.to), "${maxHours}:00 h")
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                StepperButton("-", onDecrease)
-
-                StepperButton("+", onIncrease)
-            }
-        }
+        Text(label, color = SupporterColors.Muted, style = MaterialTheme.typography.bodySmall)
+        Text(value, fontWeight = FontWeight.Black, style = MaterialTheme.typography.headlineSmall)
     }
+}
 
-    @Composable
-    private fun TimeField(label: String, value: String) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(androidx.compose.ui.graphics.Color(0xFFFBFCFA), RoundedCornerShape(8.dp))
-                .border(1.dp, SupporterColors.Line, RoundedCornerShape(8.dp))
-                .padding(12.dp),
-        ) {
-            Text(label, color = SupporterColors.Muted, style = MaterialTheme.typography.bodySmall)
-            Text(value, fontWeight = FontWeight.Black, style = MaterialTheme.typography.headlineSmall)
-        }
-    }
-
-    @Composable
-    private fun StepperButton(label: String, onClick: () -> Unit) {
-        Surface(
-            onClick = onClick,
-            color = SupporterColors.Card,
-            shape = RoundedCornerShape(8.dp),
-            modifier = Modifier
-                .width(44.dp)
-                .height(42.dp)
-                .border(1.dp, SupporterColors.Line, RoundedCornerShape(8.dp)),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(label, color = SupporterColors.Moss, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleLarge)
-            }
+@Composable
+private fun StepperButton(label: String, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        color = SupporterColors.Card,
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier
+            .width(44.dp)
+            .height(42.dp)
+            .border(1.dp, SupporterColors.Line, RoundedCornerShape(8.dp)),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(label, color = SupporterColors.Moss, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleLarge)
         }
     }
 }
@@ -87,6 +84,6 @@ class TimeRangeInput {
 @Composable
 fun TimeRangeInputPreview() {
     SupporterTheme {
-        TimeRangeInput().Content(17, 18, {}, {}, Modifier.padding(16.dp))
+        TimeRangeInput(17, 18, {}, {}, Modifier.padding(16.dp))
     }
 }

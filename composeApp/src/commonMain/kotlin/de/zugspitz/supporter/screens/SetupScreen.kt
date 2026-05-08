@@ -57,14 +57,13 @@ import de.zugspitz.supporter.theme.SupporterTheme
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 
-class SetupScreen {
-    @Composable
-    fun Content(
-        estimate: RaceEstimate,
-        onEstimateChange: (RaceEstimate) -> Unit,
-        onCalculateClick: () -> Unit,
-        modifier: Modifier = Modifier,
-    ) {
+@Composable
+fun SetupScreen(
+    estimate: RaceEstimate,
+    onEstimateChange: (RaceEstimate) -> Unit,
+    onCalculateClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
         var fixedInput by remember(estimate.fixedDurationMinutes) {
             mutableStateOf(minutesToDurationInput(estimate.fixedDurationMinutes))
         }
@@ -76,7 +75,7 @@ class SetupScreen {
                 .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            ScreenHeader().Content(
+            ScreenHeader(
                 eyebrow = stringResource(Res.string.race_name),
                 title = stringResource(Res.string.setup_title),
                 subtitle = stringResource(Res.string.setup_subtitle),
@@ -101,7 +100,7 @@ class SetupScreen {
 
             if (estimate.targetMode == TargetTimeMode.Range) {
                 SetupCard(title = stringResource(Res.string.expected_duration)) {
-                    TimeRangeInput().Content(
+                    TimeRangeInput(
                         minHours = estimate.minDurationMinutes / 60,
                         maxHours = estimate.maxDurationMinutes / 60,
                         onDecrease = {
@@ -170,10 +169,10 @@ class SetupScreen {
                 Text(stringResource(Res.string.calculate_plan), fontWeight = FontWeight.Black, modifier = Modifier.padding(6.dp))
             }
         }
-    }
+}
 
-    @Composable
-    private fun SetupCard(title: String, content: @Composable () -> Unit) {
+@Composable
+private fun SetupCard(title: String, content: @Composable () -> Unit) {
         Surface(
             color = SupporterColors.Card,
             shape = RoundedCornerShape(8.dp),
@@ -184,10 +183,10 @@ class SetupScreen {
                 content()
             }
         }
-    }
+}
 
-    @Composable
-    private fun Segment(label: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+@Composable
+private fun Segment(label: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
         Text(
             text = label,
             color = if (selected) SupporterColors.Pine else SupporterColors.Muted,
@@ -199,7 +198,6 @@ class SetupScreen {
                 .padding(vertical = 10.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
-    }
 }
 
 private fun minutesToDurationInput(totalMinutes: Int): String {
@@ -221,7 +219,7 @@ private fun parseDurationInput(input: String): Int? {
 @Composable
 fun SetupScreenPreview() {
     SupporterTheme {
-        SetupScreen().Content(RaceEstimate(), {}, {})
+        SetupScreen(RaceEstimate(), {}, {})
     }
 }
 
@@ -229,7 +227,7 @@ fun SetupScreenPreview() {
 @Composable
 fun SetupScreenFixedPreview() {
     SupporterTheme {
-        SetupScreen().Content(
+        SetupScreen(
             estimate = RaceEstimate(
                 targetMode = TargetTimeMode.Fixed,
                 fixedDurationMinutes = 17 * 60 + 30,

@@ -27,60 +27,58 @@ import de.zugspitz.supporter.theme.SupporterTheme
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 
-class VpListRow {
-    @Composable
-    fun Content(
-        projection: StationProjection,
-        onClick: () -> Unit,
-        modifier: Modifier = Modifier,
+@Composable
+fun VpListRow(
+    projection: StationProjection,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val borderColor = if (projection.isCurrent) SupporterColors.Moss.copy(alpha = 0.55f) else SupporterColors.Line
+    val background = when {
+        projection.isCurrent -> ColorTokens.ActiveRow
+        projection.isDone -> ColorTokens.DoneRow
+        else -> SupporterColors.Card
+    }
+    Surface(
+        onClick = onClick,
+        color = background,
+        shape = RoundedCornerShape(8.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .border(1.dp, borderColor, RoundedCornerShape(8.dp)),
     ) {
-        val borderColor = if (projection.isCurrent) SupporterColors.Moss.copy(alpha = 0.55f) else SupporterColors.Line
-        val background = when {
-            projection.isCurrent -> ColorTokens.ActiveRow
-            projection.isDone -> ColorTokens.DoneRow
-            else -> SupporterColors.Card
-        }
-        Surface(
-            onClick = onClick,
-            color = background,
-            shape = RoundedCornerShape(8.dp),
-            modifier = modifier
-                .fillMaxWidth()
-                .border(1.dp, borderColor, RoundedCornerShape(8.dp)),
+        Row(
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(projection.station.name, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleSmall)
-                    Text(
-                        "${projection.station.totalKm} km · +${projection.station.climbMeters} / -${projection.station.descentMeters} hm",
-                        color = SupporterColors.Muted,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = projection.actualArrival ?: projection.window,
-                        color = SupporterColors.Pine,
-                        fontWeight = FontWeight.Black,
-                    )
-                    Text(
-                        text = if (projection.actualArrival != null) stringResource(Res.string.check_in) else stringResource(Res.string.new_label),
-                        color = SupporterColors.Muted,
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
+            Column(Modifier.weight(1f)) {
+                Text(projection.station.name, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleSmall)
+                Text(
+                    "${projection.station.totalKm} km · +${projection.station.climbMeters} / -${projection.station.descentMeters} hm",
+                    color = SupporterColors.Muted,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = projection.actualArrival ?: projection.window,
+                    color = SupporterColors.Pine,
+                    fontWeight = FontWeight.Black,
+                )
+                Text(
+                    text = if (projection.actualArrival != null) stringResource(Res.string.check_in) else stringResource(Res.string.new_label),
+                    color = SupporterColors.Muted,
+                    style = MaterialTheme.typography.labelSmall,
+                )
             }
         }
     }
+}
 
-    private object ColorTokens {
-        val ActiveRow = androidx.compose.ui.graphics.Color(0xFFF9FCF8)
-        val DoneRow = androidx.compose.ui.graphics.Color(0xFFEEF5EE)
-    }
+private object ColorTokens {
+    val ActiveRow = androidx.compose.ui.graphics.Color(0xFFF9FCF8)
+    val DoneRow = androidx.compose.ui.graphics.Color(0xFFEEF5EE)
 }
 
 @Preview
@@ -88,6 +86,6 @@ class VpListRow {
 fun VpListRowPreview() {
     val projection = RaceCalculator().project(RaceEstimate(), emptyList(), 2).stations[2]
     SupporterTheme {
-        VpListRow().Content(projection = projection, onClick = {}, modifier = Modifier.padding(16.dp))
+        VpListRow(projection = projection, onClick = {}, modifier = Modifier.padding(16.dp))
     }
 }

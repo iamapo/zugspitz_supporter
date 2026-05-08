@@ -36,16 +36,15 @@ import de.zugspitz.supporter.theme.SupporterTheme
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 
-class VpCardScreen {
-    @Composable
-    fun Content(
-        projection: RaceProjection,
-        selectedIndex: Int,
-        onPrevious: () -> Unit,
-        onNext: () -> Unit,
-        onCheckInClick: () -> Unit,
-        modifier: Modifier = Modifier,
-    ) {
+@Composable
+fun VpCardScreen(
+    projection: RaceProjection,
+    selectedIndex: Int,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    onCheckInClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
         val stationProjection = projection.stations[selectedIndex]
         val nextProjection = projection.stations.getOrNull(selectedIndex + 1)
         Column(
@@ -56,14 +55,14 @@ class VpCardScreen {
                 .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            ScreenHeader().Content(
+            ScreenHeader(
                 eyebrow = "VP ${selectedIndex + 1} von ${projection.stations.size}",
                 title = stationProjection.station.name,
                 subtitle = stringResource(Res.string.swipe_hint),
                 pill = "${projection.estimate.minDurationMinutes / 60}-${projection.estimate.maxDurationMinutes / 60} h",
             )
 
-            VpHeroCard().Content(
+            VpHeroCard(
                 projection = stationProjection,
                 completedElevation = completedElevation(projection, selectedIndex),
                 onCheckInClick = onCheckInClick,
@@ -73,26 +72,26 @@ class VpCardScreen {
             SwipeDots(selectedIndex, projection.stations.size, onPrevious, onNext)
 
             if (nextProjection != null) {
-                InfoCard().Content(title = stringResource(Res.string.next_section)) {
+                InfoCard(title = stringResource(Res.string.next_section)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        StatTile().Content("Nach", nextProjection.station.name.removePrefix("Z${nextProjection.station.section} "), nextProjection.station.name, Modifier.weight(1f))
-                        StatTile().Content("Ankunft dort", nextProjection.window, null, Modifier.weight(1f))
+                        StatTile("Nach", nextProjection.station.name.removePrefix("Z${nextProjection.station.section} "), nextProjection.station.name, Modifier.weight(1f))
+                        StatTile("Ankunft dort", nextProjection.window, null, Modifier.weight(1f))
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 10.dp)) {
-                        StatTile().Content("Distanz", "${nextProjection.station.sectionKm} km", null, Modifier.weight(1f))
-                        StatTile().Content("Höhenmeter", "+${nextProjection.station.climbMeters} / -${nextProjection.station.descentMeters}", null, Modifier.weight(1f))
+                        StatTile("Distanz", "${nextProjection.station.sectionKm} km", null, Modifier.weight(1f))
+                        StatTile("Höhenmeter", "+${nextProjection.station.climbMeters} / -${nextProjection.station.descentMeters}", null, Modifier.weight(1f))
                     }
                 }
             }
 
-            InfoCard().Content(title = stringResource(Res.string.support_info)) {
+            InfoCard(title = stringResource(Res.string.support_info)) {
                 Text(stringResource(Res.string.support_info_text), color = SupporterColors.Muted, style = MaterialTheme.typography.bodySmall)
             }
         }
-    }
+}
 
-    @Composable
-    private fun SwipeDots(index: Int, count: Int, onPrevious: () -> Unit, onNext: () -> Unit) {
+@Composable
+private fun SwipeDots(index: Int, count: Int, onPrevious: () -> Unit, onNext: () -> Unit) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
@@ -116,19 +115,18 @@ class VpCardScreen {
                 Text("›", color = SupporterColors.Moss, fontWeight = FontWeight.Black, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(horizontal = 16.dp))
             }
         }
-    }
+}
 
-    private fun completedElevation(projection: RaceProjection, selectedIndex: Int): Pair<Int, Int> {
-        val stations = projection.stations.take(selectedIndex + 1).map { it.station }
-        return stations.sumOf { it.climbMeters } to stations.sumOf { it.descentMeters }
-    }
+private fun completedElevation(projection: RaceProjection, selectedIndex: Int): Pair<Int, Int> {
+    val stations = projection.stations.take(selectedIndex + 1).map { it.station }
+    return stations.sumOf { it.climbMeters } to stations.sumOf { it.descentMeters }
 }
 
 @Preview
 @Composable
 fun VpCardScreenPreview() {
     SupporterTheme {
-        VpCardScreen().Content(
+        VpCardScreen(
             projection = RaceCalculator().project(RaceEstimate(), emptyList(), 2),
             selectedIndex = 2,
             onPrevious = {},

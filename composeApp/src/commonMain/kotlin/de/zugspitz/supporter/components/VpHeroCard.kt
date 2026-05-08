@@ -35,89 +35,87 @@ import de.zugspitz.supporter.theme.SupporterTheme
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 
-class VpHeroCard {
-    @Composable
-    fun Content(
-        projection: StationProjection,
-        completedElevation: Pair<Int, Int>,
-        onCheckInClick: () -> Unit,
-        onChangeTimeClick: () -> Unit,
-        modifier: Modifier = Modifier,
+@Composable
+fun VpHeroCard(
+    projection: StationProjection,
+    completedElevation: Pair<Int, Int>,
+    onCheckInClick: () -> Unit,
+    onChangeTimeClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        color = SupporterColors.Pine,
+        shape = RoundedCornerShape(8.dp),
+        modifier = modifier.fillMaxWidth(),
     ) {
-        Surface(
-            color = SupporterColors.Pine,
-            shape = RoundedCornerShape(8.dp),
-            modifier = modifier.fillMaxWidth(),
-        ) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    verticalAlignment = Alignment.Top,
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(Res.string.expected_arrival).uppercase(),
+                        color = Color.White.copy(alpha = 0.68f),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                    Text(
+                        projection.window,
+                        color = Color.White,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Black,
+                    )
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .background(Color(0xFF7FD36B).copy(alpha = 0.14f), RoundedCornerShape(8.dp))
+                        .border(1.dp, Color(0xFF7FD36B).copy(alpha = 0.45f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 10.dp, vertical = 9.dp),
                 ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            stringResource(Res.string.expected_arrival).uppercase(),
-                            color = Color.White.copy(alpha = 0.68f),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.ExtraBold,
-                        )
-                        Text(
-                            projection.window,
-                            color = Color.White,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Black,
-                        )
-                    }
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .background(Color(0xFF7FD36B).copy(alpha = 0.14f), RoundedCornerShape(8.dp))
-                            .border(1.dp, Color(0xFF7FD36B).copy(alpha = 0.45f), RoundedCornerShape(8.dp))
-                            .padding(horizontal = 10.dp, vertical = 9.dp),
-                    ) {
-                        Text(
-                            stringResource(Res.string.plan).uppercase(),
-                            color = Color.White.copy(alpha = 0.7f),
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                        Text(projection.plannedArrival, color = Color(0xFF8CE075), fontWeight = FontWeight.Black)
-                    }
-                }
-
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StatTile().Content(
-                        label = stringResource(Res.string.completed),
-                        value = "${projection.station.totalKm} km",
-                        detail = "+${completedElevation.first} / -${completedElevation.second} hm",
-                        modifier = Modifier.weight(1f),
-                        inverted = true,
+                    Text(
+                        stringResource(Res.string.plan).uppercase(),
+                        color = Color.White.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.labelSmall,
                     )
-                    StatTile().Content(
-                        label = stringResource(Res.string.to_here),
-                        value = "${projection.station.sectionKm} km",
-                        detail = "+${projection.station.climbMeters} / -${projection.station.descentMeters} hm",
-                        modifier = Modifier.weight(1f),
-                        inverted = true,
-                    )
+                    Text(projection.plannedArrival, color = Color(0xFF8CE075), fontWeight = FontWeight.Black)
                 }
+            }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Button(
-                        onClick = onCheckInClick,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8CE075), contentColor = Color(0xFF0F1B12)),
-                    ) {
-                        Text(stringResource(Res.string.check_in), fontWeight = FontWeight.Black)
-                    }
-                    Button(
-                        onClick = onChangeTimeClick,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.08f), contentColor = Color.White),
-                    ) {
-                        Text(stringResource(Res.string.change_time), fontWeight = FontWeight.Black)
-                    }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                StatTile(
+                    label = stringResource(Res.string.completed),
+                    value = "${projection.station.totalKm} km",
+                    detail = "+${completedElevation.first} / -${completedElevation.second} hm",
+                    modifier = Modifier.weight(1f),
+                    inverted = true,
+                )
+                StatTile(
+                    label = stringResource(Res.string.to_here),
+                    value = "${projection.station.sectionKm} km",
+                    detail = "+${projection.station.climbMeters} / -${projection.station.descentMeters} hm",
+                    modifier = Modifier.weight(1f),
+                    inverted = true,
+                )
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                Button(
+                    onClick = onCheckInClick,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8CE075), contentColor = Color(0xFF0F1B12)),
+                ) {
+                    Text(stringResource(Res.string.check_in), fontWeight = FontWeight.Black)
+                }
+                Button(
+                    onClick = onChangeTimeClick,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.08f), contentColor = Color.White),
+                ) {
+                    Text(stringResource(Res.string.change_time), fontWeight = FontWeight.Black)
                 }
             }
         }
@@ -129,7 +127,7 @@ class VpHeroCard {
 fun VpHeroCardPreview() {
     val projection = RaceCalculator().project(RaceEstimate(), emptyList(), 2).stations[2]
     SupporterTheme {
-        VpHeroCard().Content(
+        VpHeroCard(
             projection = projection,
             completedElevation = 1750 to 834,
             onCheckInClick = {},

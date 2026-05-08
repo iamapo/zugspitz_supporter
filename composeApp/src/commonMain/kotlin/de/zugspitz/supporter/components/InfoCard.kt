@@ -15,23 +15,21 @@ import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterTheme
 import androidx.compose.ui.tooling.preview.Preview
 
-class InfoCard {
-    @Composable
-    fun Content(
-        title: String,
-        modifier: Modifier = Modifier,
-        body: @Composable () -> Unit,
+@Composable
+fun InfoCard(
+    title: String,
+    modifier: Modifier = Modifier,
+    body: @Composable () -> Unit,
+) {
+    Surface(
+        color = SupporterColors.Card,
+        shape = RoundedCornerShape(8.dp),
+        modifier = modifier.border(1.dp, SupporterColors.Line, RoundedCornerShape(8.dp)),
     ) {
-        Surface(
-            color = SupporterColors.Card,
-            shape = RoundedCornerShape(8.dp),
-            modifier = modifier.border(1.dp, SupporterColors.Line, RoundedCornerShape(8.dp)),
-        ) {
-            Column(Modifier.padding(14.dp)) {
-                Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
-                Column(Modifier.padding(top = 9.dp)) {
-                    body()
-                }
+        Column(Modifier.padding(14.dp)) {
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black)
+            Column(Modifier.padding(top = 9.dp)) {
+                body()
             }
         }
     }
@@ -41,7 +39,7 @@ class InfoCard {
 @Composable
 fun InfoCardPreview() {
     SupporterTheme {
-        InfoCard().Content(title = "Vorschau", modifier = Modifier.padding(16.dp)) {
+        InfoCard(title = "Vorschau", modifier = Modifier.padding(16.dp)) {
             Text("Ankunftsfenster werden je VP berechnet.")
         }
     }
