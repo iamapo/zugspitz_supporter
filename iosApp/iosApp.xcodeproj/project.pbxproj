@@ -136,7 +136,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "cd \"$SRCROOT/..\"\nif [ -z \"$ARCHS\" ]; then\n  if [ \"$PLATFORM_NAME\" = \"iphonesimulator\" ]; then\n    export ARCHS=\"arm64 x86_64\"\n  else\n    export ARCHS=\"arm64\"\n  fi\nfi\nexport JAVA_HOME=$(/usr/libexec/java_home -v 17)\nexport PATH=\"$JAVA_HOME/bin:$PATH\"\n./gradlew -Dorg.gradle.java.home=\"$JAVA_HOME\" :composeApp:embedAndSignAppleFrameworkForXcode\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

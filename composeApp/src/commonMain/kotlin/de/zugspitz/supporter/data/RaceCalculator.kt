@@ -9,8 +9,17 @@ class RaceCalculator {
         selectedIndex: Int,
         stations: List<AidStation> = ZugspitzStations,
     ): RaceProjection {
-        val targetScale = estimate.minDurationMinutes.toDouble() / (17 * 60)
-        val rangeExtra = estimate.maxDurationMinutes - estimate.minDurationMinutes
+        val effectiveDurationMinutes = if (estimate.targetMode == TargetTimeMode.Fixed) {
+            estimate.fixedDurationMinutes
+        } else {
+            estimate.minDurationMinutes
+        }
+        val targetScale = effectiveDurationMinutes.toDouble() / (17 * 60)
+        val rangeExtra = if (estimate.targetMode == TargetTimeMode.Fixed) {
+            0
+        } else {
+            estimate.maxDurationMinutes - estimate.minDurationMinutes
+        }
         val scaledStations = stations.map { station ->
             val scaledPlan = (station.plannedArrivalMinutes * targetScale).roundToInt()
             val spreadStart = (station.windowStartMinutes * targetScale).roundToInt()
