@@ -45,27 +45,7 @@ class TimeRangeInput {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 StepperButton("-", onDecrease)
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(10.dp)
-                        .background(SupporterColors.Line, RoundedCornerShape(999.dp)),
-                    contentAlignment = Alignment.CenterEnd,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(0.56f)
-                            .height(10.dp)
-                            .background(SupporterColors.Moss, RoundedCornerShape(999.dp)),
-                    )
-                    Box(
-                        modifier = Modifier
-                            .padding(end = 36.dp)
-                            .width(22.dp)
-                            .height(22.dp)
-                            .background(SupporterColors.Pine, CircleShape),
-                    )
-                }
+
                 StepperButton("+", onIncrease)
             }
         }

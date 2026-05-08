@@ -5,9 +5,16 @@ import androidx.compose.runtime.Immutable
 @Immutable
 data class RaceEstimate(
     val startTimeMinutes: Int = 22 * 60,
+    val targetMode: TargetTimeMode = TargetTimeMode.Range,
+    val fixedDurationMinutes: Int = 17 * 60,
     val minDurationMinutes: Int = 17 * 60,
     val maxDurationMinutes: Int = 18 * 60,
 )
+
+enum class TargetTimeMode {
+    Fixed,
+    Range,
+}
 
 @Immutable
 data class AidStation(
