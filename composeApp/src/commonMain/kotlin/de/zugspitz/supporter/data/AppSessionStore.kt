@@ -9,13 +9,13 @@ class AppSessionStore(
     private val settings: Settings = Settings(),
     private val json: Json = Json { ignoreUnknownKeys = true },
 ) {
-    fun load(): AppSessionSnapshot {
-        val raw = settings.getStringOrNull(KEY_SESSION) ?: return AppSessionSnapshot()
-        return runCatching { json.decodeFromString<AppSessionSnapshot>(raw) }.getOrElse { AppSessionSnapshot() }
+    fun load(): AppSessionState {
+        val raw = settings.getStringOrNull(KEY_SESSION) ?: return AppSessionState()
+        return runCatching { json.decodeFromString<AppSessionState>(raw) }.getOrElse { AppSessionState() }
     }
 
-    fun save(snapshot: AppSessionSnapshot) {
-        settings.putString(KEY_SESSION, json.encodeToString(snapshot))
+    fun save(state: AppSessionState) {
+        settings.putString(KEY_SESSION, json.encodeToString(state))
     }
 
     fun clear() {
@@ -28,7 +28,7 @@ class AppSessionStore(
 }
 
 @Serializable
-data class AppSessionSnapshot(
+data class AppSessionState(
     val estimate: RaceEstimate = RaceEstimate(),
     val tab: SavedTab = SavedTab.Setup,
     val selectedIndex: Int = 0,
