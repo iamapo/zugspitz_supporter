@@ -33,6 +33,7 @@ import de.zugspitz.supporter.components.VpCard
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.RaceProjection
+import de.zugspitz.supporter.data.StationProjection
 import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterRadius
 import de.zugspitz.supporter.theme.SupporterSpacing
@@ -45,6 +46,7 @@ import zugspitz_supporter.composeapp.generated.resources.distance
 import zugspitz_supporter.composeapp.generated.resources.duration_hours_range
 import zugspitz_supporter.composeapp.generated.resources.elevation
 import zugspitz_supporter.composeapp.generated.resources.next_section
+import zugspitz_supporter.composeapp.generated.resources.pace_time
 import zugspitz_supporter.composeapp.generated.resources.section_to
 import zugspitz_supporter.composeapp.generated.resources.vp_of_total
 
@@ -126,6 +128,14 @@ fun VpCardScreen(
                     StatTile(stringResource(Res.string.distance), "${nextProjection.station.sectionKm} km", null, Modifier.weight(1f))
                     StatTile(stringResource(Res.string.elevation), "+${nextProjection.station.climbMeters} / -${nextProjection.station.descentMeters}", null, Modifier.weight(1f))
                 }
+                StatTile(
+                    stringResource(Res.string.pace_time),
+                    likelyPace(activeProjection, nextProjection),
+                    null,
+                    Modifier
+                        .padding(top = 10.dp)
+                        .fillMaxWidth(),
+                )
             }
         }
     }
@@ -161,6 +171,16 @@ private fun SwipeDots(index: Int, count: Int, pagerState: PagerState) {
 private fun completedElevation(projection: RaceProjection, selectedIndex: Int): Pair<Int, Int> {
     val stations = projection.stations.take(selectedIndex + 1).map { it.station }
     return stations.sumOf { it.climbMeters } to stations.sumOf { it.descentMeters }
+}
+
+private fun likelyPace(from: StationProjection, to: StationProjection): String {
+    val startMinutes = from.actualArrivalMinutes ?: from.projectedArrivalMinutes
+    val segmentMinutes = (to.projectedArrivalMinutes - startMinutes).coerceAtLeast(1)
+    val paceMinutesPerKm = segmentMinutes / to.station.sectionKm
+    val totalSeconds = (paceMinutesPerKm * 60).toInt().coerceAtLeast(0)
+    val paceMinutes = totalSeconds / 60
+    val paceSeconds = totalSeconds % 60
+    return "${paceMinutes}:${paceSeconds.toString().padStart(2, '0')}/km"
 }
 
 @Preview
