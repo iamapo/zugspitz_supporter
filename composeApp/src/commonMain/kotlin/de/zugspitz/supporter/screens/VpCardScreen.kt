@@ -34,11 +34,19 @@ import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.RaceProjection
 import de.zugspitz.supporter.theme.SupporterColors
+import de.zugspitz.supporter.theme.SupporterRadius
+import de.zugspitz.supporter.theme.SupporterSpacing
 import de.zugspitz.supporter.theme.SupporterTheme
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
+import zugspitz_supporter.composeapp.generated.resources.arrival_there
+import zugspitz_supporter.composeapp.generated.resources.distance
+import zugspitz_supporter.composeapp.generated.resources.duration_hours_range
+import zugspitz_supporter.composeapp.generated.resources.elevation
 import zugspitz_supporter.composeapp.generated.resources.next_section
+import zugspitz_supporter.composeapp.generated.resources.section_to
+import zugspitz_supporter.composeapp.generated.resources.vp_of_total
 
 @Composable
 fun VpCardScreen(
@@ -71,23 +79,27 @@ fun VpCardScreen(
             .fillMaxSize()
             .background(SupporterColors.Paper)
             .verticalScroll(rememberScrollState())
-            .padding(top = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(top = SupporterSpacing.Xl),
+        verticalArrangement = Arrangement.spacedBy(SupporterSpacing.Md),
     ) {
         val activeProjection = projection.stations[uiPage]
         val nextProjection = projection.stations.getOrNull(uiPage + 1)
 
         ScreenHeader(
-            modifier = Modifier.padding(horizontal = 18.dp),
-            eyebrow = "VP ${uiPage + 1} von ${projection.stations.size}",
+            modifier = Modifier.padding(horizontal = SupporterSpacing.Xl),
+            eyebrow = stringResource(Res.string.vp_of_total, uiPage + 1, projection.stations.size),
             title = activeProjection.station.name,
-            pill = "${projection.estimate.minDurationMinutes / 60}-${projection.estimate.maxDurationMinutes / 60} h",
+            pill = stringResource(
+                Res.string.duration_hours_range,
+                projection.estimate.minDurationMinutes / 60,
+                projection.estimate.maxDurationMinutes / 60,
+            ),
         )
 
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxWidth(),
-            pageSpacing = 14.dp,
+            pageSpacing = SupporterSpacing.Md,
             contentPadding = PaddingValues(horizontal = 28.dp),
         ) { page ->
             val stationProjection = projection.stations[page]
@@ -104,15 +116,15 @@ fun VpCardScreen(
         if (nextProjection != null) {
             InfoCard(
                 title = stringResource(Res.string.next_section),
-                modifier = Modifier.padding(horizontal = 6.dp),
+                modifier = Modifier.padding(horizontal = SupporterSpacing.Sm),
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StatTile("Nach", nextProjection.station.name.removePrefix("Z${nextProjection.station.section} "), nextProjection.station.name, Modifier.weight(1f))
-                    StatTile("Ankunft dort", nextProjection.window, null, Modifier.weight(1f))
+                    StatTile(stringResource(Res.string.section_to), nextProjection.station.name.removePrefix("Z${nextProjection.station.section} "), nextProjection.station.name, Modifier.weight(1f))
+                    StatTile(stringResource(Res.string.arrival_there), nextProjection.window, null, Modifier.weight(1f))
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 10.dp)) {
-                    StatTile("Distanz", "${nextProjection.station.sectionKm} km", null, Modifier.weight(1f))
-                    StatTile("Höhenmeter", "+${nextProjection.station.climbMeters} / -${nextProjection.station.descentMeters}", null, Modifier.weight(1f))
+                    StatTile(stringResource(Res.string.distance), "${nextProjection.station.sectionKm} km", null, Modifier.weight(1f))
+                    StatTile(stringResource(Res.string.elevation), "+${nextProjection.station.climbMeters} / -${nextProjection.station.descentMeters}", null, Modifier.weight(1f))
                 }
             }
         }
@@ -138,7 +150,7 @@ private fun SwipeDots(index: Int, count: Int, pagerState: PagerState) {
                     }
                     .background(
                         if (dotIndex == index) SupporterColors.Moss else androidx.compose.ui.graphics.Color(0xFFCBD4CB),
-                        RoundedCornerShape(999.dp),
+                        RoundedCornerShape(SupporterRadius.Pill),
                     )
                     .padding(horizontal = if (dotIndex == index) 11.dp else 4.dp, vertical = 4.dp),
             )

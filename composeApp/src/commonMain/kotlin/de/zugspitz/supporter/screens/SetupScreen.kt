@@ -2,6 +2,7 @@ package de.zugspitz.supporter.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -24,38 +26,33 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.text.KeyboardOptions
-import de.zugspitz.supporter.components.InfoCard
 import de.zugspitz.supporter.components.ScreenHeader
-import de.zugspitz.supporter.components.StatTile
 import de.zugspitz.supporter.components.TimeRangeInput
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.TargetTimeMode
+import de.zugspitz.supporter.theme.SupporterColors
+import de.zugspitz.supporter.theme.SupporterRadius
+import de.zugspitz.supporter.theme.SupporterSpacing
+import de.zugspitz.supporter.theme.SupporterTheme
+import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.calculate_plan
 import zugspitz_supporter.composeapp.generated.resources.custom_time
 import zugspitz_supporter.composeapp.generated.resources.expected_duration
-import zugspitz_supporter.composeapp.generated.resources.finish
 import zugspitz_supporter.composeapp.generated.resources.fixed_time
-import zugspitz_supporter.composeapp.generated.resources.pace_time
 import zugspitz_supporter.composeapp.generated.resources.planned_start
-import zugspitz_supporter.composeapp.generated.resources.preview
-import zugspitz_supporter.composeapp.generated.resources.preview_note
+import zugspitz_supporter.composeapp.generated.resources.planned_start_time
 import zugspitz_supporter.composeapp.generated.resources.race_name
 import zugspitz_supporter.composeapp.generated.resources.range_time
 import zugspitz_supporter.composeapp.generated.resources.setup_subtitle
 import zugspitz_supporter.composeapp.generated.resources.setup_title
 import zugspitz_supporter.composeapp.generated.resources.start_time
+import zugspitz_supporter.composeapp.generated.resources.start_time_placeholder
 import zugspitz_supporter.composeapp.generated.resources.target_time_mode
-import zugspitz_supporter.composeapp.generated.resources.vps
-import de.zugspitz.supporter.theme.SupporterColors
-import de.zugspitz.supporter.theme.SupporterTheme
-import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun SetupScreen(
@@ -72,8 +69,8 @@ fun SetupScreen(
                 .fillMaxSize()
                 .background(SupporterColors.Paper)
                 .verticalScroll(rememberScrollState())
-                .padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(SupporterSpacing.Xl),
+            verticalArrangement = Arrangement.spacedBy(SupporterSpacing.Md),
         ) {
             ScreenHeader(
                 eyebrow = stringResource(Res.string.race_name),
@@ -82,7 +79,7 @@ fun SetupScreen(
             )
 
             SetupCard(title = stringResource(Res.string.target_time_mode)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(7.dp), modifier = Modifier.fillMaxWidth()) {
+                Row(horizontalArrangement = Arrangement.spacedBy(SupporterSpacing.Sm), modifier = Modifier.fillMaxWidth()) {
                     Segment(
                         label = stringResource(Res.string.fixed_time),
                         selected = estimate.targetMode == TargetTimeMode.Fixed,
@@ -134,7 +131,7 @@ fun SetupScreen(
                             }
                         },
                         label = { Text(stringResource(Res.string.custom_time)) },
-                        placeholder = { Text("17:00") },
+                        placeholder = { Text(stringResource(Res.string.start_time_placeholder)) },
                         textStyle = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Black),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = androidx.compose.ui.graphics.Color(0xFFFBFCFA),
@@ -151,22 +148,22 @@ fun SetupScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(androidx.compose.ui.graphics.Color(0xFFFBFCFA), RoundedCornerShape(8.dp))
-                        .border(1.dp, SupporterColors.Line, RoundedCornerShape(8.dp))
-                        .padding(12.dp),
+                        .background(androidx.compose.ui.graphics.Color(0xFFFBFCFA), RoundedCornerShape(SupporterRadius.Card))
+                        .border(1.dp, SupporterColors.Line, RoundedCornerShape(SupporterRadius.Card))
+                        .padding(SupporterSpacing.Md),
                 ) {
                     Text(stringResource(Res.string.planned_start), color = SupporterColors.Muted)
-                    Text("22:00", fontWeight = FontWeight.Black, style = MaterialTheme.typography.headlineSmall)
+                    Text(stringResource(Res.string.planned_start_time), fontWeight = FontWeight.Black, style = MaterialTheme.typography.headlineSmall)
                 }
             }
 
             Button(
                 onClick = onCalculateClick,
-                shape = RoundedCornerShape(8.dp),
+                shape = RoundedCornerShape(SupporterRadius.Card),
                 colors = ButtonDefaults.buttonColors(containerColor = SupporterColors.Pine),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(stringResource(Res.string.calculate_plan), fontWeight = FontWeight.Black, modifier = Modifier.padding(6.dp))
+                Text(stringResource(Res.string.calculate_plan), fontWeight = FontWeight.Black, modifier = Modifier.padding(SupporterSpacing.Sm))
             }
         }
 }
@@ -175,8 +172,8 @@ fun SetupScreen(
 private fun SetupCard(title: String, content: @Composable () -> Unit) {
         Surface(
             color = SupporterColors.Card,
-            shape = RoundedCornerShape(8.dp),
-            modifier = Modifier.border(1.dp, SupporterColors.Line, RoundedCornerShape(8.dp)),
+            shape = RoundedCornerShape(SupporterRadius.Card),
+            modifier = Modifier.border(1.dp, SupporterColors.Line, RoundedCornerShape(SupporterRadius.Card)),
         ) {
             Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(title.uppercase(), color = SupporterColors.Muted, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
@@ -193,8 +190,8 @@ private fun Segment(label: String, selected: Boolean, modifier: Modifier, onClic
             fontWeight = FontWeight.Black,
             modifier = modifier
                 .clickable(onClick = onClick)
-                .background(if (selected) SupporterColors.Mint else androidx.compose.ui.graphics.Color(0xFFEEF2EC), RoundedCornerShape(8.dp))
-                .then(if (selected) Modifier.border(1.dp, SupporterColors.Moss.copy(alpha = 0.35f), RoundedCornerShape(8.dp)) else Modifier)
+                .background(if (selected) SupporterColors.Mint else androidx.compose.ui.graphics.Color(0xFFEEF2EC), RoundedCornerShape(SupporterRadius.Card))
+                .then(if (selected) Modifier.border(1.dp, SupporterColors.Moss.copy(alpha = 0.35f), RoundedCornerShape(SupporterRadius.Card)) else Modifier)
                 .padding(vertical = 10.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
