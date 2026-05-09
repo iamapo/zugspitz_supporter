@@ -8,6 +8,7 @@
     <string name="setup_title">Support Plan erstellen</string>
     <string name="setup_subtitle">Wähle, wie lange die Läuferin ungefähr benötigen wird. Daraus entstehen die VP-Zeitfenster.</string>
     <string name="race_name">Zugspitz Ultratrail</string>
+    <string name="race_distance">Distanz</string>
     <string name="target_time_mode">Zielzeit-Modus</string>
     <string name="fixed_time">Fix</string>
     <string name="range_time">Range</string>

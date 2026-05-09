@@ -5,6 +5,7 @@ import de.zugspitz.supporter.data.AppSessionState
 import de.zugspitz.supporter.data.CheckIn
 import de.zugspitz.supporter.data.DefaultSessionRepository
 import de.zugspitz.supporter.data.RaceCalculator
+import de.zugspitz.supporter.data.RaceDefinitions
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.SessionRepository
 import de.zugspitz.supporter.data.formatRaceTime
@@ -48,6 +49,15 @@ class SupporterViewModel(
 
     fun onEstimateChange(estimate: RaceEstimate) = updateState {
         copy(setup = setup.copy(estimate = updateEstimate(estimate)))
+    }
+
+    fun onRaceSelected(raceId: String) = updateState {
+        val selectedRace = RaceDefinitions.byId(raceId)
+        copy(
+            checkIns = emptyList(),
+            setup = setup.copy(estimate = selectedRace.defaultEstimate()),
+            vp = vp.copy(selectedIndex = 0),
+        )
     }
 
     fun onCalculateClick() = updateState {
@@ -159,10 +169,11 @@ class SupporterViewModel(
 
     private fun createInitialState(): AppUiState {
         val session = loadSession()
+        val initialProjection = calculator.project(session.estimate, session.checkIns, session.selectedIndex)
         return buildUiState(
             tab = session.tab.toAppTab(),
             estimate = session.estimate,
-            selectedIndex = session.selectedIndex.coerceAtLeast(0).coerceAtMost(10),
+            selectedIndex = session.selectedIndex.coerceIn(0, initialProjection.stations.lastIndex),
             checkIns = session.checkIns,
             checkSheetOpen = false,
             checkAction = CheckAction.CheckIn,

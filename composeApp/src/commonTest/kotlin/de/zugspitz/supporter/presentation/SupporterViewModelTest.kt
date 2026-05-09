@@ -3,6 +3,7 @@ package de.zugspitz.supporter.presentation
 import de.zugspitz.supporter.components.AppTab
 import de.zugspitz.supporter.data.AppSessionState
 import de.zugspitz.supporter.data.CheckIn
+import de.zugspitz.supporter.data.RaceDefinitions
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.SavedTab
 import de.zugspitz.supporter.data.SessionRepository
@@ -76,6 +77,45 @@ class SupporterViewModelTest {
 
         val state = viewModel.uiState.value
         assertEquals(75, state.vp.checkMinutes)
+        assertEquals("23:15", state.vp.checkInputTime)
+    }
+
+    @Test
+    fun `selecting ehrwald trail updates start time stations and clears check ins`() {
+        val repository = FakeSessionRepository(
+            AppSessionState(
+                tab = SavedTab.Setup,
+                selectedIndex = 4,
+                checkIns = listOf(CheckIn(stationSection = 3, actualArrivalMinutes = 281)),
+            ),
+        )
+        val viewModel = SupporterViewModel(sessionRepository = repository)
+
+        viewModel.onRaceSelected(RaceDefinitions.EhrwaldTrailId)
+
+        val state = viewModel.uiState.value
+        assertEquals(RaceDefinitions.EhrwaldTrailId, state.setup.estimate.raceId)
+        assertEquals(23 * 60, state.setup.estimate.startTimeMinutes)
+        assertEquals(0, state.vp.selectedIndex)
+        assertTrue(state.checkIns.isEmpty())
+        assertEquals("Z3 Pestkapelle", state.vp.projection.stations.first().station.name)
+    }
+
+    @Test
+    fun `ehrwald check in now uses 23 o clock start`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = repository,
+            currentMinutesOfDay = { 23 * 60 + 15 },
+        )
+
+        viewModel.onRaceSelected(RaceDefinitions.EhrwaldTrailId)
+        viewModel.onCalculateClick()
+        viewModel.onCheckInOpen()
+        viewModel.onCheckInNow()
+
+        val state = viewModel.uiState.value
+        assertEquals(15, state.vp.checkMinutes)
         assertEquals("23:15", state.vp.checkInputTime)
     }
 
