@@ -100,6 +100,20 @@ class RaceCalculatorTest {
     }
 
     @Test
+    fun `grainau projection uses saturday 18 o clock start and grainau stations`() {
+        val projection = calculator.project(
+            estimate = RaceDefinitions.byId(RaceDefinitions.GrainauTrailId).defaultEstimate(),
+            checkIns = emptyList(),
+            selectedIndex = 0,
+        )
+
+        assertEquals(2, projection.stations.size)
+        assertEquals("Z10 Tröglift", projection.stations.first().station.name)
+        assertEquals("Ziel Garmisch", projection.stations.last().station.name)
+        assertEquals("20:00-22:00", projection.stations.last().window)
+    }
+
+    @Test
     fun `segment factors shift intermediate station timings`() {
         val stations = listOf(
             AidStation(1, "A", "Start", 10.0, 47.0, 11.0, 10.0, 0, 0, 0, 0, 0, 0),
