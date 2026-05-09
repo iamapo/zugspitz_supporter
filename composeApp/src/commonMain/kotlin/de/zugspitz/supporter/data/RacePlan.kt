@@ -56,7 +56,27 @@ val GrainauTrailStations = listOf(
     AidStation(2, "Ziel Garmisch", "Z10 Tröglift", 15.9, 7.5, 33, 693, 0, 0, 0, 0),
 )
 
+val Zut100Stations = listOf(
+    AidStation(1, "Z1 Eibsee", "Start Garmisch", 10.4, 10.4, 455, 136, 0, 0, 0, 2),
+    AidStation(2, "Z2 Gamsalm", "Z1 Eibsee", 18.9, 8.5, 726, 434, 0, 0, 0, 3),
+    AidStation(3, "Z3 Pestkapelle", "Z2 Gamsalm", 26.8, 7.9, 653, 306, 0, 0, 0, 3),
+    AidStation(4, "Z4 Hämmermoosalm", "Z3 Pestkapelle", 40.2, 13.4, 896, 1206, 0, 0, 0, 5),
+    AidStation(5, "Z11 Straßberghaus", "Z4 Hämmermoosalm", 52.5, 12.3, 959, 1024, 0, 0, 0, 5),
+    AidStation(6, "Z12 Arkasstein", "Z11 Straßberghaus", 68.3, 15.8, 682, 709, 0, 0, 0, 5),
+    AidStation(7, "Z13 Biberwier", "Z12 Arkasstein", 78.0, 9.7, 672, 825, 0, 0, 0, 6),
+    AidStation(8, "Z3 Pestkapelle", "Z13 Biberwier", 89.1, 11.1, 734, 303, 0, 0, 0, 3),
+    AidStation(9, "Z4 Hämmermoosalm", "Z3 Pestkapelle", 98.1, 9.0, 241, 279, 0, 0, 0, 5),
+    AidStation(10, "Z5 Hubertushof", "Z4 Hämmermoosalm", 111.4, 13.3, 634, 1069, 0, 0, 0, 12),
+    AidStation(11, "Z6 Mittenwald", "Z5 Hubertushof", 119.7, 8.3, 82, 194, 0, 0, 0, 6),
+    AidStation(12, "Z7 Schloss Elmau", "Z6 Mittenwald", 129.8, 10.1, 424, 236, 0, 0, 0, 4),
+    AidStation(13, "Z8 Laubhütte", "Z7 Schloss Elmau", 143.0, 13.2, 725, 705, 0, 0, 0, 4),
+    AidStation(14, "Z9 Hochalm", "Z8 Laubhütte", 147.7, 4.7, 772, 2, 0, 0, 0, 3),
+    AidStation(15, "Z10 Tröglift", "Z9 Hochalm", 155.9, 8.2, 154, 828, 0, 0, 0, 2),
+    AidStation(16, "Ziel Garmisch", "Z10 Tröglift", 163.4, 7.5, 9, 561, 0, 0, 0, 0),
+)
+
 object RaceDefinitions {
+    const val Zut100Id = "zut-100"
     const val ZugspitzUltratrailId = "zugspitz-ultratrail"
     const val EhrwaldTrailId = "ehrwald-trail"
     const val LeutaschTrailId = "leutasch-trail"
@@ -65,6 +85,35 @@ object RaceDefinitions {
     const val GrainauTrailId = "grainau-trail"
 
     val All = listOf(
+        RaceDefinition(
+            id = Zut100Id,
+            name = "ZUT 100",
+            distanceLabel = "164 km",
+            startLocation = "Garmisch-Partenkirchen",
+            startTimeMinutes = 20 * 60,
+            defaultMinDurationMinutes = 38 * 60,
+            defaultMaxDurationMinutes = 43 * 60,
+            defaultFixedDurationMinutes = 42 * 60 + 30,
+            stations = Zut100Stations,
+            segmentFactors = mapOf(
+                1 to 0.82,
+                2 to 0.81,
+                3 to 0.77,
+                4 to 0.99,
+                5 to 1.08,
+                6 to 1.1,
+                7 to 1.13,
+                8 to 1.05,
+                9 to 1.02,
+                10 to 0.98,
+                11 to 1.08,
+                12 to 1.06,
+                13 to 1.12,
+                14 to 1.23,
+                15 to 1.21,
+                16 to 1.02,
+            ),
+        ),
         RaceDefinition(
             id = ZugspitzUltratrailId,
             name = "Zugspitz Ultratrail",
