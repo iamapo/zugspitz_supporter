@@ -27,6 +27,9 @@
     <string name="completed">Absolviert</string>
     <string name="to_here">Bis hier</string>
     <string name="check_in">Check-in</string>
+    <string name="checked_in">Eingecheckt</string>
+    <string name="check_in_now">Jetzt einchecken</string>
+    <string name="enter_time">Zeit eintragen</string>
     <string name="check_out">Checkout</string>
     <string name="change_time">Zeit ändern</string>
     <string name="next_section">Nächster Abschnitt</string>
