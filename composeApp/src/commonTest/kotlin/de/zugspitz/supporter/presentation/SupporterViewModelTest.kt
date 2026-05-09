@@ -6,6 +6,8 @@ import de.zugspitz.supporter.data.CheckEvent
 import de.zugspitz.supporter.data.CheckEventType
 import de.zugspitz.supporter.data.CheckIn
 import de.zugspitz.supporter.data.LiveRaceRepository
+import de.zugspitz.supporter.data.LiveRaceSubscription
+import de.zugspitz.supporter.data.LiveRole
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.SavedTab
 import de.zugspitz.supporter.data.SessionRepository
@@ -103,6 +105,38 @@ class SupporterViewModelTest {
         assertEquals(listOf(CheckEventType.CheckIn, CheckEventType.CheckOut), liveRepository.events.map { it.type })
         assertEquals("ABC123", liveRepository.events.first().runCode)
     }
+
+    @Test
+    fun `supporter subscription applies remote check in events`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(),
+            liveRaceRepository = liveRepository,
+        )
+
+        viewModel.onLiveRoleSelected(LiveRole.Supporter)
+        viewModel.onRunCodeChanged("RUN42")
+        viewModel.onLiveSharingToggle(true)
+
+        liveRepository.emit(
+            "RUN42",
+            listOf(
+                CheckEvent(
+                    id = "RUN42-3-CheckIn-1",
+                    runCode = "RUN42",
+                    stationSection = 3,
+                    stationName = "Z3 Test",
+                    type = CheckEventType.CheckIn,
+                    raceMinutes = 285,
+                    createdAtEpochMillis = 1L,
+                ),
+            ),
+        )
+
+        assertEquals(1, viewModel.uiState.value.checkIns.size)
+        assertEquals(CheckIn(stationSection = 3, actualArrivalMinutes = 285), viewModel.uiState.value.checkIns.first())
+        assertEquals("Check-in Test um 02:45", viewModel.uiState.value.settings.lastLiveEventText)
+    }
 }
 
 private class FakeSessionRepository(
@@ -121,8 +155,22 @@ private class FakeSessionRepository(
 
 private class FakeLiveRaceRepository : LiveRaceRepository {
     val events = mutableListOf<CheckEvent>()
+    private val listeners = mutableMapOf<String, (List<CheckEvent>) -> Unit>()
 
     override fun publish(event: CheckEvent) {
         events += event
+    }
+
+    override fun subscribe(runCode: String, onEventsChanged: (List<CheckEvent>) -> Unit): LiveRaceSubscription {
+        listeners[runCode] = onEventsChanged
+        return object : LiveRaceSubscription {
+            override fun close() {
+                listeners.remove(runCode)
+            }
+        }
+    }
+
+    fun emit(runCode: String, events: List<CheckEvent>) {
+        listeners[runCode]?.invoke(events)
     }
 }

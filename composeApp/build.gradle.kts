@@ -4,6 +4,7 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
     id("com.android.application")
+    id("com.google.gms.google-services")
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
 }
@@ -36,6 +37,8 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
             implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
+            implementation("dev.gitlive:firebase-auth:2.4.0")
+            implementation("dev.gitlive:firebase-firestore:2.4.0")
         }
 
         commonTest.dependencies {
@@ -67,6 +70,9 @@ android {
 }
 
 dependencies {
+    add("androidMainImplementation", platform("com.google.firebase:firebase-bom:34.13.0"))
+    add("androidMainImplementation", "com.google.firebase:firebase-auth")
+    add("androidMainImplementation", "com.google.firebase:firebase-firestore")
     debugImplementation("org.jetbrains.compose.ui:ui-tooling:1.10.3")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

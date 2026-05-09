@@ -7,6 +7,7 @@ import de.zugspitz.supporter.data.CheckEventType
 import de.zugspitz.supporter.data.CheckIn
 import de.zugspitz.supporter.data.DefaultSessionRepository
 import de.zugspitz.supporter.data.LiveRaceRepository
+import de.zugspitz.supporter.data.LiveRaceSubscription
 import de.zugspitz.supporter.data.LiveRole
 import de.zugspitz.supporter.data.LiveRunLink
 import de.zugspitz.supporter.data.NoOpLiveRaceRepository
@@ -49,6 +50,13 @@ class SupporterViewModel(
 
     private val _uiState = MutableStateFlow(createInitialState())
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
+
+    private var liveSubscription: LiveRaceSubscription? = null
+    private var liveSubscriptionCode: String? = null
+
+    init {
+        syncLiveSubscription(_uiState.value.settings.liveRunLink)
+    }
 
     fun onTabSelected(tab: AppTab) = updateState { copy(tab = tab) }
 
@@ -120,32 +128,44 @@ class SupporterViewModel(
         copy(checkEvents = newEvents)
     }
 
-    fun onLiveRoleSelected(role: LiveRole) = updateState {
-        copy(settings = settings.copy(liveRunLink = settings.liveRunLink.copy(role = role)))
+    fun onLiveRoleSelected(role: LiveRole) {
+        updateState {
+            copy(settings = settings.copy(liveRunLink = settings.liveRunLink.copy(role = role)))
+        }
+        syncLiveSubscription()
     }
 
-    fun onRunCodeChanged(runCode: String) = updateState {
-        val normalizedCode = runCode
-            .uppercase()
-            .filter { it.isLetterOrDigit() }
-            .take(MAX_RUN_CODE_LENGTH)
-        copy(settings = settings.copy(liveRunLink = settings.liveRunLink.copy(runCode = normalizedCode)))
+    fun onRunCodeChanged(runCode: String) {
+        updateState {
+            val normalizedCode = runCode
+                .uppercase()
+                .filter { it.isLetterOrDigit() }
+                .take(MAX_RUN_CODE_LENGTH)
+            copy(settings = settings.copy(liveRunLink = settings.liveRunLink.copy(runCode = normalizedCode)))
+        }
+        syncLiveSubscription()
     }
 
-    fun onCreateRunCode() = updateState {
-        copy(
-            settings = settings.copy(
-                liveRunLink = settings.liveRunLink.copy(
-                    role = LiveRole.Runner,
-                    runCode = generateRunCode(),
-                    isEnabled = true,
+    fun onCreateRunCode() {
+        updateState {
+            copy(
+                settings = settings.copy(
+                    liveRunLink = settings.liveRunLink.copy(
+                        role = LiveRole.Runner,
+                        runCode = generateRunCode(),
+                        isEnabled = true,
+                    ),
                 ),
-            ),
-        )
+            )
+        }
+        syncLiveSubscription()
     }
 
-    fun onLiveSharingToggle(enabled: Boolean) = updateState {
-        copy(settings = settings.copy(liveRunLink = settings.liveRunLink.copy(isEnabled = enabled)))
+    fun onLiveSharingToggle(enabled: Boolean) {
+        updateState {
+            copy(settings = settings.copy(liveRunLink = settings.liveRunLink.copy(isEnabled = enabled)))
+        }
+        syncLiveSubscription()
     }
 
     fun onResetAllData() {
@@ -213,7 +233,7 @@ class SupporterViewModel(
             ),
             settings = SettingsUiState(
                 liveRunLink = liveRunLink,
-                lastLiveEventText = checkEvents.lastOrNull()?.toStatusText(),
+                lastLiveEventText = checkEvents.lastOrNull()?.toStatusText(estimate.startTimeMinutes),
             ),
         )
     }
@@ -252,12 +272,52 @@ class SupporterViewModel(
         )
     }
 
-    private fun CheckEvent.toStatusText(): String {
+    private fun syncLiveSubscription(link: LiveRunLink = _uiState.value.settings.liveRunLink) {
+        val requestedCode = link.runCode.takeIf { link.canSubscribe }
+        if (requestedCode == liveSubscriptionCode) return
+
+        liveSubscription?.close()
+        liveSubscription = null
+        liveSubscriptionCode = null
+
+        if (requestedCode == null) return
+
+        liveSubscriptionCode = requestedCode
+        liveSubscription = liveRaceRepository.subscribe(requestedCode) { remoteEvents ->
+            applyRemoteEvents(requestedCode, remoteEvents)
+        }
+    }
+
+    private fun applyRemoteEvents(runCode: String, remoteEvents: List<CheckEvent>) {
+        updateState {
+            if (settings.liveRunLink.runCode != runCode || !settings.liveRunLink.canSubscribe) return@updateState this
+
+            val mergedEvents = (checkEvents + remoteEvents)
+                .distinctBy { it.id }
+                .sortedBy { it.createdAtEpochMillis }
+            val remoteCheckIns = mergedEvents
+                .filter { it.type == CheckEventType.CheckIn }
+                .groupBy { it.stationSection }
+                .map { (_, events) ->
+                    val latest = events.maxBy { it.createdAtEpochMillis }
+                    CheckIn(
+                        stationSection = latest.stationSection,
+                        actualArrivalMinutes = latest.raceMinutes,
+                    )
+                }
+            copy(
+                checkIns = remoteCheckIns,
+                checkEvents = mergedEvents,
+            )
+        }
+    }
+
+    private fun CheckEvent.toStatusText(startTimeMinutes: Int): String {
         val action = when (type) {
             CheckEventType.CheckIn -> "Check-in"
             CheckEventType.CheckOut -> "Check-out"
         }
-        return "$action ${stationName.removePrefix("Z$stationSection ")} um ${formatRaceTime(raceMinutes)}"
+        return "$action ${stationName.removePrefix("Z$stationSection ")} um ${formatRaceTime(startTimeMinutes + raceMinutes)}"
     }
 
     private fun generateRunCode(): String {
