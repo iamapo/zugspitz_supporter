@@ -16,14 +16,20 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.zugspitz.supporter.components.InfoCard
@@ -33,11 +39,11 @@ import de.zugspitz.supporter.components.VpCard
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.RaceProjection
-import de.zugspitz.supporter.data.StationProjection
 import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterRadius
 import de.zugspitz.supporter.theme.SupporterSpacing
 import de.zugspitz.supporter.theme.SupporterTheme
+import de.zugspitz.supporter.util.ComposeUiUtils
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
@@ -46,6 +52,7 @@ import zugspitz_supporter.composeapp.generated.resources.distance
 import zugspitz_supporter.composeapp.generated.resources.duration_hours_range
 import zugspitz_supporter.composeapp.generated.resources.elevation
 import zugspitz_supporter.composeapp.generated.resources.next_section
+import zugspitz_supporter.composeapp.generated.resources.open_in_maps
 import zugspitz_supporter.composeapp.generated.resources.pace_time
 import zugspitz_supporter.composeapp.generated.resources.section_to
 import zugspitz_supporter.composeapp.generated.resources.vp_of_total
@@ -59,6 +66,7 @@ fun VpCardScreen(
     onCheckOutClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val uriHandler = LocalUriHandler.current
     val pagerState = rememberPagerState(
         initialPage = selectedIndex.coerceIn(0, projection.stations.lastIndex),
         pageCount = { projection.stations.size },
@@ -108,7 +116,7 @@ fun VpCardScreen(
             val stationProjection = projection.stations[page]
             VpCard(
                 projection = stationProjection,
-                completedElevation = completedElevation(projection, page),
+                completedElevation = ComposeUiUtils.completedElevation(projection, page),
                 onCheckInNowClick = { onCheckInNowClick(page) },
                 onCheckOutClick = { onCheckOutClick(page) },
             )
@@ -131,12 +139,25 @@ fun VpCardScreen(
                 }
                 StatTile(
                     stringResource(Res.string.pace_time),
-                    likelyPace(activeProjection, nextProjection),
+                    ComposeUiUtils.likelyPace(activeProjection, nextProjection),
                     null,
                     Modifier
                         .padding(top = 10.dp)
                         .fillMaxWidth(),
                 )
+                Button(
+                    onClick = { uriHandler.openUri(ComposeUiUtils.mapsUri(nextProjection.station)) },
+                    colors = ButtonDefaults.buttonColors(containerColor = SupporterColors.Pine),
+                    shape = RoundedCornerShape(SupporterRadius.Card),
+                    modifier = Modifier
+                        .padding(top = 10.dp)
+                        .fillMaxWidth(),
+                ) {
+                    Text(
+                        text = stringResource(Res.string.open_in_maps),
+                        fontWeight = FontWeight.Black,
+                    )
+                }
             }
         }
     }
@@ -144,7 +165,7 @@ fun VpCardScreen(
 
 @Composable
 private fun SwipeDots(index: Int, count: Int, pagerState: PagerState) {
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
@@ -167,21 +188,6 @@ private fun SwipeDots(index: Int, count: Int, pagerState: PagerState) {
             )
         }
     }
-}
-
-private fun completedElevation(projection: RaceProjection, selectedIndex: Int): Pair<Int, Int> {
-    val stations = projection.stations.take(selectedIndex + 1).map { it.station }
-    return stations.sumOf { it.climbMeters } to stations.sumOf { it.descentMeters }
-}
-
-private fun likelyPace(from: StationProjection, to: StationProjection): String {
-    val startMinutes = from.actualArrivalMinutes ?: from.projectedArrivalMinutes
-    val segmentMinutes = (to.projectedArrivalMinutes - startMinutes).coerceAtLeast(1)
-    val paceMinutesPerKm = segmentMinutes / to.station.sectionKm
-    val totalSeconds = (paceMinutesPerKm * 60).toInt().coerceAtLeast(0)
-    val paceMinutes = totalSeconds / 60
-    val paceSeconds = totalSeconds % 60
-    return "${paceMinutes}:${paceSeconds.toString().padStart(2, '0')}/km"
 }
 
 @Preview
