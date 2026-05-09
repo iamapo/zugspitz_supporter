@@ -64,6 +64,7 @@ fun SupporterAppRoot() {
                     selectedIndex = state.vp.selectedIndex,
                     onPageChanged = viewModel::onVpPageChanged,
                     onCheckInClick = viewModel::onCheckInOpen,
+                    onCheckInNowClick = viewModel::onCheckInNowSave,
                     onCheckOutClick = viewModel::onCheckOutOpen,
                 )
                 AppTab.List -> VpListScreen(

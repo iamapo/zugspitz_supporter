@@ -95,7 +95,17 @@ class SupporterViewModel(
     fun onCheckInTimeIncrease() = updateState { copy(vp = vp.copy(checkMinutes = vp.checkMinutes + 1)) }
 
     fun onCheckInNow() = updateState {
-        copy(vp = vp.copy(checkMinutes = currentMinutesOfDay() - setup.estimate.startTimeMinutes))
+        copy(vp = vp.copy(checkMinutes = currentCheckMinutes()))
+    }
+
+    fun onCheckInNowSave() = updateState {
+        val stationSection = vp.projection.stations[vp.selectedIndex].station.section
+        val newCheckIns = saveCheckIn(
+            existingCheckIns = checkIns,
+            stationSection = stationSection,
+            actualArrivalMinutes = currentCheckMinutes(),
+        )
+        copy(checkIns = newCheckIns)
     }
 
     fun onCheckInDismiss() = updateState { copy(vp = vp.copy(checkSheetOpen = false)) }
@@ -201,6 +211,8 @@ class SupporterViewModel(
             ),
         )
     }
+
+    private fun AppUiState.currentCheckMinutes(): Int = currentMinutesOfDay() - setup.estimate.startTimeMinutes
 }
 
 private fun systemMinutesOfDay(): Int {

@@ -25,6 +25,7 @@ import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.check_in
 import zugspitz_supporter.composeapp.generated.resources.check_out
+import zugspitz_supporter.composeapp.generated.resources.checked_in
 import zugspitz_supporter.composeapp.generated.resources.new_label
 
 @Composable
@@ -69,7 +70,7 @@ fun VpListRow(
                 Text(
                     text = when {
                         projection.isCheckedOut -> stringResource(Res.string.check_out)
-                        projection.isCheckedIn -> stringResource(Res.string.check_in)
+                        projection.isCheckedIn -> stringResource(Res.string.checked_in)
                         else -> stringResource(Res.string.new_label)
                     },
                     color = SupporterColors.Muted,

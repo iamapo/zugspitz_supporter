@@ -80,6 +80,26 @@ class SupporterViewModelTest {
     }
 
     @Test
+    fun `check in now save stores arrival without opening sheet`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = repository,
+            currentMinutesOfDay = { 23 * 60 + 15 },
+        )
+
+        viewModel.onCalculateClick()
+        viewModel.onCheckInNowSave()
+
+        val state = viewModel.uiState.value
+        assertEquals(AppTab.Vp, state.tab)
+        assertEquals(1, state.checkIns.size)
+        assertEquals(1, state.checkIns.first().stationSection)
+        assertEquals(75, state.checkIns.first().actualArrivalMinutes)
+        assertTrue(state.vp.projection.stations.first().isCheckedIn)
+        assertEquals("23:15", state.vp.projection.stations.first().actualArrival)
+    }
+
+    @Test
     fun `checkout stores departure on existing check in`() {
         val repository = FakeSessionRepository(
             AppSessionState(
