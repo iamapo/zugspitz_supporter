@@ -27,6 +27,7 @@
     <string name="completed">Absolviert</string>
     <string name="to_here">Bis hier</string>
     <string name="check_in">Check-in</string>
+    <string name="check_out">Check-out</string>
     <string name="change_time">Zeit ändern</string>
     <string name="next_section">Nächster Abschnitt</string>
     <string name="vp_of_total">VP %1$d von %2$d</string>
@@ -55,7 +56,15 @@
     <string name="arrival_window">Ankunftsfenster</string>
     <string name="custom_time">Eigene Zeit</string>
     <string name="settings_title">Einstellungen</string>
-    <string name="settings_subtitle">Verwaltung der lokal gespeicherten App-Daten.</string>
+    <string name="settings_subtitle">Live-Verbindung und lokal gespeicherte App-Daten.</string>
+    <string name="live_sharing">Live-Sharing</string>
+    <string name="live_sharing_hint">Minimaler App-Vertrag für Firebase: Code teilen, Events senden oder mitlesen.</string>
+    <string name="live_role_runner">Läufer</string>
+    <string name="live_role_supporter">Supporter</string>
+    <string name="live_code">Support-Code</string>
+    <string name="create_support_code">Support-Code erstellen</string>
+    <string name="live_last_event">Letztes Live-Event:</string>
+    <string name="live_not_connected">noch keins</string>
     <string name="reset_all_data">Alle Daten zurücksetzen</string>
     <string name="reset_all_data_hint">Löscht Setup, Check-ins und letzte Ansicht. Danach startet die App wieder im Setup.</string>
 </resources>

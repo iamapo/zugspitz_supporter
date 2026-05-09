@@ -25,6 +25,7 @@ import de.zugspitz.supporter.data.StationProjection
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.change_time
 import zugspitz_supporter.composeapp.generated.resources.check_in
+import zugspitz_supporter.composeapp.generated.resources.check_out
 import zugspitz_supporter.composeapp.generated.resources.completed
 import zugspitz_supporter.composeapp.generated.resources.expected_arrival
 import zugspitz_supporter.composeapp.generated.resources.plan
@@ -40,6 +41,7 @@ fun VpCard(
     completedElevation: Pair<Int, Int>,
     onCheckInClick: () -> Unit,
     onChangeTimeClick: () -> Unit,
+    onCheckOutClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -109,6 +111,14 @@ fun VpCard(
                     Text(stringResource(Res.string.check_in), fontWeight = FontWeight.Black)
                 }
                 Button(
+                    onClick = onCheckOutClick,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD6F6CC), contentColor = Color(0xFF0F1B12)),
+                ) {
+                    Text(stringResource(Res.string.check_out), fontWeight = FontWeight.Black)
+                }
+                Button(
                     onClick = onChangeTimeClick,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(8.dp),
@@ -131,6 +141,7 @@ fun VpCardPreview() {
             completedElevation = 1750 to 834,
             onCheckInClick = {},
             onChangeTimeClick = {},
+            onCheckOutClick = {},
             modifier = Modifier.padding(16.dp),
         )
     }

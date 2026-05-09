@@ -2,7 +2,10 @@ package de.zugspitz.supporter.presentation
 
 import de.zugspitz.supporter.components.AppTab
 import de.zugspitz.supporter.data.AppSessionState
+import de.zugspitz.supporter.data.CheckEvent
+import de.zugspitz.supporter.data.CheckEventType
 import de.zugspitz.supporter.data.CheckIn
+import de.zugspitz.supporter.data.LiveRaceRepository
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.SavedTab
 import de.zugspitz.supporter.data.SessionRepository
@@ -78,6 +81,28 @@ class SupporterViewModelTest {
         assertEquals(75, state.vp.checkInMinutes)
         assertEquals("23:15", state.vp.checkInInputTime)
     }
+
+    @Test
+    fun `live sharing publishes check in and check out events for runner`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(),
+            liveRaceRepository = liveRepository,
+            currentMinutesOfDay = { 23 * 60 + 20 },
+        )
+
+        viewModel.onRunCodeChanged("abc-123!")
+        viewModel.onLiveSharingToggle(true)
+        viewModel.onCalculateClick()
+        viewModel.onCheckInOpen()
+        viewModel.onCheckInNow()
+        viewModel.onCheckInSave()
+        viewModel.onCheckOutNow()
+
+        assertEquals("ABC123", viewModel.uiState.value.settings.liveRunLink.runCode)
+        assertEquals(listOf(CheckEventType.CheckIn, CheckEventType.CheckOut), liveRepository.events.map { it.type })
+        assertEquals("ABC123", liveRepository.events.first().runCode)
+    }
 }
 
 private class FakeSessionRepository(
@@ -91,5 +116,13 @@ private class FakeSessionRepository(
 
     override fun clear() {
         snapshot = AppSessionState()
+    }
+}
+
+private class FakeLiveRaceRepository : LiveRaceRepository {
+    val events = mutableListOf<CheckEvent>()
+
+    override fun publish(event: CheckEvent) {
+        events += event
     }
 }

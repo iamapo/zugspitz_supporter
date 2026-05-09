@@ -2,8 +2,14 @@ package de.zugspitz.supporter.presentation
 
 import de.zugspitz.supporter.components.AppTab
 import de.zugspitz.supporter.data.AppSessionState
+import de.zugspitz.supporter.data.CheckEvent
+import de.zugspitz.supporter.data.CheckEventType
 import de.zugspitz.supporter.data.CheckIn
 import de.zugspitz.supporter.data.DefaultSessionRepository
+import de.zugspitz.supporter.data.LiveRaceRepository
+import de.zugspitz.supporter.data.LiveRole
+import de.zugspitz.supporter.data.LiveRunLink
+import de.zugspitz.supporter.data.NoOpLiveRaceRepository
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.SessionRepository
@@ -30,6 +36,7 @@ import kotlin.time.Clock
 
 class SupporterViewModel(
     sessionRepository: SessionRepository = DefaultSessionRepository(),
+    private val liveRaceRepository: LiveRaceRepository = NoOpLiveRaceRepository(),
     private val calculator: RaceCalculator = RaceCalculator(),
     private val currentMinutesOfDay: () -> Int = ::systemMinutesOfDay,
 ) {
@@ -93,11 +100,52 @@ class SupporterViewModel(
     fun onCheckInSave() = updateState {
         val stationSection = vp.projection.stations[vp.selectedIndex].station.section
         val newCheckIns = saveCheckIn(checkIns, stationSection, vp.checkInMinutes)
+        val newEvents = appendLiveEvent(
+            type = CheckEventType.CheckIn,
+            raceMinutes = vp.checkInMinutes,
+        )
         copy(
             tab = AppTab.List,
             checkIns = newCheckIns,
+            checkEvents = newEvents,
             vp = vp.copy(checkInOpen = false),
         )
+    }
+
+    fun onCheckOutNow() = updateState {
+        val newEvents = appendLiveEvent(
+            type = CheckEventType.CheckOut,
+            raceMinutes = currentMinutesOfDay() - setup.estimate.startTimeMinutes,
+        )
+        copy(checkEvents = newEvents)
+    }
+
+    fun onLiveRoleSelected(role: LiveRole) = updateState {
+        copy(settings = settings.copy(liveRunLink = settings.liveRunLink.copy(role = role)))
+    }
+
+    fun onRunCodeChanged(runCode: String) = updateState {
+        val normalizedCode = runCode
+            .uppercase()
+            .filter { it.isLetterOrDigit() }
+            .take(MAX_RUN_CODE_LENGTH)
+        copy(settings = settings.copy(liveRunLink = settings.liveRunLink.copy(runCode = normalizedCode)))
+    }
+
+    fun onCreateRunCode() = updateState {
+        copy(
+            settings = settings.copy(
+                liveRunLink = settings.liveRunLink.copy(
+                    role = LiveRole.Runner,
+                    runCode = generateRunCode(),
+                    isEnabled = true,
+                ),
+            ),
+        )
+    }
+
+    fun onLiveSharingToggle(enabled: Boolean) = updateState {
+        copy(settings = settings.copy(liveRunLink = settings.liveRunLink.copy(isEnabled = enabled)))
     }
 
     fun onResetAllData() {
@@ -112,6 +160,8 @@ class SupporterViewModel(
             estimate = session.estimate,
             selectedIndex = session.selectedIndex.coerceAtLeast(0).coerceAtMost(10),
             checkIns = session.checkIns,
+            checkEvents = session.checkEvents,
+            liveRunLink = session.liveRunLink,
             checkInOpen = false,
             checkInMinutesOverride = null,
         )
@@ -125,6 +175,8 @@ class SupporterViewModel(
                 estimate = mutated.setup.estimate,
                 selectedIndex = mutated.vp.selectedIndex,
                 checkIns = mutated.checkIns,
+                checkEvents = mutated.checkEvents,
+                liveRunLink = mutated.settings.liveRunLink,
                 checkInOpen = mutated.vp.checkInOpen,
                 checkInMinutesOverride = mutated.vp.checkInMinutes,
             )
@@ -138,6 +190,8 @@ class SupporterViewModel(
         estimate: RaceEstimate,
         selectedIndex: Int,
         checkIns: List<CheckIn>,
+        checkEvents: List<CheckEvent>,
+        liveRunLink: LiveRunLink,
         checkInOpen: Boolean,
         checkInMinutesOverride: Int?,
     ): AppUiState {
@@ -148,6 +202,7 @@ class SupporterViewModel(
         return AppUiState(
             tab = tab,
             checkIns = checkIns,
+            checkEvents = checkEvents,
             setup = SetupUiState(estimate = estimate),
             vp = VpUiState(
                 projection = projection,
@@ -156,8 +211,32 @@ class SupporterViewModel(
                 checkInMinutes = checkInMinutes,
                 checkInInputTime = formatRaceTime(estimate.startTimeMinutes + checkInMinutes),
             ),
-            settings = SettingsUiState(),
+            settings = SettingsUiState(
+                liveRunLink = liveRunLink,
+                lastLiveEventText = checkEvents.lastOrNull()?.toStatusText(),
+            ),
         )
+    }
+
+    private fun AppUiState.appendLiveEvent(type: CheckEventType, raceMinutes: Int): List<CheckEvent> {
+        val link = settings.liveRunLink
+        if (!link.canPublish) return checkEvents
+
+        val station = vp.projection.stations[vp.selectedIndex].station
+        val createdAtEpochMillis = Clock.System.now().toEpochMilliseconds()
+        val event = CheckEvent(
+            id = "${link.runCode}-${station.section}-${type.name}-$createdAtEpochMillis",
+            runCode = link.runCode,
+            stationSection = station.section,
+            stationName = station.name,
+            type = type,
+            raceMinutes = raceMinutes,
+            createdAtEpochMillis = createdAtEpochMillis,
+        )
+        liveRaceRepository.publish(event)
+        return checkEvents.filterNot {
+            it.stationSection == station.section && it.type == type
+        } + event
     }
 
     private fun persist(state: AppUiState) {
@@ -167,8 +246,27 @@ class SupporterViewModel(
                 tab = state.tab.toSavedTab(),
                 selectedIndex = state.vp.selectedIndex,
                 checkIns = state.checkIns,
+                liveRunLink = state.settings.liveRunLink,
+                checkEvents = state.checkEvents,
             ),
         )
+    }
+
+    private fun CheckEvent.toStatusText(): String {
+        val action = when (type) {
+            CheckEventType.CheckIn -> "Check-in"
+            CheckEventType.CheckOut -> "Check-out"
+        }
+        return "$action ${stationName.removePrefix("Z$stationSection ")} um ${formatRaceTime(raceMinutes)}"
+    }
+
+    private fun generateRunCode(): String {
+        val now = Clock.System.now().toEpochMilliseconds()
+        return now.toString(36).takeLast(MAX_RUN_CODE_LENGTH).uppercase()
+    }
+
+    private companion object {
+        const val MAX_RUN_CODE_LENGTH = 8
     }
 }
 
