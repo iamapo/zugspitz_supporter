@@ -44,6 +44,20 @@ class RaceCalculatorTest {
     }
 
     @Test
+    fun `ehrwald projection uses 23 o clock start and ehrwald stations`() {
+        val projection = calculator.project(
+            estimate = RaceDefinitions.byId(RaceDefinitions.EhrwaldTrailId).defaultEstimate(),
+            checkIns = emptyList(),
+            selectedIndex = 0,
+        )
+
+        assertEquals(9, projection.stations.size)
+        assertEquals("Z3 Pestkapelle", projection.stations.first().station.name)
+        assertEquals("Ziel Garmisch", projection.stations.last().station.name)
+        assertEquals("17:00-20:00", projection.stations.last().window)
+    }
+
+    @Test
     fun `segment factors shift intermediate station timings`() {
         val stations = listOf(
             AidStation(1, "A", "Start", 10.0, 47.0, 11.0, 10.0, 0, 0, 0, 0, 0, 0),

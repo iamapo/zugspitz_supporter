@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 @Immutable
 @Serializable
 data class RaceEstimate(
+    val raceId: String = RaceDefinitions.ZugspitzUltratrailId,
     val startTimeMinutes: Int = 22 * 60,
     val targetMode: TargetTimeMode = TargetTimeMode.Range,
     val fixedDurationMinutes: Int = 17 * 60,
@@ -35,6 +36,28 @@ data class AidStation(
     val windowEndMinutes: Int,
     val stopMinutes: Int,
 )
+
+@Immutable
+data class RaceDefinition(
+    val id: String,
+    val name: String,
+    val distanceLabel: String,
+    val startLocation: String,
+    val startTimeMinutes: Int,
+    val defaultMinDurationMinutes: Int,
+    val defaultMaxDurationMinutes: Int,
+    val defaultFixedDurationMinutes: Int,
+    val stations: List<AidStation>,
+    val segmentFactors: Map<Int, Double> = emptyMap(),
+) {
+    fun defaultEstimate(): RaceEstimate = RaceEstimate(
+        raceId = id,
+        startTimeMinutes = startTimeMinutes,
+        fixedDurationMinutes = defaultFixedDurationMinutes,
+        minDurationMinutes = defaultMinDurationMinutes,
+        maxDurationMinutes = defaultMaxDurationMinutes,
+    )
+}
 
 @Immutable
 @Serializable

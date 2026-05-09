@@ -14,12 +14,12 @@ import de.zugspitz.supporter.components.ScreenHeader
 import de.zugspitz.supporter.components.VpListRow
 import de.zugspitz.supporter.data.CheckIn
 import de.zugspitz.supporter.data.RaceCalculator
+import de.zugspitz.supporter.data.RaceDefinitions
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.RaceProjection
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.all_vps
 import zugspitz_supporter.composeapp.generated.resources.all_vps_subtitle
-import zugspitz_supporter.composeapp.generated.resources.race_name
 import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterTheme
 import org.jetbrains.compose.resources.stringResource
@@ -31,6 +31,7 @@ fun VpListScreen(
     onStationClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+        val race = RaceDefinitions.byId(projection.estimate.raceId)
         Column(
             modifier = modifier
                 .fillMaxSize()
@@ -39,7 +40,7 @@ fun VpListScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             ScreenHeader(
-                eyebrow = stringResource(Res.string.race_name),
+                eyebrow = race.name,
                 title = stringResource(Res.string.all_vps),
                 subtitle = stringResource(Res.string.all_vps_subtitle),
                 pill = if (projection.activeShiftMinutes == 0) null else "+${projection.activeShiftMinutes} min",
