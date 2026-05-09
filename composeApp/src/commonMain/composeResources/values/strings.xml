@@ -28,6 +28,9 @@
     <string name="to_here">Bis hier</string>
     <string name="check_in">Check-in</string>
     <string name="check_out">Check-out</string>
+    <string name="checked_in">Eingecheckt</string>
+    <string name="check_in_now">Jetzt einchecken</string>
+    <string name="enter_time">Zeit eintragen</string>
     <string name="change_time">Zeit ändern</string>
     <string name="next_section">Nächster Abschnitt</string>
     <string name="vp_of_total">VP %1$d von %2$d</string>

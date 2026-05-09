@@ -56,6 +56,7 @@ fun VpCardScreen(
     selectedIndex: Int,
     onPageChanged: (Int) -> Unit,
     onCheckInClick: () -> Unit,
+    onCheckInNowClick: () -> Unit,
     onCheckOutClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -110,6 +111,7 @@ fun VpCardScreen(
                 projection = stationProjection,
                 completedElevation = completedElevation(projection, page),
                 onCheckInClick = onCheckInClick,
+                onCheckInNowClick = onCheckInNowClick,
                 onCheckOutClick = onCheckOutClick,
                 onChangeTimeClick = onCheckInClick,
             )
@@ -194,6 +196,7 @@ fun VpCardScreenPreview() {
             selectedIndex = 2,
             onPageChanged = {},
             onCheckInClick = {},
+            onCheckInNowClick = {},
             onCheckOutClick = {},
         )
     }
