@@ -181,6 +181,21 @@ class SupporterViewModelTest {
     }
 
     @Test
+    fun `selecting zut 100 uses 20 o clock start and long course stations`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(sessionRepository = repository)
+
+        viewModel.onRaceSelected(RaceDefinitions.Zut100Id)
+
+        val state = viewModel.uiState.value
+        assertEquals(AppTab.Setup, state.tab)
+        assertEquals(RaceDefinitions.Zut100Id, state.setup.estimate.raceId)
+        assertEquals(20 * 60, state.setup.estimate.startTimeMinutes)
+        assertEquals(16, state.vp.projection.stations.size)
+        assertEquals("Z1 Eibsee", state.vp.projection.stations.first().station.name)
+    }
+
+    @Test
     fun `check in now save stores arrival without opening sheet`() {
         val repository = FakeSessionRepository()
         val viewModel = SupporterViewModel(
