@@ -33,6 +33,8 @@ data class AppSessionState(
     val tab: SavedTab = SavedTab.Setup,
     val selectedIndex: Int = 0,
     val checkIns: List<CheckIn> = emptyList(),
+    val liveRunLink: LiveRunLink = LiveRunLink(),
+    val checkEvents: List<CheckEvent> = emptyList(),
 )
 
 @Serializable

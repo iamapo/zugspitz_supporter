@@ -64,12 +64,18 @@ fun SupporterAppRoot() {
                     selectedIndex = state.vp.selectedIndex,
                     onPageChanged = viewModel::onVpPageChanged,
                     onCheckInClick = viewModel::onCheckInOpen,
+                    onCheckOutClick = viewModel::onCheckOutNow,
                 )
                 AppTab.List -> VpListScreen(
                     projection = state.vp.projection,
                     onStationClick = viewModel::onStationSelected,
                 )
                 AppTab.Settings -> SettingsScreen(
+                    state = state.settings,
+                    onRoleSelected = viewModel::onLiveRoleSelected,
+                    onRunCodeChanged = viewModel::onRunCodeChanged,
+                    onCreateRunCode = viewModel::onCreateRunCode,
+                    onLiveSharingToggle = viewModel::onLiveSharingToggle,
                     onResetClick = viewModel::onResetAllData,
                 )
             }
