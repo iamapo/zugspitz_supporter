@@ -6,6 +6,8 @@ composeApp/build/
 *.iml
 .DS_Store
 local.properties
+composeApp/google-services.json
+iosApp/iosApp/GoogleService-Info.plist
 
 # Kotlin/Native and Xcode user-specific files
 *.xcuserstate

@@ -44,8 +44,21 @@ data class CheckEvent(
 
 interface LiveRaceRepository {
     fun publish(event: CheckEvent)
+    fun subscribe(runCode: String, onEventsChanged: (List<CheckEvent>) -> Unit): LiveRaceSubscription
+}
+
+interface LiveRaceSubscription {
+    fun close()
 }
 
 class NoOpLiveRaceRepository : LiveRaceRepository {
     override fun publish(event: CheckEvent) = Unit
+
+    override fun subscribe(runCode: String, onEventsChanged: (List<CheckEvent>) -> Unit): LiveRaceSubscription {
+        return NoOpLiveRaceSubscription
+    }
+}
+
+object NoOpLiveRaceSubscription : LiveRaceSubscription {
+    override fun close() = Unit
 }

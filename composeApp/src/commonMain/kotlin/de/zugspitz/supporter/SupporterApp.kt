@@ -21,17 +21,21 @@ import de.zugspitz.supporter.screens.VpListScreen
 import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterTheme
 import androidx.compose.ui.tooling.preview.Preview
+import de.zugspitz.supporter.data.LiveRaceRepository
+import de.zugspitz.supporter.data.NoOpLiveRaceRepository
 
 @Composable
-fun SupporterApp() {
+fun SupporterApp(liveRaceRepository: LiveRaceRepository = NoOpLiveRaceRepository()) {
     SupporterTheme {
-        SupporterAppRoot()
+        SupporterAppRoot(liveRaceRepository = liveRaceRepository)
     }
 }
 
 @Composable
-fun SupporterAppRoot() {
-    val viewModel = remember { SupporterViewModel() }
+fun SupporterAppRoot(liveRaceRepository: LiveRaceRepository = NoOpLiveRaceRepository()) {
+    val viewModel = remember(liveRaceRepository) {
+        SupporterViewModel(liveRaceRepository = liveRaceRepository)
+    }
     val state by viewModel.uiState.collectAsState()
 
     Scaffold(
