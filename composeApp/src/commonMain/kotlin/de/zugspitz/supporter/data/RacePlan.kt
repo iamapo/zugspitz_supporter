@@ -26,9 +26,20 @@ val EhrwaldTrailStations = listOf(
     AidStation(9, "Ziel Garmisch", "Z10 Tröglift", 85.0, 47.494648, 11.092212, 8.0, 0, 628, 0, 0, 0, 0),
 )
 
+val LeutaschTrailStations = listOf(
+    AidStation(1, "Z5 Hubertushof", "Start Leutasch", 15.2, 15.2, 1012, 1076, 0, 0, 0, 12),
+    AidStation(2, "Z6 Mittenwald", "Z5 Hubertushof", 23.7, 8.5, 74, 218, 0, 0, 0, 6),
+    AidStation(3, "Z7 Schloss Elmau", "Z6 Mittenwald", 33.9, 10.2, 344, 272, 0, 0, 0, 4),
+    AidStation(4, "Z8 Laubhütte", "Z7 Schloss Elmau", 47.4, 13.5, 820, 772, 0, 0, 0, 4),
+    AidStation(5, "Z9 Hochalm", "Z8 Laubhütte", 52.3, 4.9, 789, 13, 0, 0, 0, 3),
+    AidStation(6, "Z10 Tröglift", "Z9 Hochalm", 60.7, 8.4, 297, 804, 0, 0, 0, 2),
+    AidStation(7, "Ziel Garmisch", "Z10 Tröglift", 68.4, 7.7, 30, 645, 0, 0, 0, 0),
+)
+
 object RaceDefinitions {
     const val ZugspitzUltratrailId = "zugspitz-ultratrail"
     const val EhrwaldTrailId = "ehrwald-trail"
+    const val LeutaschTrailId = "leutasch-trail"
 
     val All = listOf(
         RaceDefinition(
@@ -75,6 +86,26 @@ object RaceDefinitions {
                 7 to 1.23,
                 8 to 1.21,
                 9 to 1.02,
+            ),
+        ),
+        RaceDefinition(
+            id = LeutaschTrailId,
+            name = "Leutasch Trail",
+            distanceLabel = "68 km",
+            startLocation = "Leutasch",
+            startTimeMinutes = 9 * 60,
+            defaultMinDurationMinutes = 12 * 60,
+            defaultMaxDurationMinutes = 16 * 60,
+            defaultFixedDurationMinutes = 16 * 60,
+            stations = LeutaschTrailStations,
+            segmentFactors = mapOf(
+                1 to 1.0,
+                2 to 1.08,
+                3 to 1.06,
+                4 to 1.12,
+                5 to 1.23,
+                6 to 1.21,
+                7 to 1.02,
             ),
         ),
     )
