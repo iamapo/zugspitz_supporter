@@ -51,12 +51,18 @@ val GarmischPartenkirchenTrailStations = listOf(
     AidStation(4, "Ziel Garmisch", "Z10 Tröglift", 29.3, 7.6, 32, 686, 0, 0, 0, 0),
 )
 
+val GrainauTrailStations = listOf(
+    AidStation(1, "Z10 Tröglift", "Start Grainau", 8.4, 8.4, 764, 152, 0, 0, 0, 2),
+    AidStation(2, "Ziel Garmisch", "Z10 Tröglift", 15.9, 7.5, 33, 693, 0, 0, 0, 0),
+)
+
 object RaceDefinitions {
     const val ZugspitzUltratrailId = "zugspitz-ultratrail"
     const val EhrwaldTrailId = "ehrwald-trail"
     const val LeutaschTrailId = "leutasch-trail"
     const val MittenwaldTrailId = "mittenwald-trail"
     const val GarmischPartenkirchenTrailId = "garmisch-partenkirchen-trail"
+    const val GrainauTrailId = "grainau-trail"
 
     val All = listOf(
         RaceDefinition(
@@ -158,6 +164,21 @@ object RaceDefinitions {
                 2 to 1.23,
                 3 to 1.21,
                 4 to 1.02,
+            ),
+        ),
+        RaceDefinition(
+            id = GrainauTrailId,
+            name = "Grainau Trail",
+            distanceLabel = "16 km",
+            startLocation = "Grainau",
+            startTimeMinutes = 18 * 60,
+            defaultMinDurationMinutes = 2 * 60,
+            defaultMaxDurationMinutes = 4 * 60,
+            defaultFixedDurationMinutes = 4 * 60,
+            stations = GrainauTrailStations,
+            segmentFactors = mapOf(
+                1 to 1.21,
+                2 to 1.02,
             ),
         ),
     )
