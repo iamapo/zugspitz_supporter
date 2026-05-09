@@ -80,8 +80,31 @@ class SupporterViewModelTest {
         viewModel.onCheckInNow()
 
         val state = viewModel.uiState.value
-        assertEquals(75, state.vp.checkInMinutes)
-        assertEquals("23:15", state.vp.checkInInputTime)
+        assertEquals(75, state.vp.checkMinutes)
+        assertEquals("23:15", state.vp.checkInputTime)
+    }
+
+    @Test
+    fun `checkout stores departure on existing check in`() {
+        val repository = FakeSessionRepository(
+            AppSessionState(
+                tab = SavedTab.Vp,
+                selectedIndex = 2,
+                checkIns = listOf(CheckIn(stationSection = 3, actualArrivalMinutes = 281)),
+            ),
+        )
+        val viewModel = SupporterViewModel(
+            sessionRepository = repository,
+            currentMinutesOfDay = { 23 * 60 + 45 },
+        )
+
+        viewModel.onCheckOutOpen()
+        viewModel.onCheckInNow()
+        viewModel.onCheckInSave()
+
+        val saved = repository.load().checkIns.first { it.stationSection == 3 }
+        assertEquals(281, saved.actualArrivalMinutes)
+        assertEquals(105, saved.actualDepartureMinutes)
     }
 
     @Test
