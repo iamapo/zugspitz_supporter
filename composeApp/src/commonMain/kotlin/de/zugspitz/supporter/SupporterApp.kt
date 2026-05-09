@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import de.zugspitz.supporter.components.AppBottomBar
 import de.zugspitz.supporter.components.AppTab
 import de.zugspitz.supporter.presentation.SupporterViewModel
+import de.zugspitz.supporter.screens.RaceSelectionScreen
 import de.zugspitz.supporter.screens.SettingsScreen
 import de.zugspitz.supporter.screens.SetupScreen
 import de.zugspitz.supporter.screens.VpCardScreen
@@ -35,7 +36,7 @@ fun SupporterAppRoot() {
 
     Scaffold(
         containerColor = SupporterColors.Paper,
-        bottomBar = if (state.tab == AppTab.Setup) {
+        bottomBar = if (state.tab == AppTab.Race || state.tab == AppTab.Setup) {
             {}
         } else {
             {
@@ -53,9 +54,12 @@ fun SupporterAppRoot() {
                 .padding(padding),
         ) {
             when (state.tab) {
+                AppTab.Race -> RaceSelectionScreen(
+                    selectedRaceId = state.setup.estimate.raceId,
+                    onRaceSelected = viewModel::onRaceSelected,
+                )
                 AppTab.Setup -> SetupScreen(
                     estimate = state.setup.estimate,
-                    onRaceSelected = viewModel::onRaceSelected,
                     onEstimateChange = viewModel::onEstimateChange,
                     onCalculateClick = viewModel::onCalculateClick,
                 )
