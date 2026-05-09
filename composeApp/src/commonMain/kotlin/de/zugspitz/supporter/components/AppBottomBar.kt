@@ -32,6 +32,7 @@ import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 
 enum class AppTab {
+    Race,
     Setup,
     Vp,
     List,

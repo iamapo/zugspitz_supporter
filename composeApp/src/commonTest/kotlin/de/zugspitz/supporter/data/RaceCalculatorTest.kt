@@ -58,6 +58,20 @@ class RaceCalculatorTest {
     }
 
     @Test
+    fun `leutasch projection uses saturday 9 o clock start and leutasch stations`() {
+        val projection = calculator.project(
+            estimate = RaceDefinitions.byId(RaceDefinitions.LeutaschTrailId).defaultEstimate(),
+            checkIns = emptyList(),
+            selectedIndex = 0,
+        )
+
+        assertEquals(7, projection.stations.size)
+        assertEquals("Z5 Hubertushof", projection.stations.first().station.name)
+        assertEquals("Ziel Garmisch", projection.stations.last().station.name)
+        assertEquals("21:00-01:00", projection.stations.last().window)
+    }
+
+    @Test
     fun `segment factors shift intermediate station timings`() {
         val stations = listOf(
             AidStation(1, "A", "Start", 10.0, 47.0, 11.0, 10.0, 0, 0, 0, 0, 0, 0),

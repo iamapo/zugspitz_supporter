@@ -30,7 +30,7 @@ class AppSessionStore(
 @Serializable
 data class AppSessionState(
     val estimate: RaceEstimate = RaceEstimate(),
-    val tab: SavedTab = SavedTab.Setup,
+    val tab: SavedTab = SavedTab.Race,
     val selectedIndex: Int = 0,
     val checkIns: List<CheckIn> = emptyList(),
     val liveRunLink: LiveRunLink = LiveRunLink(),
@@ -39,6 +39,7 @@ data class AppSessionState(
 
 @Serializable
 enum class SavedTab {
+    Race,
     Setup,
     Vp,
     List,
@@ -46,6 +47,7 @@ enum class SavedTab {
 }
 
 fun SavedTab.toAppTab(): AppTab = when (this) {
+    SavedTab.Race -> AppTab.Race
     SavedTab.Setup -> AppTab.Setup
     SavedTab.Vp -> AppTab.Vp
     SavedTab.List -> AppTab.List
@@ -53,6 +55,7 @@ fun SavedTab.toAppTab(): AppTab = when (this) {
 }
 
 fun AppTab.toSavedTab(): SavedTab = when (this) {
+    AppTab.Race -> SavedTab.Race
     AppTab.Setup -> SavedTab.Setup
     AppTab.Vp -> SavedTab.Vp
     AppTab.List -> SavedTab.List

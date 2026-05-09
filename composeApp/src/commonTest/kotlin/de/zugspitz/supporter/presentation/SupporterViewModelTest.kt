@@ -19,12 +19,12 @@ import kotlin.test.assertTrue
 
 class SupporterViewModelTest {
     @Test
-    fun `first start defaults to setup and Z1`() {
+    fun `first start defaults to race selection and Z1`() {
         val repository = FakeSessionRepository()
         val viewModel = SupporterViewModel(sessionRepository = repository)
 
         val state = viewModel.uiState.value
-        assertEquals(AppTab.Setup, state.tab)
+        assertEquals(AppTab.Race, state.tab)
         assertEquals(0, state.vp.selectedIndex)
     }
 
@@ -53,7 +53,7 @@ class SupporterViewModelTest {
     }
 
     @Test
-    fun `reset clears state and routes to setup`() {
+    fun `reset clears state and routes to race selection`() {
         val repository = FakeSessionRepository().apply {
             save(AppSessionState(tab = SavedTab.Vp, selectedIndex = 5))
         }
@@ -62,10 +62,10 @@ class SupporterViewModelTest {
         viewModel.onResetAllData()
         val state = viewModel.uiState.value
 
-        assertEquals(AppTab.Setup, state.tab)
+        assertEquals(AppTab.Race, state.tab)
         assertEquals(0, state.vp.selectedIndex)
         assertTrue(state.checkIns.isEmpty())
-        assertEquals(AppTab.Setup, SupporterViewModel(sessionRepository = repository).uiState.value.tab)
+        assertEquals(AppTab.Race, SupporterViewModel(sessionRepository = repository).uiState.value.tab)
     }
 
     @Test
@@ -99,6 +99,7 @@ class SupporterViewModelTest {
         viewModel.onRaceSelected(RaceDefinitions.EhrwaldTrailId)
 
         val state = viewModel.uiState.value
+        assertEquals(AppTab.Setup, state.tab)
         assertEquals(RaceDefinitions.EhrwaldTrailId, state.setup.estimate.raceId)
         assertEquals(23 * 60, state.setup.estimate.startTimeMinutes)
         assertEquals(0, state.vp.selectedIndex)
@@ -122,6 +123,21 @@ class SupporterViewModelTest {
         val state = viewModel.uiState.value
         assertEquals(15, state.vp.checkMinutes)
         assertEquals("23:15", state.vp.checkInputTime)
+    }
+
+    @Test
+    fun `selecting leutasch trail uses 9 o clock start and leutasch stations`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(sessionRepository = repository)
+
+        viewModel.onRaceSelected(RaceDefinitions.LeutaschTrailId)
+
+        val state = viewModel.uiState.value
+        assertEquals(AppTab.Setup, state.tab)
+        assertEquals(RaceDefinitions.LeutaschTrailId, state.setup.estimate.raceId)
+        assertEquals(9 * 60, state.setup.estimate.startTimeMinutes)
+        assertEquals(7, state.vp.projection.stations.size)
+        assertEquals("Z5 Hubertushof", state.vp.projection.stations.first().station.name)
     }
 
     @Test
