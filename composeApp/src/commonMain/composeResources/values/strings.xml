@@ -45,7 +45,9 @@
     <string name="new_base_time">Neue Basiszeit</string>
     <string name="delay">Versatz</string>
     <string name="save_check_in">Check-in speichern</string>
+    <string name="save_check_out">Checkout speichern</string>
     <string name="arrival_input">Ankunft eintragen</string>
+    <string name="departure_input">Abfahrt eintragen</string>
     <string name="now">Jetzt</string>
     <string name="all_vps">Alle VPs</string>
     <string name="all_vps_subtitle">Berechnet aus der Zielzeit, korrigiert durch Check-ins.</string>
@@ -54,6 +56,7 @@
     <string name="support_info_text">Nach dem Check-in werden spätere VP-Fenster automatisch verschoben.</string>
     <string name="swipe_hint">Wischen für vorherigen oder nächsten VP.</string>
     <string name="arrival_window">Ankunftsfenster</string>
+    <string name="stop_time">Stopzeit</string>
     <string name="custom_time">Eigene Zeit</string>
     <string name="settings_title">Einstellungen</string>
     <string name="settings_subtitle">Live-Verbindung und lokal gespeicherte App-Daten.</string>

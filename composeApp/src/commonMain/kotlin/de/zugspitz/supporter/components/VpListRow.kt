@@ -1,6 +1,5 @@
 package de.zugspitz.supporter.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,17 +14,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.StationProjection
-import zugspitz_supporter.composeapp.generated.resources.Res
-import zugspitz_supporter.composeapp.generated.resources.check_in
-import zugspitz_supporter.composeapp.generated.resources.new_label
 import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterTheme
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import zugspitz_supporter.composeapp.generated.resources.Res
+import zugspitz_supporter.composeapp.generated.resources.check_in
+import zugspitz_supporter.composeapp.generated.resources.check_out
+import zugspitz_supporter.composeapp.generated.resources.new_label
 
 @Composable
 fun VpListRow(
@@ -36,7 +36,7 @@ fun VpListRow(
     val borderColor = if (projection.isCurrent) SupporterColors.Moss.copy(alpha = 0.55f) else SupporterColors.Line
     val background = when {
         projection.isCurrent -> ColorTokens.ActiveRow
-        projection.isDone -> ColorTokens.DoneRow
+        projection.isCheckedIn -> ColorTokens.DoneRow
         else -> SupporterColors.Card
     }
     Surface(
@@ -67,7 +67,11 @@ fun VpListRow(
                     fontWeight = FontWeight.Black,
                 )
                 Text(
-                    text = if (projection.actualArrival != null) stringResource(Res.string.check_in) else stringResource(Res.string.new_label),
+                    text = when {
+                        projection.isCheckedOut -> stringResource(Res.string.check_out)
+                        projection.isCheckedIn -> stringResource(Res.string.check_in)
+                        else -> stringResource(Res.string.new_label)
+                    },
                     color = SupporterColors.Muted,
                     style = MaterialTheme.typography.labelSmall,
                 )

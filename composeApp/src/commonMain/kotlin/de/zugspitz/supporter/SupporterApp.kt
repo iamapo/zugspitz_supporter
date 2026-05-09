@@ -68,7 +68,7 @@ fun SupporterAppRoot(liveRaceRepository: LiveRaceRepository = NoOpLiveRaceReposi
                     selectedIndex = state.vp.selectedIndex,
                     onPageChanged = viewModel::onVpPageChanged,
                     onCheckInClick = viewModel::onCheckInOpen,
-                    onCheckOutClick = viewModel::onCheckOutNow,
+                    onCheckOutClick = viewModel::onCheckOutOpen,
                 )
                 AppTab.List -> VpListScreen(
                     projection = state.vp.projection,
@@ -84,11 +84,12 @@ fun SupporterAppRoot(liveRaceRepository: LiveRaceRepository = NoOpLiveRaceReposi
                 )
             }
 
-            if (state.vp.checkInOpen) {
+            if (state.vp.checkSheetOpen) {
                 val selectedProjection = state.vp.projection.stations[state.vp.selectedIndex]
                 CheckInSheet(
                     projection = selectedProjection,
-                    inputTime = state.vp.checkInInputTime,
+                    action = state.vp.checkAction,
+                    inputTime = state.vp.checkInputTime,
                     onNow = viewModel::onCheckInNow,
                     onDecrease = viewModel::onCheckInTimeDecrease,
                     onIncrease = viewModel::onCheckInTimeIncrease,

@@ -6,9 +6,15 @@ class SaveCheckInUseCase {
     operator fun invoke(
         existingCheckIns: List<CheckIn>,
         stationSection: Int,
-        actualArrivalMinutes: Int,
+        actualArrivalMinutes: Int? = null,
+        actualDepartureMinutes: Int? = null,
     ): List<CheckIn> {
-        return existingCheckIns.filterNot { it.stationSection == stationSection } +
-            CheckIn(stationSection, actualArrivalMinutes)
+        val previous = existingCheckIns.firstOrNull { it.stationSection == stationSection }
+        val merged = CheckIn(
+            stationSection = stationSection,
+            actualArrivalMinutes = actualArrivalMinutes ?: previous?.actualArrivalMinutes ?: 0,
+            actualDepartureMinutes = actualDepartureMinutes ?: previous?.actualDepartureMinutes,
+        )
+        return existingCheckIns.filterNot { it.stationSection == stationSection } + merged
     }
 }

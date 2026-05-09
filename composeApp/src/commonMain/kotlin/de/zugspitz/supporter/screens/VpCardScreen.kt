@@ -110,8 +110,8 @@ fun VpCardScreen(
                 projection = stationProjection,
                 completedElevation = completedElevation(projection, page),
                 onCheckInClick = onCheckInClick,
-                onChangeTimeClick = onCheckInClick,
                 onCheckOutClick = onCheckOutClick,
+                onChangeTimeClick = onCheckInClick,
             )
         }
 

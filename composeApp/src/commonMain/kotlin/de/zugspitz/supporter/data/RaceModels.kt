@@ -39,6 +39,7 @@ data class AidStation(
 data class CheckIn(
     val stationSection: Int,
     val actualArrivalMinutes: Int,
+    val actualDepartureMinutes: Int? = null,
 )
 
 @Immutable
@@ -46,13 +47,17 @@ data class StationProjection(
     val station: AidStation,
     val projectedArrivalMinutes: Int,
     val actualArrivalMinutes: Int?,
+    val actualDepartureMinutes: Int?,
     val plannedArrival: String,
     val window: String,
     val windowStart: String,
     val windowEnd: String,
     val actualArrival: String?,
+    val actualDeparture: String?,
+    val actualStopMinutes: Int?,
     val diffMinutes: Int,
-    val isDone: Boolean,
+    val isCheckedIn: Boolean,
+    val isCheckedOut: Boolean,
     val isCurrent: Boolean,
 )
 
