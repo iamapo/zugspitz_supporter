@@ -156,6 +156,21 @@ class SupporterViewModelTest {
     }
 
     @Test
+    fun `selecting garmisch partenkirchen trail uses 10 o clock start and garmisch stations`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(sessionRepository = repository)
+
+        viewModel.onRaceSelected(RaceDefinitions.GarmischPartenkirchenTrailId)
+
+        val state = viewModel.uiState.value
+        assertEquals(AppTab.Setup, state.tab)
+        assertEquals(RaceDefinitions.GarmischPartenkirchenTrailId, state.setup.estimate.raceId)
+        assertEquals(10 * 60, state.setup.estimate.startTimeMinutes)
+        assertEquals(4, state.vp.projection.stations.size)
+        assertEquals("Z8 Laubhütte", state.vp.projection.stations.first().station.name)
+    }
+
+    @Test
     fun `check in now save stores arrival without opening sheet`() {
         val repository = FakeSessionRepository()
         val viewModel = SupporterViewModel(
