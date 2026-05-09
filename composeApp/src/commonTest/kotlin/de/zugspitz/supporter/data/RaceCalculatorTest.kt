@@ -46,8 +46,8 @@ class RaceCalculatorTest {
     @Test
     fun `segment factors shift intermediate station timings`() {
         val stations = listOf(
-            AidStation(1, "A", "Start", 10.0, 10.0, 0, 0, 0, 0, 0, 0),
-            AidStation(2, "B", "A", 20.0, 10.0, 0, 0, 0, 0, 0, 0),
+            AidStation(1, "A", "Start", 10.0, 47.0, 11.0, 10.0, 0, 0, 0, 0, 0, 0),
+            AidStation(2, "B", "A", 20.0, 47.1, 11.1, 10.0, 0, 0, 0, 0, 0, 0),
         )
 
         val withoutFactors = RaceCalculator(segmentFactors = emptyMap()).project(
