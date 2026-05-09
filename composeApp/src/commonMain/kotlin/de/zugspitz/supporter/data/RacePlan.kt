@@ -44,11 +44,19 @@ val MittenwaldTrailStations = listOf(
     AidStation(5, "Ziel Garmisch", "Z10 Tröglift", 43.8, 7.7, 30, 679, 0, 0, 0, 0),
 )
 
+val GarmischPartenkirchenTrailStations = listOf(
+    AidStation(1, "Z8 Laubhütte", "Start Garmisch", 8.4, 8.4, 480, 185, 0, 0, 0, 4),
+    AidStation(2, "Z9 Hochalm", "Z8 Laubhütte", 13.3, 4.9, 736, 13, 0, 0, 0, 3),
+    AidStation(3, "Z10 Tröglift", "Z9 Hochalm", 21.7, 8.4, 402, 766, 0, 0, 0, 2),
+    AidStation(4, "Ziel Garmisch", "Z10 Tröglift", 29.3, 7.6, 32, 686, 0, 0, 0, 0),
+)
+
 object RaceDefinitions {
     const val ZugspitzUltratrailId = "zugspitz-ultratrail"
     const val EhrwaldTrailId = "ehrwald-trail"
     const val LeutaschTrailId = "leutasch-trail"
     const val MittenwaldTrailId = "mittenwald-trail"
+    const val GarmischPartenkirchenTrailId = "garmisch-partenkirchen-trail"
 
     val All = listOf(
         RaceDefinition(
@@ -133,6 +141,23 @@ object RaceDefinitions {
                 3 to 1.23,
                 4 to 1.21,
                 5 to 1.02,
+            ),
+        ),
+        RaceDefinition(
+            id = GarmischPartenkirchenTrailId,
+            name = "Garmisch-Partenkirchen Trail",
+            distanceLabel = "29 km",
+            startLocation = "Garmisch-Partenkirchen",
+            startTimeMinutes = 10 * 60,
+            defaultMinDurationMinutes = 5 * 60,
+            defaultMaxDurationMinutes = 7 * 60,
+            defaultFixedDurationMinutes = 7 * 60,
+            stations = GarmischPartenkirchenTrailStations,
+            segmentFactors = mapOf(
+                1 to 1.12,
+                2 to 1.23,
+                3 to 1.21,
+                4 to 1.02,
             ),
         ),
     )

@@ -86,6 +86,20 @@ class RaceCalculatorTest {
     }
 
     @Test
+    fun `garmisch partenkirchen projection uses friday 10 o clock start and garmisch stations`() {
+        val projection = calculator.project(
+            estimate = RaceDefinitions.byId(RaceDefinitions.GarmischPartenkirchenTrailId).defaultEstimate(),
+            checkIns = emptyList(),
+            selectedIndex = 0,
+        )
+
+        assertEquals(4, projection.stations.size)
+        assertEquals("Z8 Laubhütte", projection.stations.first().station.name)
+        assertEquals("Ziel Garmisch", projection.stations.last().station.name)
+        assertEquals("15:00-17:00", projection.stations.last().window)
+    }
+
+    @Test
     fun `segment factors shift intermediate station timings`() {
         val stations = listOf(
             AidStation(1, "A", "Start", 10.0, 47.0, 11.0, 10.0, 0, 0, 0, 0, 0, 0),
