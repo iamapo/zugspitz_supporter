@@ -114,6 +114,20 @@ class RaceCalculatorTest {
     }
 
     @Test
+    fun `zut 100 projection uses thursday 20 o clock start and long course stations`() {
+        val projection = calculator.project(
+            estimate = RaceDefinitions.byId(RaceDefinitions.Zut100Id).defaultEstimate(),
+            checkIns = emptyList(),
+            selectedIndex = 0,
+        )
+
+        assertEquals(16, projection.stations.size)
+        assertEquals("Z1 Eibsee", projection.stations.first().station.name)
+        assertEquals("Ziel Garmisch", projection.stations.last().station.name)
+        assertEquals("10:00-15:00", projection.stations.last().window)
+    }
+
+    @Test
     fun `segment factors shift intermediate station timings`() {
         val stations = listOf(
             AidStation(1, "A", "Start", 10.0, 47.0, 11.0, 10.0, 0, 0, 0, 0, 0, 0),
