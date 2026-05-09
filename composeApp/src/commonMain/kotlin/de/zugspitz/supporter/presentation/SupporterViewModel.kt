@@ -110,7 +110,22 @@ class SupporterViewModel(
     fun onCheckInTimeIncrease() = updateState { copy(vp = vp.copy(checkMinutes = vp.checkMinutes + 1)) }
 
     fun onCheckInNow() = updateState {
-        copy(vp = vp.copy(checkMinutes = currentMinutesOfDay() - setup.estimate.startTimeMinutes))
+        copy(vp = vp.copy(checkMinutes = currentCheckMinutes()))
+    }
+
+    fun onCheckInNowSave() = updateState {
+        val stationSection = vp.projection.stations[vp.selectedIndex].station.section
+        val checkMinutes = currentCheckMinutes()
+        val newCheckIns = saveCheckIn(
+            existingCheckIns = checkIns,
+            stationSection = stationSection,
+            actualArrivalMinutes = checkMinutes,
+        )
+        val newEvents = appendLiveEvent(
+            type = CheckEventType.CheckIn,
+            raceMinutes = checkMinutes,
+        )
+        copy(checkIns = newCheckIns, checkEvents = newEvents)
     }
 
     fun onCheckInDismiss() = updateState { copy(vp = vp.copy(checkSheetOpen = false)) }
@@ -331,13 +346,19 @@ class SupporterViewModel(
                 .distinctBy { it.id }
                 .sortedBy { it.createdAtEpochMillis }
             val remoteCheckIns = mergedEvents
-                .filter { it.type == CheckEventType.CheckIn }
                 .groupBy { it.stationSection }
-                .map { (_, events) ->
-                    val latest = events.maxBy { it.createdAtEpochMillis }
+                .mapNotNull { (_, events) ->
+                    val latestCheckIn = events
+                        .filter { it.type == CheckEventType.CheckIn }
+                        .maxByOrNull { it.createdAtEpochMillis }
+                        ?: return@mapNotNull null
+                    val latestCheckOut = events
+                        .filter { it.type == CheckEventType.CheckOut }
+                        .maxByOrNull { it.createdAtEpochMillis }
                     CheckIn(
-                        stationSection = latest.stationSection,
-                        actualArrivalMinutes = latest.raceMinutes,
+                        stationSection = latestCheckIn.stationSection,
+                        actualArrivalMinutes = latestCheckIn.raceMinutes,
+                        actualDepartureMinutes = latestCheckOut?.raceMinutes,
                     )
                 }
             copy(
@@ -363,6 +384,8 @@ class SupporterViewModel(
     private companion object {
         const val MAX_RUN_CODE_LENGTH = 8
     }
+
+    private fun AppUiState.currentCheckMinutes(): Int = currentMinutesOfDay() - setup.estimate.startTimeMinutes
 }
 
 private fun systemMinutesOfDay(): Int {
