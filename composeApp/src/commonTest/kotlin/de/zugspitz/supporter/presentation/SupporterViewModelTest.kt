@@ -8,6 +8,8 @@ import de.zugspitz.supporter.data.CheckIn
 import de.zugspitz.supporter.data.LiveRaceRepository
 import de.zugspitz.supporter.data.LiveRaceSubscription
 import de.zugspitz.supporter.data.LiveRole
+import de.zugspitz.supporter.data.LiveRunInfo
+import de.zugspitz.supporter.data.LiveRunSnapshot
 import de.zugspitz.supporter.data.RaceDefinitions
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.SavedTab
@@ -19,13 +21,51 @@ import kotlin.test.assertTrue
 
 class SupporterViewModelTest {
     @Test
-    fun `first start defaults to race selection and Z1`() {
+    fun `first start defaults to race selection when live sharing is disabled`() {
         val repository = FakeSessionRepository()
         val viewModel = SupporterViewModel(sessionRepository = repository)
 
         val state = viewModel.uiState.value
         assertEquals(AppTab.Race, state.tab)
         assertEquals(0, state.vp.selectedIndex)
+    }
+
+    @Test
+    fun `runner mode routes to race selection`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(sessionRepository = repository)
+
+        viewModel.onRunnerModeSelected()
+
+        val state = viewModel.uiState.value
+        assertEquals(AppTab.Race, state.tab)
+        assertEquals(LiveRole.Runner, state.settings.liveRunLink.role)
+    }
+
+    @Test
+    fun `supporter mode routes directly to support code entry`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = repository,
+            liveSharingEnabled = true,
+        )
+
+        viewModel.onSupporterModeSelected()
+
+        val state = viewModel.uiState.value
+        assertEquals(AppTab.SupportCode, state.tab)
+        assertEquals(LiveRole.Supporter, state.settings.liveRunLink.role)
+    }
+
+    @Test
+    fun `supporter without code can continue to race selection`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(sessionRepository = repository)
+
+        viewModel.onSupporterModeSelected()
+        viewModel.onContinueWithoutSupportCode()
+
+        assertEquals(AppTab.Race, viewModel.uiState.value.tab)
     }
 
     @Test
@@ -53,7 +93,7 @@ class SupporterViewModelTest {
     }
 
     @Test
-    fun `reset clears state and routes to race selection`() {
+    fun `reset clears state and routes to race selection when live sharing is disabled`() {
         val repository = FakeSessionRepository().apply {
             save(AppSessionState(tab = SavedTab.Vp, selectedIndex = 5))
         }
@@ -239,60 +279,7 @@ class SupporterViewModelTest {
         val saved = repository.load().checkIns.first { it.stationSection == 3 }
         assertEquals(281, saved.actualArrivalMinutes)
         assertEquals(105, saved.actualDepartureMinutes)
-    }
-
-    @Test
-    fun `live sharing publishes check in and check out events for runner`() {
-        val liveRepository = FakeLiveRaceRepository()
-        val viewModel = SupporterViewModel(
-            sessionRepository = FakeSessionRepository(),
-            liveRaceRepository = liveRepository,
-            currentMinutesOfDay = { 23 * 60 + 20 },
-        )
-
-        viewModel.onRunCodeChanged("abc-123!")
-        viewModel.onLiveSharingToggle(true)
-        viewModel.onCalculateClick()
-        viewModel.onCheckInOpen()
-        viewModel.onCheckInNow()
-        viewModel.onCheckInSave()
-        viewModel.onCheckOutNowSave()
-
-        assertEquals("ABC123", viewModel.uiState.value.settings.liveRunLink.runCode)
-        assertEquals(listOf(CheckEventType.CheckIn, CheckEventType.CheckOut), liveRepository.events.map { it.type })
-        assertEquals("ABC123", liveRepository.events.first().runCode)
-    }
-
-    @Test
-    fun `supporter subscription applies remote check in events`() {
-        val liveRepository = FakeLiveRaceRepository()
-        val viewModel = SupporterViewModel(
-            sessionRepository = FakeSessionRepository(),
-            liveRaceRepository = liveRepository,
-        )
-
-        viewModel.onLiveRoleSelected(LiveRole.Supporter)
-        viewModel.onRunCodeChanged("RUN42")
-        viewModel.onLiveSharingToggle(true)
-
-        liveRepository.emit(
-            "RUN42",
-            listOf(
-                CheckEvent(
-                    id = "RUN42-3-CheckIn-1",
-                    runCode = "RUN42",
-                    stationSection = 3,
-                    stationName = "Z3 Test",
-                    type = CheckEventType.CheckIn,
-                    raceMinutes = 285,
-                    createdAtEpochMillis = 1L,
-                ),
-            ),
-        )
-
-        assertEquals(1, viewModel.uiState.value.checkIns.size)
-        assertEquals(CheckIn(stationSection = 3, actualArrivalMinutes = 285), viewModel.uiState.value.checkIns.first())
-        assertEquals("Check-in Test um 02:45", viewModel.uiState.value.settings.lastLiveEventText)
+        assertEquals(3, repository.load().selectedIndex)
     }
 
     @Test
@@ -322,6 +309,161 @@ class SupporterViewModelTest {
         assertEquals(1, state.vp.selectedIndex)
         assertEquals(2, state.checkIns.single().stationSection)
     }
+
+    @Test
+    fun `live sharing publishes check in and check out events for runner`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+            currentMinutesOfDay = { 23 * 60 + 20 },
+        )
+
+        viewModel.onRunCodeChanged("abc-123!")
+        viewModel.onLiveSharingToggle(true)
+        viewModel.onCalculateClick()
+        viewModel.onCheckInOpen()
+        viewModel.onCheckInNow()
+        viewModel.onCheckInSave()
+        viewModel.onCheckOutNow()
+
+        assertEquals("ABC123", viewModel.uiState.value.settings.liveRunLink.runCode)
+        assertEquals(listOf(CheckEventType.CheckIn, CheckEventType.CheckOut), liveRepository.events.map { it.type })
+        assertEquals("ABC123", liveRepository.events.first().runCode)
+    }
+
+    @Test
+    fun `creating support code publishes selected race estimate`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+        )
+
+        viewModel.onRaceSelected(RaceDefinitions.EhrwaldTrailId)
+        viewModel.onCreateRunCode()
+
+        val publishedInfo = liveRepository.runInfos.single()
+        assertEquals(viewModel.uiState.value.settings.liveRunLink.runCode, publishedInfo.runCode)
+        assertEquals(RaceDefinitions.EhrwaldTrailId, publishedInfo.estimate.raceId)
+    }
+
+    @Test
+    fun `supporter subscription applies remote race info and check in events`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+        )
+
+        viewModel.onLiveRoleSelected(LiveRole.Supporter)
+        viewModel.onRunCodeChanged("RUN42")
+        viewModel.onLiveSharingToggle(true)
+
+        liveRepository.emit(
+            "RUN42",
+            LiveRunSnapshot(
+                info = LiveRunInfo(
+                    runCode = "RUN42",
+                    estimate = RaceDefinitions.byId(RaceDefinitions.EhrwaldTrailId).defaultEstimate(),
+                    createdAtEpochMillis = 0L,
+                ),
+                events = listOf(
+                    CheckEvent(
+                        id = "RUN42-3-CheckIn-1",
+                        runCode = "RUN42",
+                        stationSection = 3,
+                        stationName = "Z3 Test",
+                        type = CheckEventType.CheckIn,
+                        raceMinutes = 285,
+                        createdAtEpochMillis = 1L,
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals(RaceDefinitions.EhrwaldTrailId, viewModel.uiState.value.setup.estimate.raceId)
+        assertEquals(1, viewModel.uiState.value.checkIns.size)
+        assertEquals(CheckIn(stationSection = 3, actualArrivalMinutes = 285), viewModel.uiState.value.checkIns.first())
+        assertEquals("Check-in Test um 03:45", viewModel.uiState.value.settings.lastLiveEventText)
+    }
+
+    @Test
+    fun `supporter subscription advances to next card after remote checkout`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(AppSessionState(tab = SavedTab.Vp, selectedIndex = 0)),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+        )
+
+        viewModel.onLiveRoleSelected(LiveRole.Supporter)
+        viewModel.onRunCodeChanged("RUN42")
+        viewModel.onLiveSharingToggle(true)
+        liveRepository.emit(
+            "RUN42",
+            LiveRunSnapshot(
+                info = LiveRunInfo(
+                    runCode = "RUN42",
+                    estimate = RaceEstimate(),
+                    createdAtEpochMillis = 0L,
+                ),
+                events = listOf(
+                    CheckEvent(
+                        id = "RUN42-1-CheckIn-1",
+                        runCode = "RUN42",
+                        stationSection = 1,
+                        stationName = "Z1 Eibsee",
+                        type = CheckEventType.CheckIn,
+                        raceMinutes = 75,
+                        createdAtEpochMillis = 1L,
+                    ),
+                    CheckEvent(
+                        id = "RUN42-1-CheckOut-2",
+                        runCode = "RUN42",
+                        stationSection = 1,
+                        stationName = "Z1 Eibsee",
+                        type = CheckEventType.CheckOut,
+                        raceMinutes = 82,
+                        createdAtEpochMillis = 2L,
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals(1, viewModel.uiState.value.vp.selectedIndex)
+    }
+
+    @Test
+    fun `support code entry enables supporter subscription and opens plan when info arrives`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+        )
+
+        viewModel.onSupporterModeSelected()
+        viewModel.onRunCodeChanged("run42")
+        viewModel.onSupportCodeConnect()
+        liveRepository.emit(
+            "RUN42",
+            LiveRunSnapshot(
+                info = LiveRunInfo(
+                    runCode = "RUN42",
+                    estimate = RaceDefinitions.byId(RaceDefinitions.GrainauTrailId).defaultEstimate(),
+                    createdAtEpochMillis = 0L,
+                ),
+            ),
+        )
+
+        val state = viewModel.uiState.value
+        assertEquals(AppTab.Vp, state.tab)
+        assertEquals(RaceDefinitions.GrainauTrailId, state.setup.estimate.raceId)
+    }
 }
 
 private class FakeSessionRepository(
@@ -339,15 +481,20 @@ private class FakeSessionRepository(
 }
 
 private class FakeLiveRaceRepository : LiveRaceRepository {
+    val runInfos = mutableListOf<LiveRunInfo>()
     val events = mutableListOf<CheckEvent>()
-    private val listeners = mutableMapOf<String, (List<CheckEvent>) -> Unit>()
+    private val listeners = mutableMapOf<String, (LiveRunSnapshot) -> Unit>()
+
+    override fun publishRunInfo(info: LiveRunInfo) {
+        runInfos += info
+    }
 
     override fun publish(event: CheckEvent) {
         events += event
     }
 
-    override fun subscribe(runCode: String, onEventsChanged: (List<CheckEvent>) -> Unit): LiveRaceSubscription {
-        listeners[runCode] = onEventsChanged
+    override fun subscribe(runCode: String, onSnapshotChanged: (LiveRunSnapshot) -> Unit): LiveRaceSubscription {
+        listeners[runCode] = onSnapshotChanged
         return object : LiveRaceSubscription {
             override fun close() {
                 listeners.remove(runCode)
@@ -355,7 +502,7 @@ private class FakeLiveRaceRepository : LiveRaceRepository {
         }
     }
 
-    fun emit(runCode: String, events: List<CheckEvent>) {
-        listeners[runCode]?.invoke(events)
+    fun emit(runCode: String, snapshot: LiveRunSnapshot) {
+        listeners[runCode]?.invoke(snapshot)
     }
 }

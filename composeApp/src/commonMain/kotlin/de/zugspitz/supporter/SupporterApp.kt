@@ -14,8 +14,11 @@ import de.zugspitz.supporter.components.AppBottomBar
 import de.zugspitz.supporter.components.AppTab
 import de.zugspitz.supporter.presentation.SupporterViewModel
 import de.zugspitz.supporter.screens.RaceSelectionScreen
+import de.zugspitz.supporter.screens.RoleSelectionScreen
+import de.zugspitz.supporter.screens.RunSummaryScreen
 import de.zugspitz.supporter.screens.SettingsScreen
 import de.zugspitz.supporter.screens.SetupScreen
+import de.zugspitz.supporter.screens.SupportCodeScreen
 import de.zugspitz.supporter.screens.VpCardScreen
 import de.zugspitz.supporter.screens.VpListScreen
 import de.zugspitz.supporter.theme.SupporterColors
@@ -25,22 +28,34 @@ import de.zugspitz.supporter.data.LiveRaceRepository
 import de.zugspitz.supporter.data.NoOpLiveRaceRepository
 
 @Composable
-fun SupporterApp(liveRaceRepository: LiveRaceRepository = NoOpLiveRaceRepository()) {
+fun SupporterApp(
+    liveRaceRepository: LiveRaceRepository = NoOpLiveRaceRepository(),
+    liveSharingEnabled: Boolean = AppFeatureFlags.LiveSharingEnabled,
+) {
     SupporterTheme {
-        SupporterAppRoot(liveRaceRepository = liveRaceRepository)
+        SupporterAppRoot(
+            liveRaceRepository = liveRaceRepository,
+            liveSharingEnabled = liveSharingEnabled,
+        )
     }
 }
 
 @Composable
-fun SupporterAppRoot(liveRaceRepository: LiveRaceRepository = NoOpLiveRaceRepository()) {
-    val viewModel = remember(liveRaceRepository) {
-        SupporterViewModel(liveRaceRepository = liveRaceRepository)
+fun SupporterAppRoot(
+    liveRaceRepository: LiveRaceRepository = NoOpLiveRaceRepository(),
+    liveSharingEnabled: Boolean = AppFeatureFlags.LiveSharingEnabled,
+) {
+    val viewModel = remember(liveRaceRepository, liveSharingEnabled) {
+        SupporterViewModel(
+            liveRaceRepository = liveRaceRepository,
+            liveSharingEnabled = liveSharingEnabled,
+        )
     }
     val state by viewModel.uiState.collectAsState()
 
     Scaffold(
         containerColor = SupporterColors.Paper,
-        bottomBar = if (state.tab == AppTab.Race || state.tab == AppTab.Setup) {
+        bottomBar = if (state.tab == AppTab.Role || state.tab == AppTab.SupportCode || state.tab == AppTab.Race || state.tab == AppTab.Setup) {
             {}
         } else {
             {
@@ -58,8 +73,19 @@ fun SupporterAppRoot(liveRaceRepository: LiveRaceRepository = NoOpLiveRaceReposi
                 .padding(padding),
         ) {
             when (state.tab) {
+                AppTab.Role -> RoleSelectionScreen(
+                    liveSharingEnabled = liveSharingEnabled,
+                    onRunnerSelected = viewModel::onRunnerModeSelected,
+                    onSupporterSelected = viewModel::onSupporterModeSelected,
+                )
+                AppTab.SupportCode -> SupportCodeScreen(
+                    liveRunLink = state.settings.liveRunLink,
+                    onRunCodeChanged = viewModel::onRunCodeChanged,
+                    onConnectClick = viewModel::onSupportCodeConnect,
+                    onContinueWithoutCodeClick = viewModel::onContinueWithoutSupportCode,
+                )
                 AppTab.Race -> RaceSelectionScreen(
-                    selectedRaceId = state.setup.estimate.raceId,
+                    selectedRaceId = if (state.setup.hasSelectedRace) state.setup.estimate.raceId else "",
                     onRaceSelected = viewModel::onRaceSelected,
                 )
                 AppTab.Setup -> SetupScreen(
@@ -70,9 +96,14 @@ fun SupporterAppRoot(liveRaceRepository: LiveRaceRepository = NoOpLiveRaceReposi
                 AppTab.Vp -> VpCardScreen(
                     projection = state.vp.projection,
                     selectedIndex = state.vp.selectedIndex,
+                    canEditCheckIns = !state.settings.liveRunLink.canSubscribe,
                     onPageChanged = viewModel::onVpPageChanged,
                     onCheckInNowClick = viewModel::onCheckInNowSave,
                     onCheckOutClick = viewModel::onCheckOutNowSave,
+                )
+                AppTab.Summary -> RunSummaryScreen(
+                    projection = state.vp.projection,
+                    onStationClick = viewModel::onStationSelected,
                 )
                 AppTab.List -> VpListScreen(
                     projection = state.vp.projection,
@@ -80,6 +111,7 @@ fun SupporterAppRoot(liveRaceRepository: LiveRaceRepository = NoOpLiveRaceReposi
                 )
                 AppTab.Settings -> SettingsScreen(
                     state = state.settings,
+                    liveSharingEnabled = liveSharingEnabled,
                     onRoleSelected = viewModel::onLiveRoleSelected,
                     onRunCodeChanged = viewModel::onRunCodeChanged,
                     onCreateRunCode = viewModel::onCreateRunCode,

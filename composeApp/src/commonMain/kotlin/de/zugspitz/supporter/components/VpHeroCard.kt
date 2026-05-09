@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 fun VpCard(
     projection: StationProjection,
     completedElevation: Pair<Int, Int>,
+    canEditCheckIns: Boolean,
     onCheckInNowClick: () -> Unit,
     onCheckOutClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -115,24 +116,26 @@ fun VpCard(
                 )
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                if (projection.isCheckedIn && !projection.isCheckedOut) {
-                    Button(
-                        onClick = onCheckOutClick,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE9F1E5), contentColor = Color(0xFF0F1B12)),
-                    ) {
-                        Text(stringResource(Res.string.check_out), fontWeight = FontWeight.Black)
-                    }
-                } else if (!projection.isCheckedIn) {
-                    Button(
-                        onClick = onCheckInNowClick,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8CE075), contentColor = Color(0xFF0F1B12)),
-                    ) {
-                        Text(stringResource(Res.string.check_in_now), fontWeight = FontWeight.Black)
+            if (canEditCheckIns) {
+                Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                    if (projection.isCheckedIn && !projection.isCheckedOut) {
+                        Button(
+                            onClick = onCheckOutClick,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE9F1E5), contentColor = Color(0xFF0F1B12)),
+                        ) {
+                            Text(stringResource(Res.string.check_out), fontWeight = FontWeight.Black)
+                        }
+                    } else if (!projection.isCheckedIn) {
+                        Button(
+                            onClick = onCheckInNowClick,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8CE075), contentColor = Color(0xFF0F1B12)),
+                        ) {
+                            Text(stringResource(Res.string.check_in_now), fontWeight = FontWeight.Black)
+                        }
                     }
                 }
             }
@@ -148,6 +151,7 @@ fun VpCardPreview() {
         VpCard(
             projection = projection,
             completedElevation = 1750 to 834,
+            canEditCheckIns = true,
             onCheckInNowClick = {},
             onCheckOutClick = {},
             modifier = Modifier.padding(16.dp),
