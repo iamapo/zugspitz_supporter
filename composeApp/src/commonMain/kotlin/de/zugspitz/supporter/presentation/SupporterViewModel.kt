@@ -54,6 +54,7 @@ class SupporterViewModel(
     fun onRaceSelected(raceId: String) = updateState {
         val selectedRace = RaceDefinitions.byId(raceId)
         copy(
+            tab = AppTab.Setup,
             checkIns = emptyList(),
             setup = setup.copy(estimate = selectedRace.defaultEstimate()),
             vp = vp.copy(selectedIndex = 0),

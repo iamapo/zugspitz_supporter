@@ -32,8 +32,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.zugspitz.supporter.components.ScreenHeader
 import de.zugspitz.supporter.components.TimeRangeInput
-import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.RaceDefinitions
+import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.TargetTimeMode
 import de.zugspitz.supporter.data.formatRaceTime
 import de.zugspitz.supporter.theme.SupporterColors
@@ -48,9 +48,7 @@ import zugspitz_supporter.composeapp.generated.resources.custom_time
 import zugspitz_supporter.composeapp.generated.resources.expected_duration
 import zugspitz_supporter.composeapp.generated.resources.fixed_time
 import zugspitz_supporter.composeapp.generated.resources.planned_start
-import zugspitz_supporter.composeapp.generated.resources.race_name
 import zugspitz_supporter.composeapp.generated.resources.range_time
-import zugspitz_supporter.composeapp.generated.resources.race_distance
 import zugspitz_supporter.composeapp.generated.resources.setup_subtitle
 import zugspitz_supporter.composeapp.generated.resources.setup_title
 import zugspitz_supporter.composeapp.generated.resources.start_time
@@ -60,7 +58,6 @@ import zugspitz_supporter.composeapp.generated.resources.target_time_mode
 @Composable
 fun SetupScreen(
     estimate: RaceEstimate,
-    onRaceSelected: (String) -> Unit,
     onEstimateChange: (RaceEstimate) -> Unit,
     onCalculateClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -78,23 +75,10 @@ fun SetupScreen(
             verticalArrangement = Arrangement.spacedBy(SupporterSpacing.Md),
         ) {
             ScreenHeader(
-                eyebrow = stringResource(Res.string.race_name),
+                eyebrow = selectedRace.name,
                 title = stringResource(Res.string.setup_title),
                 subtitle = stringResource(Res.string.setup_subtitle),
             )
-
-            SetupCard(title = stringResource(Res.string.race_distance)) {
-                Column(verticalArrangement = Arrangement.spacedBy(SupporterSpacing.Sm)) {
-                    RaceDefinitions.All.forEach { race ->
-                        Segment(
-                            label = "${race.name} · ${race.distanceLabel}",
-                            selected = race.id == selectedRace.id,
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = { onRaceSelected(race.id) },
-                        )
-                    }
-                }
-            }
 
             SetupCard(title = stringResource(Res.string.target_time_mode)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(SupporterSpacing.Sm), modifier = Modifier.fillMaxWidth()) {
@@ -223,7 +207,7 @@ private fun Segment(label: String, selected: Boolean, modifier: Modifier, onClic
 @Composable
 fun SetupScreenPreview() {
     SupporterTheme {
-        SetupScreen(RaceEstimate(), {}, {}, {})
+        SetupScreen(RaceEstimate(), {}, {})
     }
 }
 
@@ -236,7 +220,6 @@ fun SetupScreenFixedPreview() {
                 targetMode = TargetTimeMode.Fixed,
                 fixedDurationMinutes = 17 * 60 + 30,
             ),
-            onRaceSelected = {},
             onEstimateChange = {},
             onCalculateClick = {},
         )
