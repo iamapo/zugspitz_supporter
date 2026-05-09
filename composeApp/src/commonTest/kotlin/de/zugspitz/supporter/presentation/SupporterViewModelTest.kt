@@ -136,6 +136,21 @@ class SupporterViewModelTest {
     }
 
     @Test
+    fun `selecting mittenwald trail uses 7 o clock start and mittenwald stations`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(sessionRepository = repository)
+
+        viewModel.onRaceSelected(RaceDefinitions.MittenwaldTrailId)
+
+        val state = viewModel.uiState.value
+        assertEquals(AppTab.Setup, state.tab)
+        assertEquals(RaceDefinitions.MittenwaldTrailId, state.setup.estimate.raceId)
+        assertEquals(7 * 60, state.setup.estimate.startTimeMinutes)
+        assertEquals(5, state.vp.projection.stations.size)
+        assertEquals("Z7 Schloss Elmau", state.vp.projection.stations.first().station.name)
+    }
+
+    @Test
     fun `check in now save stores arrival without opening sheet`() {
         val repository = FakeSessionRepository()
         val viewModel = SupporterViewModel(
