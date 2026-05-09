@@ -17,6 +17,7 @@ import de.zugspitz.supporter.domain.usecase.SaveSessionUseCase
 import de.zugspitz.supporter.domain.usecase.SelectVpUseCase
 import de.zugspitz.supporter.domain.usecase.UpdateEstimateUseCase
 import de.zugspitz.supporter.presentation.state.AppUiState
+import de.zugspitz.supporter.presentation.state.CheckAction
 import de.zugspitz.supporter.presentation.state.SettingsUiState
 import de.zugspitz.supporter.presentation.state.SetupUiState
 import de.zugspitz.supporter.presentation.state.VpUiState
@@ -76,27 +77,47 @@ class SupporterViewModel(
     }
 
     fun onCheckInOpen() = updateState {
-        val minutes = vp.projection.stations[vp.selectedIndex].station.plannedArrivalMinutes + 10
-        copy(vp = vp.copy(checkInOpen = true, checkInMinutes = minutes))
+        val minutes = vp.projection.stations[vp.selectedIndex].actualArrivalMinutes
+            ?: vp.projection.stations[vp.selectedIndex].station.plannedArrivalMinutes + 10
+        copy(vp = vp.copy(checkSheetOpen = true, checkAction = CheckAction.CheckIn, checkMinutes = minutes))
     }
 
-    fun onCheckInTimeDecrease() = updateState { copy(vp = vp.copy(checkInMinutes = vp.checkInMinutes - 1)) }
+    fun onCheckOutOpen() = updateState {
+        val selected = vp.projection.stations[vp.selectedIndex]
+        val minutes = selected.actualDepartureMinutes
+            ?: selected.actualArrivalMinutes?.plus(selected.station.stopMinutes)
+            ?: selected.station.plannedArrivalMinutes + selected.station.stopMinutes
+        copy(vp = vp.copy(checkSheetOpen = true, checkAction = CheckAction.CheckOut, checkMinutes = minutes))
+    }
 
-    fun onCheckInTimeIncrease() = updateState { copy(vp = vp.copy(checkInMinutes = vp.checkInMinutes + 1)) }
+    fun onCheckInTimeDecrease() = updateState { copy(vp = vp.copy(checkMinutes = vp.checkMinutes - 1)) }
+
+    fun onCheckInTimeIncrease() = updateState { copy(vp = vp.copy(checkMinutes = vp.checkMinutes + 1)) }
 
     fun onCheckInNow() = updateState {
-        copy(vp = vp.copy(checkInMinutes = currentMinutesOfDay() - setup.estimate.startTimeMinutes))
+        copy(vp = vp.copy(checkMinutes = currentMinutesOfDay() - setup.estimate.startTimeMinutes))
     }
 
-    fun onCheckInDismiss() = updateState { copy(vp = vp.copy(checkInOpen = false)) }
+    fun onCheckInDismiss() = updateState { copy(vp = vp.copy(checkSheetOpen = false)) }
 
     fun onCheckInSave() = updateState {
         val stationSection = vp.projection.stations[vp.selectedIndex].station.section
-        val newCheckIns = saveCheckIn(checkIns, stationSection, vp.checkInMinutes)
+        val newCheckIns = when (vp.checkAction) {
+            CheckAction.CheckIn -> saveCheckIn(
+                existingCheckIns = checkIns,
+                stationSection = stationSection,
+                actualArrivalMinutes = vp.checkMinutes,
+            )
+            CheckAction.CheckOut -> saveCheckIn(
+                existingCheckIns = checkIns,
+                stationSection = stationSection,
+                actualDepartureMinutes = vp.checkMinutes,
+            )
+        }
         copy(
             tab = AppTab.List,
             checkIns = newCheckIns,
-            vp = vp.copy(checkInOpen = false),
+            vp = vp.copy(checkSheetOpen = false),
         )
     }
 
@@ -112,8 +133,9 @@ class SupporterViewModel(
             estimate = session.estimate,
             selectedIndex = session.selectedIndex.coerceAtLeast(0).coerceAtMost(10),
             checkIns = session.checkIns,
-            checkInOpen = false,
-            checkInMinutesOverride = null,
+            checkSheetOpen = false,
+            checkAction = CheckAction.CheckIn,
+            checkMinutesOverride = null,
         )
     }
 
@@ -125,8 +147,9 @@ class SupporterViewModel(
                 estimate = mutated.setup.estimate,
                 selectedIndex = mutated.vp.selectedIndex,
                 checkIns = mutated.checkIns,
-                checkInOpen = mutated.vp.checkInOpen,
-                checkInMinutesOverride = mutated.vp.checkInMinutes,
+                checkSheetOpen = mutated.vp.checkSheetOpen,
+                checkAction = mutated.vp.checkAction,
+                checkMinutesOverride = mutated.vp.checkMinutes,
             )
             persist(rebuilt)
             rebuilt
@@ -138,13 +161,20 @@ class SupporterViewModel(
         estimate: RaceEstimate,
         selectedIndex: Int,
         checkIns: List<CheckIn>,
-        checkInOpen: Boolean,
-        checkInMinutesOverride: Int?,
+        checkSheetOpen: Boolean,
+        checkAction: CheckAction,
+        checkMinutesOverride: Int?,
     ): AppUiState {
         val projection = calculator.project(estimate, checkIns, selectedIndex)
         val clampedIndex = selectedIndex.coerceIn(0, projection.stations.lastIndex)
-        val checkInMinutes = checkInMinutesOverride
-            ?: (projection.stations[clampedIndex].station.plannedArrivalMinutes + 10)
+        val selectedStation = projection.stations[clampedIndex]
+        val defaultCheckMinutes = when (checkAction) {
+            CheckAction.CheckIn -> selectedStation.actualArrivalMinutes ?: (selectedStation.station.plannedArrivalMinutes + 10)
+            CheckAction.CheckOut -> selectedStation.actualDepartureMinutes
+                ?: selectedStation.actualArrivalMinutes?.plus(selectedStation.station.stopMinutes)
+                ?: (selectedStation.station.plannedArrivalMinutes + selectedStation.station.stopMinutes)
+        }
+        val checkMinutes = checkMinutesOverride ?: defaultCheckMinutes
         return AppUiState(
             tab = tab,
             checkIns = checkIns,
@@ -152,9 +182,10 @@ class SupporterViewModel(
             vp = VpUiState(
                 projection = projection,
                 selectedIndex = clampedIndex,
-                checkInOpen = checkInOpen,
-                checkInMinutes = checkInMinutes,
-                checkInInputTime = formatRaceTime(estimate.startTimeMinutes + checkInMinutes),
+                checkSheetOpen = checkSheetOpen,
+                checkAction = checkAction,
+                checkMinutes = checkMinutes,
+                checkInputTime = formatRaceTime(estimate.startTimeMinutes + checkMinutes),
             ),
             settings = SettingsUiState(),
         )

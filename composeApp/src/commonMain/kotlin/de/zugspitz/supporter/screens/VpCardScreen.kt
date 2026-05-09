@@ -56,6 +56,7 @@ fun VpCardScreen(
     selectedIndex: Int,
     onPageChanged: (Int) -> Unit,
     onCheckInClick: () -> Unit,
+    onCheckOutClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val pagerState = rememberPagerState(
@@ -109,6 +110,7 @@ fun VpCardScreen(
                 projection = stationProjection,
                 completedElevation = completedElevation(projection, page),
                 onCheckInClick = onCheckInClick,
+                onCheckOutClick = onCheckOutClick,
                 onChangeTimeClick = onCheckInClick,
             )
         }
@@ -192,6 +194,7 @@ fun VpCardScreenPreview() {
             selectedIndex = 2,
             onPageChanged = {},
             onCheckInClick = {},
+            onCheckOutClick = {},
         )
     }
 }

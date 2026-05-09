@@ -20,26 +20,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.zugspitz.supporter.data.CheckIn
 import de.zugspitz.supporter.data.StationProjection
-import zugspitz_supporter.composeapp.generated.resources.Res
-import zugspitz_supporter.composeapp.generated.resources.arrival_input
-import zugspitz_supporter.composeapp.generated.resources.now
-import zugspitz_supporter.composeapp.generated.resources.save_check_in
-import zugspitz_supporter.composeapp.generated.resources.stepper_minus
-import zugspitz_supporter.composeapp.generated.resources.stepper_plus
-import zugspitz_supporter.composeapp.generated.resources.time_separator_dot
+import de.zugspitz.supporter.presentation.state.CheckAction
 import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterRadius
 import de.zugspitz.supporter.theme.SupporterSpacing
 import de.zugspitz.supporter.theme.SupporterTheme
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import zugspitz_supporter.composeapp.generated.resources.Res
+import zugspitz_supporter.composeapp.generated.resources.arrival_input
+import zugspitz_supporter.composeapp.generated.resources.departure_input
+import zugspitz_supporter.composeapp.generated.resources.now
+import zugspitz_supporter.composeapp.generated.resources.save_check_in
+import zugspitz_supporter.composeapp.generated.resources.save_check_out
+import zugspitz_supporter.composeapp.generated.resources.stepper_minus
+import zugspitz_supporter.composeapp.generated.resources.stepper_plus
+import zugspitz_supporter.composeapp.generated.resources.time_separator_dot
 
 @Composable
 fun CheckInSheet(
     projection: StationProjection,
+    action: CheckAction,
     inputTime: String,
     onNow: () -> Unit,
     onDecrease: () -> Unit,
@@ -61,7 +65,7 @@ fun CheckInSheet(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Column(Modifier.padding(SupporterSpacing.Xl), verticalArrangement = Arrangement.spacedBy(SupporterSpacing.Md)) {
-                    Text(stringResource(Res.string.arrival_input), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
+                    Text(sheetTitle(action), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
                     Text(
                         "${projection.station.name}${stringResource(Res.string.time_separator_dot)}${projection.window}",
                         color = SupporterColors.Muted,
@@ -96,11 +100,23 @@ fun CheckInSheet(
                         shape = RoundedCornerShape(SupporterRadius.Card),
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text(stringResource(Res.string.save_check_in), fontWeight = FontWeight.Black, modifier = Modifier.padding(SupporterSpacing.Sm))
+                        Text(sheetSaveLabel(action), fontWeight = FontWeight.Black, modifier = Modifier.padding(SupporterSpacing.Sm))
                     }
                 }
             }
         }
+}
+
+@Composable
+private fun sheetTitle(action: CheckAction): String = when (action) {
+    CheckAction.CheckIn -> stringResource(Res.string.arrival_input)
+    CheckAction.CheckOut -> stringResource(Res.string.departure_input)
+}
+
+@Composable
+private fun sheetSaveLabel(action: CheckAction): String = when (action) {
+    CheckAction.CheckIn -> stringResource(Res.string.save_check_in)
+    CheckAction.CheckOut -> stringResource(Res.string.save_check_out)
 }
 
 @Composable
@@ -166,6 +182,6 @@ fun CheckInSheetPreview() {
         .project(de.zugspitz.supporter.data.RaceEstimate(), listOf(CheckIn(3, 281)), 2)
         .stations[2]
     SupporterTheme {
-        CheckInSheet(projection, "02:41", {}, {}, {}, {}, {})
+        CheckInSheet(projection, CheckAction.CheckIn, "02:41", {}, {}, {}, {}, {})
     }
 }
