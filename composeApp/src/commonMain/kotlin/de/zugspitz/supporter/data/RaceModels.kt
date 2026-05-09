@@ -25,6 +25,8 @@ data class AidStation(
     val name: String,
     val from: String,
     val totalKm: Double,
+    val latitude: Double,
+    val longitude: Double,
     val sectionKm: Double,
     val climbMeters: Int,
     val descentMeters: Int,

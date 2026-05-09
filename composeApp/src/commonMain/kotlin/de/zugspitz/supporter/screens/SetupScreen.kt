@@ -38,6 +38,7 @@ import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterRadius
 import de.zugspitz.supporter.theme.SupporterSpacing
 import de.zugspitz.supporter.theme.SupporterTheme
+import de.zugspitz.supporter.util.ComposeUiUtils
 import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.calculate_plan
@@ -62,7 +63,7 @@ fun SetupScreen(
     modifier: Modifier = Modifier,
 ) {
         var fixedInput by remember(estimate.fixedDurationMinutes) {
-            mutableStateOf(minutesToDurationInput(estimate.fixedDurationMinutes))
+            mutableStateOf(ComposeUiUtils.minutesToDurationInput(estimate.fixedDurationMinutes))
         }
         Column(
             modifier = modifier
@@ -126,7 +127,7 @@ fun SetupScreen(
                         value = fixedInput,
                         onValueChange = { value ->
                             fixedInput = value
-                            parseDurationInput(value)?.let { parsedMinutes ->
+                            ComposeUiUtils.parseDurationInput(value)?.let { parsedMinutes ->
                                 onEstimateChange(estimate.copy(fixedDurationMinutes = parsedMinutes))
                             }
                         },
@@ -195,21 +196,6 @@ private fun Segment(label: String, selected: Boolean, modifier: Modifier, onClic
                 .padding(vertical = 10.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
-}
-
-private fun minutesToDurationInput(totalMinutes: Int): String {
-    val hours = (totalMinutes / 60).coerceAtLeast(0)
-    val minutes = (totalMinutes % 60).coerceAtLeast(0)
-    return "${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}"
-}
-
-private fun parseDurationInput(input: String): Int? {
-    val parts = input.split(":")
-    if (parts.size != 2) return null
-    val hours = parts[0].toIntOrNull() ?: return null
-    val minutes = parts[1].toIntOrNull() ?: return null
-    if (hours !in 0..72 || minutes !in 0..59) return null
-    return (hours * 60) + minutes
 }
 
 @Preview
