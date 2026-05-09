@@ -24,6 +24,20 @@ data class LiveRunLink(
         get() = isEnabled && role == LiveRole.Supporter && runCode.isNotBlank()
 }
 
+@Immutable
+@Serializable
+data class LiveRunInfo(
+    val runCode: String,
+    val estimate: RaceEstimate,
+    val createdAtEpochMillis: Long,
+)
+
+@Immutable
+data class LiveRunSnapshot(
+    val info: LiveRunInfo?,
+    val events: List<CheckEvent> = emptyList(),
+)
+
 @Serializable
 enum class CheckEventType {
     CheckIn,
@@ -43,8 +57,9 @@ data class CheckEvent(
 )
 
 interface LiveRaceRepository {
+    fun publishRunInfo(info: LiveRunInfo)
     fun publish(event: CheckEvent)
-    fun subscribe(runCode: String, onEventsChanged: (List<CheckEvent>) -> Unit): LiveRaceSubscription
+    fun subscribe(runCode: String, onSnapshotChanged: (LiveRunSnapshot) -> Unit): LiveRaceSubscription
 }
 
 interface LiveRaceSubscription {
@@ -52,9 +67,11 @@ interface LiveRaceSubscription {
 }
 
 class NoOpLiveRaceRepository : LiveRaceRepository {
+    override fun publishRunInfo(info: LiveRunInfo) = Unit
+
     override fun publish(event: CheckEvent) = Unit
 
-    override fun subscribe(runCode: String, onEventsChanged: (List<CheckEvent>) -> Unit): LiveRaceSubscription {
+    override fun subscribe(runCode: String, onSnapshotChanged: (LiveRunSnapshot) -> Unit): LiveRaceSubscription {
         return NoOpLiveRaceSubscription
     }
 }

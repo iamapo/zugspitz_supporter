@@ -9,7 +9,9 @@ import de.zugspitz.supporter.data.DefaultSessionRepository
 import de.zugspitz.supporter.data.LiveRaceRepository
 import de.zugspitz.supporter.data.LiveRaceSubscription
 import de.zugspitz.supporter.data.LiveRole
+import de.zugspitz.supporter.data.LiveRunInfo
 import de.zugspitz.supporter.data.LiveRunLink
+import de.zugspitz.supporter.data.LiveRunSnapshot
 import de.zugspitz.supporter.data.NoOpLiveRaceRepository
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceDefinitions
@@ -40,6 +42,7 @@ import kotlin.time.Clock
 class SupporterViewModel(
     sessionRepository: SessionRepository = DefaultSessionRepository(),
     private val liveRaceRepository: LiveRaceRepository = NoOpLiveRaceRepository(),
+    private val liveSharingEnabled: Boolean = false,
     private val calculator: RaceCalculator = RaceCalculator(),
     private val currentMinutesOfDay: () -> Int = ::systemMinutesOfDay,
 ) {
@@ -62,18 +65,80 @@ class SupporterViewModel(
 
     fun onTabSelected(tab: AppTab) = updateState { copy(tab = tab) }
 
-    fun onEstimateChange(estimate: RaceEstimate) = updateState {
-        copy(setup = setup.copy(estimate = updateEstimate(estimate)))
+    fun onRunnerModeSelected() {
+        updateState {
+            copy(
+                tab = AppTab.Race,
+                settings = settings.copy(
+                    liveRunLink = settings.liveRunLink.copy(role = LiveRole.Runner, isEnabled = false),
+                ),
+            )
+        }
+        syncLiveSubscription()
     }
 
-    fun onRaceSelected(raceId: String) = updateState {
-        val selectedRace = RaceDefinitions.byId(raceId)
-        copy(
-            tab = AppTab.Setup,
-            checkIns = emptyList(),
-            setup = setup.copy(estimate = selectedRace.defaultEstimate()),
-            vp = vp.copy(selectedIndex = 0),
-        )
+    fun onSupporterModeSelected() {
+        if (!liveSharingEnabled) {
+            onRunnerModeSelected()
+            return
+        }
+        updateState {
+            copy(
+                tab = AppTab.SupportCode,
+                settings = settings.copy(
+                    liveRunLink = settings.liveRunLink.copy(role = LiveRole.Supporter, isEnabled = false),
+                ),
+            )
+        }
+        syncLiveSubscription()
+    }
+
+    fun onSupportCodeConnect() {
+        if (!liveSharingEnabled) return
+        updateState {
+            if (settings.liveRunLink.runCode.isBlank()) {
+                return@updateState this
+            }
+            copy(
+                tab = AppTab.SupportCode,
+                settings = settings.copy(
+                    liveRunLink = settings.liveRunLink.copy(role = LiveRole.Supporter, isEnabled = true),
+                ),
+            )
+        }
+        syncLiveSubscription()
+    }
+
+    fun onContinueWithoutSupportCode() {
+        updateState {
+            copy(
+                tab = AppTab.Race,
+                settings = settings.copy(
+                    liveRunLink = settings.liveRunLink.copy(role = LiveRole.Supporter, isEnabled = false),
+                ),
+            )
+        }
+        syncLiveSubscription()
+    }
+
+    fun onEstimateChange(estimate: RaceEstimate) {
+        updateState {
+            copy(setup = setup.copy(estimate = updateEstimate(estimate)))
+        }
+        publishCurrentRunInfo()
+    }
+
+    fun onRaceSelected(raceId: String) {
+        updateState {
+            val selectedRace = RaceDefinitions.byId(raceId)
+            copy(
+                tab = AppTab.Setup,
+                checkIns = emptyList(),
+                setup = setup.copy(estimate = selectedRace.defaultEstimate(), hasSelectedRace = true),
+                vp = vp.copy(selectedIndex = 0),
+            )
+        }
+        publishCurrentRunInfo()
     }
 
     fun onCalculateClick() = updateState {
@@ -134,6 +199,7 @@ class SupporterViewModel(
             actualArrivalMinutes = checkMinutes,
         )
         val newEvents = appendLiveEvent(
+            selectedIndex = selectedIndex,
             type = CheckEventType.CheckIn,
             raceMinutes = checkMinutes,
         )
@@ -157,13 +223,15 @@ class SupporterViewModel(
             actualDepartureMinutes = checkMinutes,
         )
         val newEvents = appendLiveEvent(
+            selectedIndex = selectedIndex,
             type = CheckEventType.CheckOut,
             raceMinutes = checkMinutes,
         )
+        val nextIndex = selectVp(selectedIndex + 1, vp.projection.stations.lastIndex)
         copy(
             checkIns = newCheckIns,
             checkEvents = newEvents,
-            vp = vp.copy(selectedIndex = selectedIndex, checkSheetOpen = false),
+            vp = vp.copy(selectedIndex = nextIndex, checkSheetOpen = false),
         )
     }
 
@@ -183,31 +251,30 @@ class SupporterViewModel(
                 actualDepartureMinutes = vp.checkMinutes,
             )
         }
-        val eventType = when (vp.checkAction) {
-            CheckAction.CheckIn -> CheckEventType.CheckIn
-            CheckAction.CheckOut -> CheckEventType.CheckOut
-        }
         val newEvents = appendLiveEvent(
-            type = eventType,
+            selectedIndex = vp.selectedIndex,
+            type = when (vp.checkAction) {
+                CheckAction.CheckIn -> CheckEventType.CheckIn
+                CheckAction.CheckOut -> CheckEventType.CheckOut
+            },
             raceMinutes = vp.checkMinutes,
         )
+        val nextIndex = when (vp.checkAction) {
+            CheckAction.CheckIn -> vp.selectedIndex
+            CheckAction.CheckOut -> selectVp(vp.selectedIndex + 1, vp.projection.stations.lastIndex)
+        }
         copy(
-            tab = AppTab.List,
+            tab = if (vp.checkAction == CheckAction.CheckOut) AppTab.Vp else AppTab.List,
             checkIns = newCheckIns,
             checkEvents = newEvents,
-            vp = vp.copy(checkSheetOpen = false),
+            vp = vp.copy(selectedIndex = nextIndex, checkSheetOpen = false),
         )
     }
 
-    fun onCheckOutNow() = updateState {
-        val newEvents = appendLiveEvent(
-            type = CheckEventType.CheckOut,
-            raceMinutes = currentMinutesOfDay() - setup.estimate.startTimeMinutes,
-        )
-        copy(checkEvents = newEvents)
-    }
+    fun onCheckOutNow() = onCheckOutNowSave()
 
     fun onLiveRoleSelected(role: LiveRole) {
+        if (!liveSharingEnabled) return
         updateState {
             copy(settings = settings.copy(liveRunLink = settings.liveRunLink.copy(role = role)))
         }
@@ -215,6 +282,7 @@ class SupporterViewModel(
     }
 
     fun onRunCodeChanged(runCode: String) {
+        if (!liveSharingEnabled) return
         updateState {
             val normalizedCode = runCode
                 .uppercase()
@@ -222,10 +290,12 @@ class SupporterViewModel(
                 .take(MAX_RUN_CODE_LENGTH)
             copy(settings = settings.copy(liveRunLink = settings.liveRunLink.copy(runCode = normalizedCode)))
         }
+        publishCurrentRunInfo()
         syncLiveSubscription()
     }
 
     fun onCreateRunCode() {
+        if (!liveSharingEnabled) return
         updateState {
             copy(
                 settings = settings.copy(
@@ -237,13 +307,16 @@ class SupporterViewModel(
                 ),
             )
         }
+        publishCurrentRunInfo()
         syncLiveSubscription()
     }
 
     fun onLiveSharingToggle(enabled: Boolean) {
+        if (!liveSharingEnabled) return
         updateState {
             copy(settings = settings.copy(liveRunLink = settings.liveRunLink.copy(isEnabled = enabled)))
         }
+        publishCurrentRunInfo()
         syncLiveSubscription()
     }
 
@@ -254,14 +327,23 @@ class SupporterViewModel(
 
     private fun createInitialState(): AppUiState {
         val session = loadSession()
+        val liveRunLink = if (liveSharingEnabled) session.liveRunLink else LiveRunLink()
+        val tab = session.tab.toAppTab().let { savedTab ->
+            if (!liveSharingEnabled && (savedTab == AppTab.Role || savedTab == AppTab.SupportCode)) {
+                AppTab.Race
+            } else {
+                savedTab
+            }
+        }
         val initialProjection = calculator.project(session.estimate, session.checkIns, session.selectedIndex)
         return buildUiState(
-            tab = session.tab.toAppTab(),
+            tab = tab,
             estimate = session.estimate,
+            hasSelectedRace = session.hasSelectedRace,
             selectedIndex = session.selectedIndex.coerceIn(0, initialProjection.stations.lastIndex),
             checkIns = session.checkIns,
             checkEvents = session.checkEvents,
-            liveRunLink = session.liveRunLink,
+            liveRunLink = liveRunLink,
             checkSheetOpen = false,
             checkAction = CheckAction.CheckIn,
             checkMinutesOverride = null,
@@ -274,6 +356,7 @@ class SupporterViewModel(
             val rebuilt = buildUiState(
                 tab = mutated.tab,
                 estimate = mutated.setup.estimate,
+                hasSelectedRace = mutated.setup.hasSelectedRace,
                 selectedIndex = mutated.vp.selectedIndex,
                 checkIns = mutated.checkIns,
                 checkEvents = mutated.checkEvents,
@@ -290,6 +373,7 @@ class SupporterViewModel(
     private fun buildUiState(
         tab: AppTab,
         estimate: RaceEstimate,
+        hasSelectedRace: Boolean,
         selectedIndex: Int,
         checkIns: List<CheckIn>,
         checkEvents: List<CheckEvent>,
@@ -312,7 +396,7 @@ class SupporterViewModel(
             tab = tab,
             checkIns = checkIns,
             checkEvents = checkEvents,
-            setup = SetupUiState(estimate = estimate),
+            setup = SetupUiState(estimate = estimate, hasSelectedRace = hasSelectedRace),
             vp = VpUiState(
                 projection = projection,
                 selectedIndex = clampedIndex,
@@ -328,11 +412,11 @@ class SupporterViewModel(
         )
     }
 
-    private fun AppUiState.appendLiveEvent(type: CheckEventType, raceMinutes: Int): List<CheckEvent> {
+    private fun AppUiState.appendLiveEvent(selectedIndex: Int, type: CheckEventType, raceMinutes: Int): List<CheckEvent> {
         val link = settings.liveRunLink
         if (!link.canPublish) return checkEvents
 
-        val station = vp.projection.stations[vp.selectedIndex].station
+        val station = vp.projection.stations[selectedIndex].station
         val createdAtEpochMillis = Clock.System.now().toEpochMilliseconds()
         val event = CheckEvent(
             id = "${link.runCode}-${station.section}-${type.name}-$createdAtEpochMillis",
@@ -353,6 +437,7 @@ class SupporterViewModel(
         saveSession(
             AppSessionState(
                 estimate = state.setup.estimate,
+                hasSelectedRace = state.setup.hasSelectedRace,
                 tab = state.tab.toSavedTab(),
                 selectedIndex = state.vp.selectedIndex,
                 checkIns = state.checkIns,
@@ -363,6 +448,7 @@ class SupporterViewModel(
     }
 
     private fun syncLiveSubscription(link: LiveRunLink = _uiState.value.settings.liveRunLink) {
+        if (!liveSharingEnabled) return
         val requestedCode = link.runCode.takeIf { link.canSubscribe }
         if (requestedCode == liveSubscriptionCode) return
 
@@ -373,16 +459,17 @@ class SupporterViewModel(
         if (requestedCode == null) return
 
         liveSubscriptionCode = requestedCode
-        liveSubscription = liveRaceRepository.subscribe(requestedCode) { remoteEvents ->
-            applyRemoteEvents(requestedCode, remoteEvents)
+        liveSubscription = liveRaceRepository.subscribe(requestedCode) { remoteSnapshot ->
+            applyRemoteSnapshot(requestedCode, remoteSnapshot)
         }
     }
 
-    private fun applyRemoteEvents(runCode: String, remoteEvents: List<CheckEvent>) {
+    private fun applyRemoteSnapshot(runCode: String, remoteSnapshot: LiveRunSnapshot) {
         updateState {
             if (settings.liveRunLink.runCode != runCode || !settings.liveRunLink.canSubscribe) return@updateState this
 
-            val mergedEvents = (checkEvents + remoteEvents)
+            val activeEstimate = remoteSnapshot.info?.estimate ?: setup.estimate
+            val mergedEvents = (checkEvents + remoteSnapshot.events)
                 .distinctBy { it.id }
                 .sortedBy { it.createdAtEpochMillis }
             val remoteCheckIns = mergedEvents
@@ -401,11 +488,48 @@ class SupporterViewModel(
                         actualDepartureMinutes = latestCheckOut?.raceMinutes,
                     )
                 }
+            val currentStationSection = vp.projection.stations.getOrNull(vp.selectedIndex)?.station?.section
+            val firstOpenIndex = RaceDefinitions.byId(activeEstimate.raceId).stations
+                .indexOfFirst { station ->
+                    remoteCheckIns.none {
+                        it.stationSection == station.section && it.actualDepartureMinutes != null
+                    }
+                }
+                .let { index -> if (index >= 0) index else RaceDefinitions.byId(activeEstimate.raceId).stations.lastIndex }
+            val shouldAdvanceAfterCheckout = currentStationSection != null &&
+                remoteCheckIns.any {
+                    it.stationSection == currentStationSection && it.actualDepartureMinutes != null
+                } &&
+                vp.selectedIndex < vp.projection.stations.lastIndex
             copy(
+                tab = if (remoteSnapshot.info != null && tab == AppTab.SupportCode) AppTab.Vp else tab,
+                setup = setup.copy(estimate = activeEstimate, hasSelectedRace = true),
                 checkIns = remoteCheckIns,
                 checkEvents = mergedEvents,
+                vp = vp.copy(
+                    selectedIndex = when {
+                        tab == AppTab.SupportCode -> firstOpenIndex
+                        shouldAdvanceAfterCheckout -> vp.selectedIndex + 1
+                        else -> vp.selectedIndex
+                    },
+                ),
             )
         }
+    }
+
+    private fun publishCurrentRunInfo() {
+        if (!liveSharingEnabled) return
+        val state = _uiState.value
+        val link = state.settings.liveRunLink
+        if (!link.canPublish) return
+
+        liveRaceRepository.publishRunInfo(
+            LiveRunInfo(
+                runCode = link.runCode,
+                estimate = state.setup.estimate,
+                createdAtEpochMillis = Clock.System.now().toEpochMilliseconds(),
+            ),
+        )
     }
 
     private fun CheckEvent.toStatusText(startTimeMinutes: Int): String {
