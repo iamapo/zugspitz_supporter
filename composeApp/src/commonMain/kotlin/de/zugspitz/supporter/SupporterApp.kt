@@ -59,6 +59,7 @@ fun SupporterAppRoot(liveRaceRepository: LiveRaceRepository = NoOpLiveRaceReposi
             when (state.tab) {
                 AppTab.Setup -> SetupScreen(
                     estimate = state.setup.estimate,
+                    onRaceSelected = viewModel::onRaceSelected,
                     onEstimateChange = viewModel::onEstimateChange,
                     onCalculateClick = viewModel::onCalculateClick,
                 )
