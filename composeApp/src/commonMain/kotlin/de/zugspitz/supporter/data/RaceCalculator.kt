@@ -3,14 +3,17 @@ package de.zugspitz.supporter.data
 import kotlin.math.roundToInt
 
 class RaceCalculator(
-    private val segmentFactors: Map<Int, Double> = ZutSegmentFactors,
+    private val segmentFactors: Map<Int, Double>? = null,
 ) {
     fun project(
         estimate: RaceEstimate,
         checkIns: List<CheckIn>,
         selectedIndex: Int,
-        stations: List<AidStation> = ZugspitzStations,
+        stations: List<AidStation>? = null,
     ): RaceProjection {
+        val race = RaceDefinitions.byId(estimate.raceId)
+        val raceStations = stations ?: race.stations
+        val raceSegmentFactors = segmentFactors ?: race.segmentFactors
         val minDurationMinutes = if (estimate.targetMode == TargetTimeMode.Fixed) {
             estimate.fixedDurationMinutes
         } else {
@@ -22,7 +25,8 @@ class RaceCalculator(
             estimate.maxDurationMinutes
         }
         val plannedStations = calculateStations(
-            stations = stations,
+            stations = raceStations,
+            segmentFactors = raceSegmentFactors,
             plannedDurationMinutes = minDurationMinutes,
             windowEndDurationMinutes = maxDurationMinutes,
         )
@@ -71,6 +75,7 @@ class RaceCalculator(
 
     private fun calculateStations(
         stations: List<AidStation>,
+        segmentFactors: Map<Int, Double>,
         plannedDurationMinutes: Int,
         windowEndDurationMinutes: Int,
         metersUpPerKm: Double = 100.0,
@@ -90,7 +95,7 @@ class RaceCalculator(
         }
 
         val totalEffortKm = stations.sumOf { station ->
-            station.effortKm(metersUpPerKm, metersDownPerKm)
+            station.effortKm(segmentFactors, metersUpPerKm, metersDownPerKm)
         }
         require(totalEffortKm > 0.0) { "total effort must be greater than zero" }
 
@@ -98,7 +103,7 @@ class RaceCalculator(
         var stopMinutesBeforeStation = 0
 
         return stations.map { station ->
-            cumulativeEffortKm += station.effortKm(metersUpPerKm, metersDownPerKm)
+            cumulativeEffortKm += station.effortKm(segmentFactors, metersUpPerKm, metersDownPerKm)
 
             val plannedArrivalMinutes = stopMinutesBeforeStation +
                 proportionalMinutes(plannedMovingMinutes, cumulativeEffortKm, totalEffortKm)
@@ -116,6 +121,7 @@ class RaceCalculator(
     }
 
     private fun AidStation.effortKm(
+        segmentFactors: Map<Int, Double>,
         metersUpPerKm: Double,
         metersDownPerKm: Double,
     ): Double {
@@ -129,22 +135,6 @@ class RaceCalculator(
         cumulativeEffortKm: Double,
         totalEffortKm: Double,
     ): Int = (totalMovingMinutes * cumulativeEffortKm / totalEffortKm).roundToInt()
-
-    companion object {
-        private val ZutSegmentFactors = mapOf(
-            1 to 0.82,
-            2 to 0.81,
-            3 to 0.77,
-            4 to 0.99,
-            5 to 0.98,
-            6 to 1.08,
-            7 to 1.06,
-            8 to 1.12,
-            9 to 1.23,
-            10 to 1.21,
-            11 to 1.02,
-        )
-    }
 }
 
 fun formatRaceTime(minutes: Int): String {
