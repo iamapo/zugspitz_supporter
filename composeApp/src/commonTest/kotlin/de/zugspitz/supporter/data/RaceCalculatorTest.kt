@@ -94,4 +94,29 @@ class RaceCalculatorTest {
             projection.stations[3].station.plannedArrivalMinutes,
         )
     }
+
+    @Test
+    fun `checkout extends future station timings by actual stop duration`() {
+        val baseProjection = calculator.project(RaceEstimate(), emptyList(), selectedIndex = 0)
+        val checkedStation = baseProjection.stations[2].station
+        val actualArrivalMinutes = checkedStation.plannedArrivalMinutes
+        val actualDepartureMinutes = actualArrivalMinutes + checkedStation.stopMinutes + 18
+
+        val projection = calculator.project(
+            estimate = RaceEstimate(),
+            checkIns = listOf(
+                CheckIn(
+                    stationSection = checkedStation.section,
+                    actualArrivalMinutes = actualArrivalMinutes,
+                    actualDepartureMinutes = actualDepartureMinutes,
+                ),
+            ),
+            selectedIndex = 3,
+        )
+
+        assertEquals(18, projection.activeShiftMinutes)
+        assertEquals(18, projection.stations[3].station.plannedArrivalMinutes - baseProjection.stations[3].station.plannedArrivalMinutes)
+        assertEquals(checkedStation.stopMinutes + 18, projection.stations[2].actualStopMinutes)
+        assertEquals(formatRaceTime(RaceEstimate().startTimeMinutes + actualDepartureMinutes), projection.stations[2].actualDeparture)
+    }
 }

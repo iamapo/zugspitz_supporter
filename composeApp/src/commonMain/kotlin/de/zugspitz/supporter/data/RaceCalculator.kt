@@ -30,7 +30,9 @@ class RaceCalculator(
         val latestCheckIn = checkIns.maxByOrNull { it.stationSection }
         val shift = latestCheckIn?.let { checkIn ->
             val station = plannedStations.first { it.section == checkIn.stationSection }
-            checkIn.actualArrivalMinutes - station.plannedArrivalMinutes
+            val plannedDepartureMinutes = station.plannedArrivalMinutes + station.stopMinutes
+            val actualDepartureMinutes = checkIn.actualDepartureMinutes ?: (checkIn.actualArrivalMinutes + station.stopMinutes)
+            actualDepartureMinutes - plannedDepartureMinutes
         } ?: 0
 
         val projections = plannedStations.mapIndexed { index, station ->
@@ -49,13 +51,17 @@ class RaceCalculator(
                 station = projectedStation,
                 projectedArrivalMinutes = projectedStation.plannedArrivalMinutes,
                 actualArrivalMinutes = checkIn?.actualArrivalMinutes,
+                actualDepartureMinutes = checkIn?.actualDepartureMinutes,
                 plannedArrival = formatRaceTime(estimate.startTimeMinutes + projectedStation.plannedArrivalMinutes),
                 window = "${formatRaceTime(estimate.startTimeMinutes + projectedStation.windowStartMinutes)}-${formatRaceTime(estimate.startTimeMinutes + projectedStation.windowEndMinutes)}",
                 windowStart = formatRaceTime(estimate.startTimeMinutes + projectedStation.windowStartMinutes),
                 windowEnd = formatRaceTime(estimate.startTimeMinutes + projectedStation.windowEndMinutes),
                 actualArrival = checkIn?.let { formatRaceTime(estimate.startTimeMinutes + it.actualArrivalMinutes) },
+                actualDeparture = checkIn?.actualDepartureMinutes?.let { formatRaceTime(estimate.startTimeMinutes + it) },
+                actualStopMinutes = checkIn?.actualDepartureMinutes?.let { it - checkIn.actualArrivalMinutes },
                 diffMinutes = checkIn?.let { it.actualArrivalMinutes - station.plannedArrivalMinutes } ?: if (shouldShift) shift else 0,
-                isDone = checkIn != null,
+                isCheckedIn = checkIn != null,
+                isCheckedOut = checkIn?.actualDepartureMinutes != null,
                 isCurrent = index == selectedIndex,
             )
         }

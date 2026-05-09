@@ -25,9 +25,11 @@ import de.zugspitz.supporter.data.StationProjection
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.change_time
 import zugspitz_supporter.composeapp.generated.resources.check_in
+import zugspitz_supporter.composeapp.generated.resources.check_out
 import zugspitz_supporter.composeapp.generated.resources.completed
 import zugspitz_supporter.composeapp.generated.resources.expected_arrival
 import zugspitz_supporter.composeapp.generated.resources.plan
+import zugspitz_supporter.composeapp.generated.resources.stop_time
 import zugspitz_supporter.composeapp.generated.resources.to_here
 import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterTheme
@@ -39,6 +41,7 @@ fun VpCard(
     projection: StationProjection,
     completedElevation: Pair<Int, Int>,
     onCheckInClick: () -> Unit,
+    onCheckOutClick: () -> Unit,
     onChangeTimeClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -91,10 +94,20 @@ fun VpCard(
                     inverted = true,
                 )
                 StatTile(
+                    label = stringResource(Res.string.stop_time),
+                    value = projection.actualStopMinutes?.let { "${it} min" } ?: "${projection.station.stopMinutes} min",
+                    detail = projection.actualDeparture ?: projection.actualArrival,
+                    modifier = Modifier.weight(1f),
+                    inverted = true,
+                )
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                StatTile(
                     label = stringResource(Res.string.to_here),
                     value = "${projection.station.sectionKm} km",
                     detail = "+${projection.station.climbMeters} / -${projection.station.descentMeters} hm",
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     inverted = true,
                 )
             }
@@ -109,8 +122,19 @@ fun VpCard(
                     Text(stringResource(Res.string.check_in), fontWeight = FontWeight.Black)
                 }
                 Button(
-                    onClick = onChangeTimeClick,
+                    onClick = onCheckOutClick,
+                    enabled = projection.isCheckedIn,
                     modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE9F1E5), contentColor = Color(0xFF0F1B12)),
+                ) {
+                    Text(stringResource(Res.string.check_out), fontWeight = FontWeight.Black)
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                Button(
+                    onClick = onChangeTimeClick,
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.08f), contentColor = Color.White),
                 ) {
@@ -130,6 +154,7 @@ fun VpCardPreview() {
             projection = projection,
             completedElevation = 1750 to 834,
             onCheckInClick = {},
+            onCheckOutClick = {},
             onChangeTimeClick = {},
             modifier = Modifier.padding(16.dp),
         )
