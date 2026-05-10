@@ -55,9 +55,8 @@ fun VpCardScreen(
     projection: RaceProjection,
     selectedIndex: Int,
     onPageChanged: (Int) -> Unit,
-    onCheckInClick: () -> Unit,
-    onCheckInNowClick: () -> Unit,
-    onCheckOutClick: () -> Unit,
+    onCheckInNowClick: (Int) -> Unit,
+    onCheckOutClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val pagerState = rememberPagerState(
@@ -110,10 +109,8 @@ fun VpCardScreen(
             VpCard(
                 projection = stationProjection,
                 completedElevation = completedElevation(projection, page),
-                onCheckInClick = onCheckInClick,
-                onCheckInNowClick = onCheckInNowClick,
-                onCheckOutClick = onCheckOutClick,
-                onChangeTimeClick = onCheckInClick,
+                onCheckInNowClick = { onCheckInNowClick(page) },
+                onCheckOutClick = { onCheckOutClick(page) },
             )
         }
 
@@ -195,7 +192,6 @@ fun VpCardScreenPreview() {
             projection = RaceCalculator().project(RaceEstimate(), emptyList(), 2),
             selectedIndex = 2,
             onPageChanged = {},
-            onCheckInClick = {},
             onCheckInNowClick = {},
             onCheckOutClick = {},
         )
