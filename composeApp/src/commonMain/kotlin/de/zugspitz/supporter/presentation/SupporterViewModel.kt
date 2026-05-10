@@ -98,14 +98,35 @@ class SupporterViewModel(
         copy(vp = vp.copy(checkMinutes = currentCheckMinutes()))
     }
 
-    fun onCheckInNowSave() = updateState {
-        val stationSection = vp.projection.stations[vp.selectedIndex].station.section
+    fun onCheckInNowSave(stationIndex: Int = uiState.value.vp.selectedIndex) = updateState {
+        val selectedIndex = stationIndex.coerceIn(0, vp.projection.stations.lastIndex)
+        val stationSection = vp.projection.stations[selectedIndex].station.section
         val newCheckIns = saveCheckIn(
             existingCheckIns = checkIns,
             stationSection = stationSection,
             actualArrivalMinutes = currentCheckMinutes(),
         )
-        copy(checkIns = newCheckIns)
+        copy(
+            checkIns = newCheckIns,
+            vp = vp.copy(selectedIndex = selectedIndex, checkSheetOpen = false),
+        )
+    }
+
+    fun onCheckOutNowSave(stationIndex: Int = uiState.value.vp.selectedIndex) = updateState {
+        val selectedIndex = stationIndex.coerceIn(0, vp.projection.stations.lastIndex)
+        val selected = vp.projection.stations[selectedIndex]
+        if (!selected.isCheckedIn || selected.isCheckedOut) {
+            return@updateState this
+        }
+        val newCheckIns = saveCheckIn(
+            existingCheckIns = checkIns,
+            stationSection = selected.station.section,
+            actualDepartureMinutes = currentCheckMinutes(),
+        )
+        copy(
+            checkIns = newCheckIns,
+            vp = vp.copy(selectedIndex = selectedIndex, checkSheetOpen = false),
+        )
     }
 
     fun onCheckInDismiss() = updateState { copy(vp = vp.copy(checkSheetOpen = false)) }
@@ -212,7 +233,10 @@ class SupporterViewModel(
         )
     }
 
-    private fun AppUiState.currentCheckMinutes(): Int = currentMinutesOfDay() - setup.estimate.startTimeMinutes
+    private fun AppUiState.currentCheckMinutes(): Int {
+        val diff = currentMinutesOfDay() - setup.estimate.startTimeMinutes
+        return if (diff < 0) diff + 24 * 60 else diff
+    }
 }
 
 private fun systemMinutesOfDay(): Int {
