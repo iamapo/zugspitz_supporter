@@ -102,24 +102,36 @@ fun SetupScreen(
                     TimeRangeInput(
                         minHours = estimate.minDurationMinutes / 60,
                         maxHours = estimate.maxDurationMinutes / 60,
-                        onDecrease = {
+                        onMinDecrease = {
                             if (estimate.minDurationMinutes > 14 * 60) {
                                 onEstimateChange(
                                     estimate.copy(
                                         minDurationMinutes = estimate.minDurationMinutes - 60,
-                                        maxDurationMinutes = estimate.maxDurationMinutes - 60,
                                     ),
                                 )
                             }
                         },
-                        onIncrease = {
+                        onMinIncrease = {
+                            val newMinDurationMinutes = estimate.minDurationMinutes + 60
                             onEstimateChange(
                                 estimate.copy(
-                                    minDurationMinutes = estimate.minDurationMinutes + 60,
-                                    maxDurationMinutes = estimate.maxDurationMinutes + 60,
+                                    minDurationMinutes = newMinDurationMinutes,
+                                    maxDurationMinutes = estimate.maxDurationMinutes.coerceAtLeast(newMinDurationMinutes),
                                 ),
                             )
-                        }
+                        },
+                        onMaxDecrease = {
+                            if (estimate.maxDurationMinutes > estimate.minDurationMinutes) {
+                                onEstimateChange(
+                                    estimate.copy(maxDurationMinutes = estimate.maxDurationMinutes - 60),
+                                )
+                            }
+                        },
+                        onMaxIncrease = {
+                            onEstimateChange(
+                                estimate.copy(maxDurationMinutes = estimate.maxDurationMinutes + 60),
+                            )
+                        },
                     )
                 }
             } else {
