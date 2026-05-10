@@ -13,7 +13,6 @@ import androidx.compose.runtime.remember
 import de.zugspitz.supporter.components.AppBottomBar
 import de.zugspitz.supporter.components.AppTab
 import de.zugspitz.supporter.presentation.SupporterViewModel
-import de.zugspitz.supporter.screens.CheckInSheet
 import de.zugspitz.supporter.screens.SettingsScreen
 import de.zugspitz.supporter.screens.SetupScreen
 import de.zugspitz.supporter.screens.VpCardScreen
@@ -67,9 +66,8 @@ fun SupporterAppRoot(liveRaceRepository: LiveRaceRepository = NoOpLiveRaceReposi
                     projection = state.vp.projection,
                     selectedIndex = state.vp.selectedIndex,
                     onPageChanged = viewModel::onVpPageChanged,
-                    onCheckInClick = viewModel::onCheckInOpen,
                     onCheckInNowClick = viewModel::onCheckInNowSave,
-                    onCheckOutClick = viewModel::onCheckOutOpen,
+                    onCheckOutClick = viewModel::onCheckOutNowSave,
                 )
                 AppTab.List -> VpListScreen(
                     projection = state.vp.projection,
@@ -85,19 +83,6 @@ fun SupporterAppRoot(liveRaceRepository: LiveRaceRepository = NoOpLiveRaceReposi
                 )
             }
 
-            if (state.vp.checkSheetOpen) {
-                val selectedProjection = state.vp.projection.stations[state.vp.selectedIndex]
-                CheckInSheet(
-                    projection = selectedProjection,
-                    action = state.vp.checkAction,
-                    inputTime = state.vp.checkInputTime,
-                    onNow = viewModel::onCheckInNow,
-                    onDecrease = viewModel::onCheckInTimeDecrease,
-                    onIncrease = viewModel::onCheckInTimeIncrease,
-                    onSave = viewModel::onCheckInSave,
-                    onDismiss = viewModel::onCheckInDismiss,
-                )
-            }
         }
     }
 }

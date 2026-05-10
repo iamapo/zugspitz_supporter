@@ -23,12 +23,10 @@ import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.StationProjection
 import zugspitz_supporter.composeapp.generated.resources.Res
-import zugspitz_supporter.composeapp.generated.resources.change_time
 import zugspitz_supporter.composeapp.generated.resources.check_in_now
 import zugspitz_supporter.composeapp.generated.resources.check_out
 import zugspitz_supporter.composeapp.generated.resources.checked_in
 import zugspitz_supporter.composeapp.generated.resources.completed
-import zugspitz_supporter.composeapp.generated.resources.enter_time
 import zugspitz_supporter.composeapp.generated.resources.expected_arrival
 import zugspitz_supporter.composeapp.generated.resources.plan
 import zugspitz_supporter.composeapp.generated.resources.stop_time
@@ -42,10 +40,8 @@ import androidx.compose.ui.tooling.preview.Preview
 fun VpCard(
     projection: StationProjection,
     completedElevation: Pair<Int, Int>,
-    onCheckInClick: () -> Unit,
     onCheckInNowClick: () -> Unit,
     onCheckOutClick: () -> Unit,
-    onChangeTimeClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -120,39 +116,23 @@ fun VpCard(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
-                if (projection.isCheckedIn) {
-                    Button(
-                        onClick = onChangeTimeClick,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.08f), contentColor = Color.White),
-                    ) {
-                        Text(stringResource(Res.string.change_time), fontWeight = FontWeight.Black)
-                    }
+                if (projection.isCheckedIn && !projection.isCheckedOut) {
                     Button(
                         onClick = onCheckOutClick,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE9F1E5), contentColor = Color(0xFF0F1B12)),
                     ) {
                         Text(stringResource(Res.string.check_out), fontWeight = FontWeight.Black)
                     }
-                } else {
+                } else if (!projection.isCheckedIn) {
                     Button(
                         onClick = onCheckInNowClick,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8CE075), contentColor = Color(0xFF0F1B12)),
                     ) {
                         Text(stringResource(Res.string.check_in_now), fontWeight = FontWeight.Black)
-                    }
-                    Button(
-                        onClick = onCheckInClick,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE9F1E5), contentColor = Color(0xFF0F1B12)),
-                    ) {
-                        Text(stringResource(Res.string.enter_time), fontWeight = FontWeight.Black)
                     }
                 }
             }
@@ -168,10 +148,8 @@ fun VpCardPreview() {
         VpCard(
             projection = projection,
             completedElevation = 1750 to 834,
-            onCheckInClick = {},
             onCheckInNowClick = {},
             onCheckOutClick = {},
-            onChangeTimeClick = {},
             modifier = Modifier.padding(16.dp),
         )
     }
