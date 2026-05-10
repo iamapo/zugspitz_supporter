@@ -118,9 +118,7 @@ class SupporterViewModelTest {
             currentMinutesOfDay = { 23 * 60 + 45 },
         )
 
-        viewModel.onCheckOutOpen()
-        viewModel.onCheckInNow()
-        viewModel.onCheckInSave()
+        viewModel.onCheckOutNowSave()
 
         val saved = repository.load().checkIns.first { it.stationSection == 3 }
         assertEquals(281, saved.actualArrivalMinutes)
@@ -142,7 +140,7 @@ class SupporterViewModelTest {
         viewModel.onCheckInOpen()
         viewModel.onCheckInNow()
         viewModel.onCheckInSave()
-        viewModel.onCheckOutNow()
+        viewModel.onCheckOutNowSave()
 
         assertEquals("ABC123", viewModel.uiState.value.settings.liveRunLink.runCode)
         assertEquals(listOf(CheckEventType.CheckIn, CheckEventType.CheckOut), liveRepository.events.map { it.type })
@@ -179,6 +177,34 @@ class SupporterViewModelTest {
         assertEquals(1, viewModel.uiState.value.checkIns.size)
         assertEquals(CheckIn(stationSection = 3, actualArrivalMinutes = 285), viewModel.uiState.value.checkIns.first())
         assertEquals("Check-in Test um 02:45", viewModel.uiState.value.settings.lastLiveEventText)
+    }
+
+    @Test
+    fun `checkout is ignored without existing check in`() {
+        val repository = FakeSessionRepository(AppSessionState(tab = SavedTab.Vp, selectedIndex = 0))
+        val viewModel = SupporterViewModel(
+            sessionRepository = repository,
+            currentMinutesOfDay = { 23 * 60 + 45 },
+        )
+
+        viewModel.onCheckOutNowSave()
+
+        assertTrue(repository.load().checkIns.isEmpty())
+    }
+
+    @Test
+    fun `check in and checkout use explicit pager station`() {
+        val repository = FakeSessionRepository(AppSessionState(tab = SavedTab.Vp, selectedIndex = 0))
+        val viewModel = SupporterViewModel(
+            sessionRepository = repository,
+            currentMinutesOfDay = { 23 * 60 + 15 },
+        )
+
+        viewModel.onCheckInNowSave(stationIndex = 1)
+
+        val state = viewModel.uiState.value
+        assertEquals(1, state.vp.selectedIndex)
+        assertEquals(2, state.checkIns.single().stationSection)
     }
 }
 

@@ -113,8 +113,9 @@ class SupporterViewModel(
         copy(vp = vp.copy(checkMinutes = currentCheckMinutes()))
     }
 
-    fun onCheckInNowSave() = updateState {
-        val stationSection = vp.projection.stations[vp.selectedIndex].station.section
+    fun onCheckInNowSave(stationIndex: Int = uiState.value.vp.selectedIndex) = updateState {
+        val selectedIndex = stationIndex.coerceIn(0, vp.projection.stations.lastIndex)
+        val stationSection = vp.projection.stations[selectedIndex].station.section
         val checkMinutes = currentCheckMinutes()
         val newCheckIns = saveCheckIn(
             existingCheckIns = checkIns,
@@ -125,7 +126,34 @@ class SupporterViewModel(
             type = CheckEventType.CheckIn,
             raceMinutes = checkMinutes,
         )
-        copy(checkIns = newCheckIns, checkEvents = newEvents)
+        copy(
+            checkIns = newCheckIns,
+            checkEvents = newEvents,
+            vp = vp.copy(selectedIndex = selectedIndex, checkSheetOpen = false),
+        )
+    }
+
+    fun onCheckOutNowSave(stationIndex: Int = uiState.value.vp.selectedIndex) = updateState {
+        val selectedIndex = stationIndex.coerceIn(0, vp.projection.stations.lastIndex)
+        val selected = vp.projection.stations[selectedIndex]
+        if (!selected.isCheckedIn || selected.isCheckedOut) {
+            return@updateState this
+        }
+        val checkMinutes = currentCheckMinutes()
+        val newCheckIns = saveCheckIn(
+            existingCheckIns = checkIns,
+            stationSection = selected.station.section,
+            actualDepartureMinutes = checkMinutes,
+        )
+        val newEvents = appendLiveEvent(
+            type = CheckEventType.CheckOut,
+            raceMinutes = checkMinutes,
+        )
+        copy(
+            checkIns = newCheckIns,
+            checkEvents = newEvents,
+            vp = vp.copy(selectedIndex = selectedIndex, checkSheetOpen = false),
+        )
     }
 
     fun onCheckInDismiss() = updateState { copy(vp = vp.copy(checkSheetOpen = false)) }
@@ -385,7 +413,10 @@ class SupporterViewModel(
         const val MAX_RUN_CODE_LENGTH = 8
     }
 
-    private fun AppUiState.currentCheckMinutes(): Int = currentMinutesOfDay() - setup.estimate.startTimeMinutes
+    private fun AppUiState.currentCheckMinutes(): Int {
+        val diff = currentMinutesOfDay() - setup.estimate.startTimeMinutes
+        return if (diff < 0) diff + 24 * 60 else diff
+    }
 }
 
 private fun systemMinutesOfDay(): Int {
