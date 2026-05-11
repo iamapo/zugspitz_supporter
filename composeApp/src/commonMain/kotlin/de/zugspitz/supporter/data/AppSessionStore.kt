@@ -58,7 +58,7 @@ fun SavedTab.toAppTab(): AppTab = when (this) {
     SavedTab.SupportCode -> AppTab.SupportCode
     SavedTab.Race -> AppTab.Race
     SavedTab.Setup -> AppTab.Setup
-    SavedTab.PauseSetup -> AppTab.PauseSetup
+    SavedTab.PauseSetup -> AppTab.Setup
     SavedTab.Vp -> AppTab.Vp
     SavedTab.Map -> AppTab.Map
     SavedTab.Summary -> AppTab.Summary
