@@ -3,6 +3,7 @@ package de.zugspitz.supporter
 import androidx.compose.ui.window.ComposeUIViewController
 import de.zugspitz.supporter.data.KmpFirebaseLiveRaceRepository
 import de.zugspitz.supporter.data.NoOpLiveRaceRepository
+import de.zugspitz.supporter.notifications.IosEventNotificationService
 import kotlin.experimental.ExperimentalNativeApi
 import kotlin.native.Platform
 
@@ -20,5 +21,6 @@ fun MainViewController() = ComposeUIViewController(
             NoOpLiveRaceRepository()
         },
         liveSharingEnabled = liveSharingEnabled,
+        eventNotificationService = IosEventNotificationService(),
     )
 }

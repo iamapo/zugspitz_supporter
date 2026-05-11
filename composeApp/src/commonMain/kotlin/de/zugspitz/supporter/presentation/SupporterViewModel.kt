@@ -26,6 +26,8 @@ import de.zugspitz.supporter.domain.usecase.SaveCheckInUseCase
 import de.zugspitz.supporter.domain.usecase.SaveSessionUseCase
 import de.zugspitz.supporter.domain.usecase.SelectVpUseCase
 import de.zugspitz.supporter.domain.usecase.UpdateEstimateUseCase
+import de.zugspitz.supporter.notifications.EventNotificationService
+import de.zugspitz.supporter.notifications.NoOpEventNotificationService
 import de.zugspitz.supporter.presentation.state.AppUiState
 import de.zugspitz.supporter.presentation.state.CheckAction
 import de.zugspitz.supporter.presentation.state.OfflineMapUiState
@@ -45,6 +47,7 @@ class SupporterViewModel(
     private val liveRaceRepository: LiveRaceRepository = NoOpLiveRaceRepository(),
     private val liveSharingEnabled: Boolean = false,
     private val calculator: RaceCalculator = RaceCalculator(),
+    private val eventNotificationService: EventNotificationService = NoOpEventNotificationService,
     private val currentMinutesOfDay: () -> Int = ::systemMinutesOfDay,
 ) {
     private val loadSession = LoadSessionUseCase(sessionRepository)
@@ -529,13 +532,18 @@ class SupporterViewModel(
     }
 
     private fun applyRemoteSnapshot(runCode: String, remoteSnapshot: LiveRunSnapshot) {
+        var eventsToNotify: List<CheckEvent> = emptyList()
+        var notificationEstimate: RaceEstimate? = null
         updateState {
             if (settings.liveRunLink.runCode != runCode || !settings.liveRunLink.canSubscribe) return@updateState this
 
             val activeEstimate = remoteSnapshot.info?.estimate ?: setup.estimate
+            val knownEventIds = checkEvents.map { it.id }.toSet()
             val mergedEvents = (checkEvents + remoteSnapshot.events)
                 .distinctBy { it.id }
                 .sortedBy { it.createdAtEpochMillis }
+            eventsToNotify = mergedEvents.filter { it.id !in knownEventIds }
+            notificationEstimate = activeEstimate
             val remoteCheckIns = mergedEvents
                 .groupBy { it.stationSection }
                 .mapNotNull { (_, events) ->
@@ -585,6 +593,10 @@ class SupporterViewModel(
                     },
                 ),
             )
+        }
+        val estimate = notificationEstimate ?: return
+        eventsToNotify.forEach { event ->
+            eventNotificationService.notifyRemoteEvent(event, estimate)
         }
     }
 

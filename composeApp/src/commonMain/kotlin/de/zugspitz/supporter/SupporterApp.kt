@@ -30,16 +30,20 @@ import de.zugspitz.supporter.theme.SupporterTheme
 import androidx.compose.ui.tooling.preview.Preview
 import de.zugspitz.supporter.data.LiveRaceRepository
 import de.zugspitz.supporter.data.NoOpLiveRaceRepository
+import de.zugspitz.supporter.notifications.EventNotificationService
+import de.zugspitz.supporter.notifications.NoOpEventNotificationService
 
 @Composable
 fun SupporterApp(
     liveRaceRepository: LiveRaceRepository = NoOpLiveRaceRepository(),
     liveSharingEnabled: Boolean = AppFeatureFlags.LiveSharingEnabled,
+    eventNotificationService: EventNotificationService = NoOpEventNotificationService,
 ) {
     SupporterTheme {
         SupporterAppRoot(
             liveRaceRepository = liveRaceRepository,
             liveSharingEnabled = liveSharingEnabled,
+            eventNotificationService = eventNotificationService,
         )
     }
 }
@@ -48,11 +52,13 @@ fun SupporterApp(
 fun SupporterAppRoot(
     liveRaceRepository: LiveRaceRepository = NoOpLiveRaceRepository(),
     liveSharingEnabled: Boolean = AppFeatureFlags.LiveSharingEnabled,
+    eventNotificationService: EventNotificationService = NoOpEventNotificationService,
 ) {
     val viewModel = remember(liveRaceRepository, liveSharingEnabled) {
         SupporterViewModel(
             liveRaceRepository = liveRaceRepository,
             liveSharingEnabled = liveSharingEnabled,
+            eventNotificationService = eventNotificationService,
         )
     }
     val state by viewModel.uiState.collectAsState()
