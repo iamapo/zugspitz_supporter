@@ -43,7 +43,7 @@ import de.zugspitz.supporter.theme.SupporterTheme
 import de.zugspitz.supporter.util.ComposeUiUtils
 import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
-import zugspitz_supporter.composeapp.generated.resources.calculate_plan
+import zugspitz_supporter.composeapp.generated.resources.continue_to_vp_pause_setup
 import zugspitz_supporter.composeapp.generated.resources.custom_time
 import zugspitz_supporter.composeapp.generated.resources.expected_duration
 import zugspitz_supporter.composeapp.generated.resources.fixed_time
@@ -181,7 +181,7 @@ fun SetupScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = SupporterColors.Pine),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(stringResource(Res.string.calculate_plan), fontWeight = FontWeight.Black, modifier = Modifier.padding(SupporterSpacing.Sm))
+                Text(stringResource(Res.string.continue_to_vp_pause_setup), fontWeight = FontWeight.Black, modifier = Modifier.padding(SupporterSpacing.Sm))
             }
         }
 }

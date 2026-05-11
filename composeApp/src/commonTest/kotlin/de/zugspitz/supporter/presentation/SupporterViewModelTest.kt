@@ -117,6 +117,7 @@ class SupporterViewModelTest {
         )
 
         viewModel.onCalculateClick()
+        viewModel.onPauseSetupContinue()
         viewModel.onCheckInOpen()
         viewModel.onCheckInNow()
 
@@ -157,6 +158,7 @@ class SupporterViewModelTest {
 
         viewModel.onRaceSelected(RaceDefinitions.EhrwaldTrailId)
         viewModel.onCalculateClick()
+        viewModel.onPauseSetupContinue()
         viewModel.onCheckInOpen()
         viewModel.onCheckInNow()
 
@@ -249,6 +251,7 @@ class SupporterViewModelTest {
         )
 
         viewModel.onCalculateClick()
+        viewModel.onPauseSetupContinue()
         viewModel.onCheckInNowSave()
 
         val state = viewModel.uiState.value
@@ -323,6 +326,7 @@ class SupporterViewModelTest {
         viewModel.onRunCodeChanged("abc-123!")
         viewModel.onLiveSharingToggle(true)
         viewModel.onCalculateClick()
+        viewModel.onPauseSetupContinue()
         viewModel.onCheckInOpen()
         viewModel.onCheckInNow()
         viewModel.onCheckInSave()
@@ -348,6 +352,27 @@ class SupporterViewModelTest {
         val publishedInfo = liveRepository.runInfos.single()
         assertEquals(viewModel.uiState.value.settings.liveRunLink.runCode, publishedInfo.runCode)
         assertEquals(RaceDefinitions.EhrwaldTrailId, publishedInfo.estimate.raceId)
+    }
+
+    @Test
+    fun `pause setup starts with default station stop minutes and can be changed`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(sessionRepository = repository)
+
+        viewModel.onRaceSelected(RaceDefinitions.ZugspitzUltratrailId)
+        viewModel.onCalculateClick()
+
+        val pauseSetupState = viewModel.uiState.value
+        assertEquals(AppTab.PauseSetup, pauseSetupState.tab)
+        assertEquals(2, pauseSetupState.setup.pauseMinutesBySection[1])
+
+        viewModel.onPauseMinutesChanged(section = 1, minutes = 9)
+        viewModel.onPauseSetupContinue()
+
+        val updatedState = viewModel.uiState.value
+        assertEquals(AppTab.Vp, updatedState.tab)
+        assertEquals(9, updatedState.setup.pauseMinutesBySection[1])
+        assertEquals(9, updatedState.vp.projection.stations.first().station.stopMinutes)
     }
 
     @Test

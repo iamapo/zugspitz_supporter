@@ -134,7 +134,11 @@ class SupporterViewModel(
             copy(
                 tab = AppTab.Setup,
                 checkIns = emptyList(),
-                setup = setup.copy(estimate = selectedRace.defaultEstimate(), hasSelectedRace = true),
+                setup = setup.copy(
+                    estimate = selectedRace.defaultEstimate(),
+                    hasSelectedRace = true,
+                    pauseMinutesBySection = defaultPauseMinutesBySection(raceId),
+                ),
                 vp = vp.copy(selectedIndex = 0),
             )
         }
@@ -142,6 +146,20 @@ class SupporterViewModel(
     }
 
     fun onCalculateClick() = updateState {
+        copy(
+            tab = AppTab.PauseSetup,
+        )
+    }
+
+    fun onPauseMinutesChanged(section: Int, minutes: Int) = updateState {
+        copy(
+            setup = setup.copy(
+                pauseMinutesBySection = setup.pauseMinutesBySection + (section to minutes.coerceAtLeast(0)),
+            ),
+        )
+    }
+
+    fun onPauseSetupContinue() = updateState {
         copy(
             tab = AppTab.Vp,
             vp = vp.copy(selectedIndex = 0),
@@ -340,6 +358,10 @@ class SupporterViewModel(
             tab = tab,
             estimate = session.estimate,
             hasSelectedRace = session.hasSelectedRace,
+            pauseMinutesBySection = mergePauseMinutesBySection(
+                raceId = session.estimate.raceId,
+                overrides = session.pauseMinutesBySection,
+            ),
             selectedIndex = session.selectedIndex.coerceIn(0, initialProjection.stations.lastIndex),
             checkIns = session.checkIns,
             checkEvents = session.checkEvents,
@@ -357,6 +379,7 @@ class SupporterViewModel(
                 tab = mutated.tab,
                 estimate = mutated.setup.estimate,
                 hasSelectedRace = mutated.setup.hasSelectedRace,
+                pauseMinutesBySection = mutated.setup.pauseMinutesBySection,
                 selectedIndex = mutated.vp.selectedIndex,
                 checkIns = mutated.checkIns,
                 checkEvents = mutated.checkEvents,
@@ -374,6 +397,7 @@ class SupporterViewModel(
         tab: AppTab,
         estimate: RaceEstimate,
         hasSelectedRace: Boolean,
+        pauseMinutesBySection: Map<Int, Int>,
         selectedIndex: Int,
         checkIns: List<CheckIn>,
         checkEvents: List<CheckEvent>,
@@ -382,7 +406,14 @@ class SupporterViewModel(
         checkAction: CheckAction,
         checkMinutesOverride: Int?,
     ): AppUiState {
-        val projection = calculator.project(estimate, checkIns, selectedIndex)
+        val normalizedPauseMinutes = mergePauseMinutesBySection(
+            raceId = estimate.raceId,
+            overrides = pauseMinutesBySection,
+        )
+        val stationsWithPauseOverrides = RaceDefinitions.byId(estimate.raceId).stations.map { station ->
+            station.copy(stopMinutes = normalizedPauseMinutes[station.section] ?: station.stopMinutes)
+        }
+        val projection = calculator.project(estimate, checkIns, selectedIndex, stationsWithPauseOverrides)
         val clampedIndex = selectedIndex.coerceIn(0, projection.stations.lastIndex)
         val selectedStation = projection.stations[clampedIndex]
         val defaultCheckMinutes = when (checkAction) {
@@ -396,7 +427,11 @@ class SupporterViewModel(
             tab = tab,
             checkIns = checkIns,
             checkEvents = checkEvents,
-            setup = SetupUiState(estimate = estimate, hasSelectedRace = hasSelectedRace),
+            setup = SetupUiState(
+                estimate = estimate,
+                hasSelectedRace = hasSelectedRace,
+                pauseMinutesBySection = normalizedPauseMinutes,
+            ),
             vp = VpUiState(
                 projection = projection,
                 selectedIndex = clampedIndex,
@@ -438,6 +473,7 @@ class SupporterViewModel(
             AppSessionState(
                 estimate = state.setup.estimate,
                 hasSelectedRace = state.setup.hasSelectedRace,
+                pauseMinutesBySection = state.setup.pauseMinutesBySection,
                 tab = state.tab.toSavedTab(),
                 selectedIndex = state.vp.selectedIndex,
                 checkIns = state.checkIns,
@@ -503,7 +539,14 @@ class SupporterViewModel(
                 vp.selectedIndex < vp.projection.stations.lastIndex
             copy(
                 tab = if (remoteSnapshot.info != null && tab == AppTab.SupportCode) AppTab.Vp else tab,
-                setup = setup.copy(estimate = activeEstimate, hasSelectedRace = true),
+                setup = setup.copy(
+                    estimate = activeEstimate,
+                    hasSelectedRace = true,
+                    pauseMinutesBySection = mergePauseMinutesBySection(
+                        raceId = activeEstimate.raceId,
+                        overrides = setup.pauseMinutesBySection,
+                    ),
+                ),
                 checkIns = remoteCheckIns,
                 checkEvents = mergedEvents,
                 vp = vp.copy(
@@ -547,6 +590,16 @@ class SupporterViewModel(
 
     private companion object {
         const val MAX_RUN_CODE_LENGTH = 8
+    }
+
+    private fun defaultPauseMinutesBySection(raceId: String): Map<Int, Int> =
+        RaceDefinitions.byId(raceId).stations.associate { it.section to it.stopMinutes }
+
+    private fun mergePauseMinutesBySection(
+        raceId: String,
+        overrides: Map<Int, Int>,
+    ): Map<Int, Int> = RaceDefinitions.byId(raceId).stations.associate { station ->
+        station.section to (overrides[station.section] ?: station.stopMinutes)
     }
 
     private fun AppUiState.currentCheckMinutes(): Int {

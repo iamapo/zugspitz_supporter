@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,6 +38,7 @@ enum class AppTab {
     SupportCode,
     Race,
     Setup,
+    PauseSetup,
     Vp,
     Summary,
     List,
@@ -52,6 +54,7 @@ fun AppBottomBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .navigationBarsPadding()
             .height(66.dp)
             .background(SupporterColors.Paper)
             .drawBehind {
