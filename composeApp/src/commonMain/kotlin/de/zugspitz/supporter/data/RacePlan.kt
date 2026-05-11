@@ -15,15 +15,15 @@ val ZugspitzStations = listOf(
 )
 
 val EhrwaldTrailStations = listOf(
-    AidStation(1, "Z3 Pestkapelle", "Start Ehrwald", 6.0, 6.0, 613, 0, 0, 0, 0, 3),
-    AidStation(2, "Z4 Hämmermoosalm", "Z3 Pestkapelle", 19.0, 13.0, 923, 1128, 0, 0, 0, 5),
-    AidStation(3, "Z5 Hubertushof", "Z4 Hämmermoosalm", 32.0, 13.0, 639, 972, 0, 0, 0, 12),
-    AidStation(4, "Z6 Mittenwald", "Z5 Hubertushof", 40.5, 8.5, 37, 190, 0, 0, 0, 6),
-    AidStation(5, "Z7 Schloss Elmau", "Z6 Mittenwald", 50.5, 10.0, 248, 170, 0, 0, 0, 4),
-    AidStation(6, "Z8 Laubhütte", "Z7 Schloss Elmau", 64.0, 13.5, 637, 651, 0, 0, 0, 4),
-    AidStation(7, "Z9 Hochalm", "Z8 Laubhütte", 68.5, 4.5, 708, 0, 0, 0, 0, 3),
-    AidStation(8, "Z10 Tröglift", "Z9 Hochalm", 77.0, 8.5, 412, 793, 0, 0, 0, 2),
-    AidStation(9, "Ziel Garmisch", "Z10 Tröglift", 85.0, 8.0, 0, 628, 0, 0, 0, 0),
+    AidStation(1, "Z3 Pestkapelle", "Start Ehrwald", 6.0, 47.380021, 10.982417, 6.0, 613, 0, 0, 0, 0, 3),
+    AidStation(2, "Z4 Hämmermoosalm", "Z3 Pestkapelle", 19.0, 47.370897, 11.082222, 13.0, 923, 1128, 0, 0, 0, 5),
+    AidStation(3, "Z5 Hubertushof", "Z4 Hämmermoosalm", 32.0, 47.400458, 11.181670, 13.0, 639, 972, 0, 0, 0, 12),
+    AidStation(4, "Z6 Mittenwald", "Z5 Hubertushof", 40.5, 47.425571, 11.257963, 8.5, 37, 190, 0, 0, 0, 6),
+    AidStation(5, "Z7 Schloss Elmau", "Z6 Mittenwald", 50.5, 47.462605, 11.188721, 10.0, 248, 170, 0, 0, 0, 4),
+    AidStation(6, "Z8 Laubhütte", "Z7 Schloss Elmau", 64.0, 47.443889, 11.098065, 13.5, 637, 651, 0, 0, 0, 4),
+    AidStation(7, "Z9 Hochalm", "Z8 Laubhütte", 68.5, 47.439385, 11.061616, 4.5, 708, 0, 0, 0, 0, 3),
+    AidStation(8, "Z10 Tröglift", "Z9 Hochalm", 77.0, 47.461641, 11.089332, 8.5, 412, 793, 0, 0, 0, 2),
+    AidStation(9, "Ziel Garmisch", "Z10 Tröglift", 85.0, 47.494648, 11.092212, 8.0, 0, 628, 0, 0, 0, 0),
 )
 
 val LeutaschTrailStations = listOf(

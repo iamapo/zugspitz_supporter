@@ -37,6 +37,8 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
             implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
+            implementation("dev.gitlive:firebase-auth:2.4.0")
+            implementation("dev.gitlive:firebase-firestore:2.4.0")
         }
 
         commonTest.dependencies {
@@ -65,12 +67,17 @@ android {
         versionCode = 1
         versionName = "1.0"
     }
+    buildTypes {
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
 }
 
 dependencies {
-    implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-firestore")
+    add("androidMainImplementation", platform("com.google.firebase:firebase-bom:34.13.0"))
+    add("androidMainImplementation", "com.google.firebase:firebase-auth")
+    add("androidMainImplementation", "com.google.firebase:firebase-firestore")
     debugImplementation("org.jetbrains.compose.ui:ui-tooling:1.10.3")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

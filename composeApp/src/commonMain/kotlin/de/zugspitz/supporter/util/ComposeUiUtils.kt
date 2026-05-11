@@ -3,6 +3,7 @@ package de.zugspitz.supporter.util
 import de.zugspitz.supporter.data.AidStation
 import de.zugspitz.supporter.data.RaceProjection
 import de.zugspitz.supporter.data.StationProjection
+import kotlin.math.round
 
 object ComposeUiUtils {
     fun minutesToDurationInput(totalMinutes: Int): String {
@@ -37,6 +38,36 @@ object ComposeUiUtils {
         return "${paceMinutes}:${paceSeconds.toString().padStart(2, '0')}/km"
     }
 
+    fun formattedKm(km: Double): String = "${oneDecimal(km)} km"
+
+    fun averagePace(minutes: Int?, distanceKm: Double): String {
+        if (minutes == null || distanceKm <= 0.0) return "-"
+        return pace(minutes / distanceKm)
+    }
+
+    fun sectionPace(sectionDurationMinutes: Int?, sectionKm: Double): String {
+        if (sectionDurationMinutes == null || sectionDurationMinutes <= 0 || sectionKm <= 0.0) return "-"
+        return pace(sectionDurationMinutes / sectionKm)
+    }
+
+    fun sectionDurationMinutes(current: StationProjection, previous: StationProjection?): Int? {
+        val sectionStartMinutes = previous?.actualDepartureMinutes ?: previous?.actualArrivalMinutes ?: 0
+        return current.actualArrivalMinutes?.minus(sectionStartMinutes)
+    }
+
     fun mapsUri(station: AidStation): String =
         "https://www.google.com/maps/search/?api=1&query=${station.latitude},${station.longitude}"
+
+    private fun pace(minutesPerKm: Double): String {
+        val totalSeconds = (minutesPerKm * 60).toInt().coerceAtLeast(0)
+        val minutes = totalSeconds / 60
+        val seconds = totalSeconds % 60
+        return "$minutes:${seconds.toString().padStart(2, '0')} min/km"
+    }
+
+    private fun oneDecimal(value: Double): String {
+        val rounded = round(value * 10.0) / 10.0
+        val text = rounded.toString()
+        return if (text.contains(".")) text else "$text.0"
+    }
 }
