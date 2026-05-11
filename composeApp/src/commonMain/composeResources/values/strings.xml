@@ -3,6 +3,7 @@
     <string name="app_name">Zugspitz Supporter</string>
     <string name="tab_setup">Setup</string>
     <string name="tab_vp">VP</string>
+    <string name="tab_map">Karte</string>
     <string name="tab_summary">Übersicht</string>
     <string name="tab_list">Liste</string>
     <string name="tab_settings">Settings</string>
@@ -105,4 +106,8 @@
     <string name="live_not_connected">noch keins</string>
     <string name="reset_all_data">Alle Daten zurücksetzen</string>
     <string name="reset_all_data_hint">Löscht Setup, Check-ins und letzte Ansicht. Danach startet die App wieder im Setup.</string>
+    <string name="map_offline_title">Offline-Kartenpaket</string>
+    <string name="map_offline_hint">VP-Daten bleiben lokal verfügbar. Lade vor dem Rennen die Kartenkacheln für die Region.</string>
+    <string name="map_download">Offline-Paket laden</string>
+    <string name="map_ready">Offline bereit</string>
 </resources>
