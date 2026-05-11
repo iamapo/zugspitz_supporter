@@ -18,8 +18,8 @@ import de.zugspitz.supporter.components.AppTab
 import de.zugspitz.supporter.presentation.SupporterViewModel
 import de.zugspitz.supporter.screens.RaceSelectionScreen
 import de.zugspitz.supporter.screens.RoleSelectionScreen
-import de.zugspitz.supporter.screens.RunSummaryScreen
 import de.zugspitz.supporter.screens.OfflineMapScreen
+import de.zugspitz.supporter.screens.RunOverviewScreen
 import de.zugspitz.supporter.screens.SettingsScreen
 import de.zugspitz.supporter.screens.SetupScreen
 import de.zugspitz.supporter.screens.SupportCodeScreen
@@ -65,7 +65,7 @@ fun SupporterAppRoot(
         } else {
             {
                 AppBottomBar(
-                    selectedTab = state.tab,
+                    selectedTab = if (state.tab == AppTab.Summary) AppTab.List else state.tab,
                     onTabSelected = viewModel::onTabSelected,
                 )
             }
@@ -129,7 +129,7 @@ fun SupporterAppRoot(
                     onCheckInNowClick = viewModel::onCheckInNowSave,
                     onCheckOutClick = viewModel::onCheckOutNowSave,
                 )
-                AppTab.Summary -> RunSummaryScreen(
+                AppTab.Summary -> RunOverviewScreen(
                     projection = state.vp.projection,
                     onStationClick = viewModel::onStationSelected,
                 )

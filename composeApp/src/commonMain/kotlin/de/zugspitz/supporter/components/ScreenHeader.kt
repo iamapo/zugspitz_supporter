@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import de.zugspitz.supporter.theme.SupporterColors
@@ -24,6 +25,8 @@ fun ScreenHeader(
     title: String,
     subtitle: String? = null,
     pill: String? = null,
+    pillTextColor: Color = SupporterColors.Pine,
+    pillBackgroundColor: Color = SupporterColors.Mint,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -57,10 +60,10 @@ fun ScreenHeader(
         if (pill != null) {
             Text(
                 text = pill,
-                color = SupporterColors.Pine,
+                color = pillTextColor,
                 fontWeight = FontWeight.Black,
                 modifier = Modifier
-                    .background(SupporterColors.Mint, RoundedCornerShape(999.dp))
+                    .background(pillBackgroundColor, RoundedCornerShape(999.dp))
                     .padding(horizontal = 10.dp, vertical = 8.dp),
             )
         }

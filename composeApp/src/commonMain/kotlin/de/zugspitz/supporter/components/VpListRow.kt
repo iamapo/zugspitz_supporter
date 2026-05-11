@@ -23,21 +23,29 @@ import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterTheme
 import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
-import zugspitz_supporter.composeapp.generated.resources.check_in
 import zugspitz_supporter.composeapp.generated.resources.check_out
 import zugspitz_supporter.composeapp.generated.resources.checked_in
-import zugspitz_supporter.composeapp.generated.resources.new_label
+import zugspitz_supporter.composeapp.generated.resources.current_label
+import zugspitz_supporter.composeapp.generated.resources.expected
 
 @Composable
 fun VpListRow(
     projection: StationProjection,
+    timingText: String? = null,
+    paceText: String? = null,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val borderColor = if (projection.isCurrent) SupporterColors.Moss.copy(alpha = 0.55f) else SupporterColors.Line
+    val borderColor = when {
+        projection.isCurrent -> SupporterColors.Moss.copy(alpha = 0.75f)
+        projection.isCheckedOut -> SupporterColors.Pine.copy(alpha = 0.3f)
+        projection.isCheckedIn -> SupporterColors.Pine.copy(alpha = 0.45f)
+        else -> SupporterColors.Line
+    }
     val background = when {
         projection.isCurrent -> ColorTokens.ActiveRow
-        projection.isCheckedIn -> ColorTokens.DoneRow
+        projection.isCheckedOut -> ColorTokens.DoneRow
+        projection.isCheckedIn -> ColorTokens.ReachedRow
         else -> SupporterColors.Card
     }
     Surface(
@@ -60,6 +68,14 @@ fun VpListRow(
                     color = SupporterColors.Muted,
                     style = MaterialTheme.typography.bodySmall,
                 )
+                val meta = listOfNotNull(timingText, paceText).joinToString(" · ")
+                if (meta.isNotBlank()) {
+                    Text(
+                        text = meta,
+                        color = SupporterColors.Muted,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
@@ -71,7 +87,8 @@ fun VpListRow(
                     text = when {
                         projection.isCheckedOut -> stringResource(Res.string.check_out)
                         projection.isCheckedIn -> stringResource(Res.string.checked_in)
-                        else -> stringResource(Res.string.new_label)
+                        projection.isCurrent -> stringResource(Res.string.current_label)
+                        else -> stringResource(Res.string.expected)
                     },
                     color = SupporterColors.Muted,
                     style = MaterialTheme.typography.labelSmall,
@@ -82,8 +99,9 @@ fun VpListRow(
 }
 
 private object ColorTokens {
-    val ActiveRow = androidx.compose.ui.graphics.Color(0xFFF9FCF8)
-    val DoneRow = androidx.compose.ui.graphics.Color(0xFFEEF5EE)
+    val ActiveRow = androidx.compose.ui.graphics.Color(0xFFFFE6CC)
+    val ReachedRow = androidx.compose.ui.graphics.Color(0xFFF1F8F1)
+    val DoneRow = androidx.compose.ui.graphics.Color(0xFFE2F0E5)
 }
 
 @Preview
