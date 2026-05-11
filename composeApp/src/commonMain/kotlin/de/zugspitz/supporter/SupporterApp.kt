@@ -23,7 +23,6 @@ import de.zugspitz.supporter.screens.RunOverviewScreen
 import de.zugspitz.supporter.screens.SettingsScreen
 import de.zugspitz.supporter.screens.SetupScreen
 import de.zugspitz.supporter.screens.SupportCodeScreen
-import de.zugspitz.supporter.screens.VpPauseSetupScreen
 import de.zugspitz.supporter.screens.VpCardScreen
 import de.zugspitz.supporter.screens.VpListScreen
 import de.zugspitz.supporter.theme.SupporterColors
@@ -60,7 +59,7 @@ fun SupporterAppRoot(
 
     Scaffold(
         containerColor = SupporterColors.Paper,
-        bottomBar = if (state.tab == AppTab.Role || state.tab == AppTab.SupportCode || state.tab == AppTab.Race || state.tab == AppTab.Setup || state.tab == AppTab.PauseSetup) {
+        bottomBar = if (state.tab == AppTab.Role || state.tab == AppTab.SupportCode || state.tab == AppTab.Race || state.tab == AppTab.Setup) {
             {}
         } else {
             {
@@ -112,14 +111,17 @@ fun SupporterAppRoot(
                 )
                 AppTab.Setup -> SetupScreen(
                     estimate = state.setup.estimate,
+                    pauseMinutesBySection = state.setup.pauseMinutesBySection,
                     onEstimateChange = viewModel::onEstimateChange,
+                    onPauseMinutesChange = viewModel::onPauseMinutesChanged,
                     onCalculateClick = viewModel::onCalculateClick,
                 )
-                AppTab.PauseSetup -> VpPauseSetupScreen(
-                    raceId = state.setup.estimate.raceId,
+                AppTab.PauseSetup -> SetupScreen(
+                    estimate = state.setup.estimate,
                     pauseMinutesBySection = state.setup.pauseMinutesBySection,
+                    onEstimateChange = viewModel::onEstimateChange,
                     onPauseMinutesChange = viewModel::onPauseMinutesChanged,
-                    onContinueClick = viewModel::onPauseSetupContinue,
+                    onCalculateClick = viewModel::onCalculateClick,
                 )
                 AppTab.Vp -> VpCardScreen(
                     projection = state.vp.projection,

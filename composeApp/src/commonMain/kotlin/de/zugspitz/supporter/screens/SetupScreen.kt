@@ -43,7 +43,7 @@ import de.zugspitz.supporter.theme.SupporterTheme
 import de.zugspitz.supporter.util.ComposeUiUtils
 import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
-import zugspitz_supporter.composeapp.generated.resources.continue_to_vp_pause_setup
+import zugspitz_supporter.composeapp.generated.resources.calculate_plan
 import zugspitz_supporter.composeapp.generated.resources.custom_time
 import zugspitz_supporter.composeapp.generated.resources.expected_duration
 import zugspitz_supporter.composeapp.generated.resources.fixed_time
@@ -54,11 +54,15 @@ import zugspitz_supporter.composeapp.generated.resources.setup_title
 import zugspitz_supporter.composeapp.generated.resources.start_time
 import zugspitz_supporter.composeapp.generated.resources.start_time_placeholder
 import zugspitz_supporter.composeapp.generated.resources.target_time_mode
+import zugspitz_supporter.composeapp.generated.resources.vp_pause_minutes
+import zugspitz_supporter.composeapp.generated.resources.vp_pause_setup_title
 
 @Composable
 fun SetupScreen(
     estimate: RaceEstimate,
+    pauseMinutesBySection: Map<Int, Int>,
     onEstimateChange: (RaceEstimate) -> Unit,
+    onPauseMinutesChange: (section: Int, minutes: Int) -> Unit,
     onCalculateClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -175,13 +179,75 @@ fun SetupScreen(
                 }
             }
 
+            SetupCard(title = stringResource(Res.string.vp_pause_setup_title)) {
+                Column(verticalArrangement = Arrangement.spacedBy(SupporterSpacing.Sm)) {
+                    selectedRace.stations.forEach { station ->
+                        var inputValue by remember(station.section, pauseMinutesBySection[station.section]) {
+                            mutableStateOf((pauseMinutesBySection[station.section] ?: station.stopMinutes).toString())
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    color = androidx.compose.ui.graphics.Color(0xFFFBFCFA),
+                                    shape = RoundedCornerShape(SupporterRadius.Card),
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = SupporterColors.Line,
+                                    shape = RoundedCornerShape(SupporterRadius.Card),
+                                )
+                                .padding(SupporterSpacing.Md),
+                            horizontalArrangement = Arrangement.spacedBy(SupporterSpacing.Md),
+                        ) {
+                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    text = "VP ${station.section}",
+                                    color = SupporterColors.Muted,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.ExtraBold,
+                                )
+                                Text(
+                                    text = station.name,
+                                    color = SupporterColors.Pine,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Black,
+                                )
+                            }
+                            OutlinedTextField(
+                                value = inputValue,
+                                onValueChange = { value ->
+                                    val normalized = value.filter { it.isDigit() }.take(3)
+                                    inputValue = normalized
+                                    normalized.toIntOrNull()?.let { parsedMinutes ->
+                                        onPauseMinutesChange(station.section, parsedMinutes)
+                                    }
+                                },
+                                label = { Text(stringResource(Res.string.vp_pause_minutes)) },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.fillMaxWidth(0.38f),
+                                textStyle = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Black,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.End,
+                                ),
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = androidx.compose.ui.graphics.Color(0xFFFBFCFA),
+                                    unfocusedContainerColor = androidx.compose.ui.graphics.Color(0xFFFBFCFA),
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
+
             Button(
                 onClick = onCalculateClick,
                 shape = RoundedCornerShape(SupporterRadius.Card),
                 colors = ButtonDefaults.buttonColors(containerColor = SupporterColors.Pine),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(stringResource(Res.string.continue_to_vp_pause_setup), fontWeight = FontWeight.Black, modifier = Modifier.padding(SupporterSpacing.Sm))
+                Text(stringResource(Res.string.calculate_plan), fontWeight = FontWeight.Black, modifier = Modifier.padding(SupporterSpacing.Sm))
             }
         }
 }
@@ -219,7 +285,7 @@ private fun Segment(label: String, selected: Boolean, modifier: Modifier, onClic
 @Composable
 fun SetupScreenPreview() {
     SupporterTheme {
-        SetupScreen(RaceEstimate(), {}, {})
+        SetupScreen(RaceEstimate(), emptyMap(), {}, { _, _ -> }, {})
     }
 }
 
@@ -232,7 +298,9 @@ fun SetupScreenFixedPreview() {
                 targetMode = TargetTimeMode.Fixed,
                 fixedDurationMinutes = 17 * 60 + 30,
             ),
+            pauseMinutesBySection = emptyMap(),
             onEstimateChange = {},
+            onPauseMinutesChange = { _, _ -> },
             onCalculateClick = {},
         )
     }

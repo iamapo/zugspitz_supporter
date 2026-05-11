@@ -177,7 +177,8 @@ class SupporterViewModel(
 
     fun onCalculateClick() = updateState {
         copy(
-            tab = AppTab.PauseSetup,
+            tab = AppTab.Vp,
+            vp = vp.copy(selectedIndex = 0),
         )
     }
 
@@ -186,13 +187,6 @@ class SupporterViewModel(
             setup = setup.copy(
                 pauseMinutesBySection = setup.pauseMinutesBySection + (section to minutes.coerceAtLeast(0)),
             ),
-        )
-    }
-
-    fun onPauseSetupContinue() = updateState {
-        copy(
-            tab = AppTab.Vp,
-            vp = vp.copy(selectedIndex = 0),
         )
     }
 
