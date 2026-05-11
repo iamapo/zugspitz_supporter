@@ -61,6 +61,7 @@ import zugspitz_supporter.composeapp.generated.resources.vp_of_total
 fun VpCardScreen(
     projection: RaceProjection,
     selectedIndex: Int,
+    canEditCheckIns: Boolean,
     onPageChanged: (Int) -> Unit,
     onCheckInNowClick: (Int) -> Unit,
     onCheckOutClick: (Int) -> Unit,
@@ -117,6 +118,7 @@ fun VpCardScreen(
             VpCard(
                 projection = stationProjection,
                 completedElevation = ComposeUiUtils.completedElevation(projection, page),
+                canEditCheckIns = canEditCheckIns,
                 onCheckInNowClick = { onCheckInNowClick(page) },
                 onCheckOutClick = { onCheckOutClick(page) },
             )
@@ -197,6 +199,7 @@ fun VpCardScreenPreview() {
         VpCardScreen(
             projection = RaceCalculator().project(RaceEstimate(), emptyList(), 2),
             selectedIndex = 2,
+            canEditCheckIns = true,
             onPageChanged = {},
             onCheckInNowClick = {},
             onCheckOutClick = {},
