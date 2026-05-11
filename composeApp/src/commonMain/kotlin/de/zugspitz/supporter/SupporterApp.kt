@@ -19,6 +19,7 @@ import de.zugspitz.supporter.screens.RunSummaryScreen
 import de.zugspitz.supporter.screens.SettingsScreen
 import de.zugspitz.supporter.screens.SetupScreen
 import de.zugspitz.supporter.screens.SupportCodeScreen
+import de.zugspitz.supporter.screens.VpPauseSetupScreen
 import de.zugspitz.supporter.screens.VpCardScreen
 import de.zugspitz.supporter.screens.VpListScreen
 import de.zugspitz.supporter.theme.SupporterColors
@@ -55,7 +56,7 @@ fun SupporterAppRoot(
 
     Scaffold(
         containerColor = SupporterColors.Paper,
-        bottomBar = if (state.tab == AppTab.Role || state.tab == AppTab.SupportCode || state.tab == AppTab.Race || state.tab == AppTab.Setup) {
+        bottomBar = if (state.tab == AppTab.Role || state.tab == AppTab.SupportCode || state.tab == AppTab.Race || state.tab == AppTab.Setup || state.tab == AppTab.PauseSetup) {
             {}
         } else {
             {
@@ -92,6 +93,12 @@ fun SupporterAppRoot(
                     estimate = state.setup.estimate,
                     onEstimateChange = viewModel::onEstimateChange,
                     onCalculateClick = viewModel::onCalculateClick,
+                )
+                AppTab.PauseSetup -> VpPauseSetupScreen(
+                    raceId = state.setup.estimate.raceId,
+                    pauseMinutesBySection = state.setup.pauseMinutesBySection,
+                    onPauseMinutesChange = viewModel::onPauseMinutesChanged,
+                    onContinueClick = viewModel::onPauseSetupContinue,
                 )
                 AppTab.Vp -> VpCardScreen(
                     projection = state.vp.projection,

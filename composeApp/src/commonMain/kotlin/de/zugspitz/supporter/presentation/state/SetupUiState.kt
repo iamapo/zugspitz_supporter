@@ -5,4 +5,5 @@ import de.zugspitz.supporter.data.RaceEstimate
 data class SetupUiState(
     val estimate: RaceEstimate,
     val hasSelectedRace: Boolean,
+    val pauseMinutesBySection: Map<Int, Int>,
 )
