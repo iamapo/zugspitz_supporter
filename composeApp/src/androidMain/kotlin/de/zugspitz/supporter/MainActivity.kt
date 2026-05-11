@@ -9,7 +9,7 @@ import de.zugspitz.supporter.data.NoOpLiveRaceRepository
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val liveSharingEnabled = (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        val liveSharingEnabled = BuildConfig.LIVE_SHARING_ENABLED
         setContent {
             SupporterApp(
                 liveRaceRepository = if (liveSharingEnabled) {

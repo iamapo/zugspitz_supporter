@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     kotlin("multiplatform")
@@ -8,6 +9,16 @@ plugins {
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use(::load)
+    }
+}
+
+fun signingValue(name: String): String? =
+    keystoreProperties.getProperty(name) ?: System.getenv("ANDROID_${name.uppercase()}")
 
 kotlin {
     androidTarget {
@@ -59,6 +70,12 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     defaultConfig {
@@ -68,9 +85,24 @@ android {
         versionCode = 1
         versionName = "1.0"
     }
+    signingConfigs {
+        create("release") {
+            val storeFilePath = signingValue("storeFile")
+            if (!storeFilePath.isNullOrBlank()) {
+                storeFile = rootProject.file(storeFilePath)
+            }
+            storePassword = signingValue("storePassword")
+            keyAlias = signingValue("keyAlias")
+            keyPassword = signingValue("keyPassword")
+        }
+    }
     buildTypes {
+        getByName("debug") {
+            buildConfigField("boolean", "LIVE_SHARING_ENABLED", "true")
+        }
         getByName("release") {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+            buildConfigField("boolean", "LIVE_SHARING_ENABLED", "false")
         }
     }
 }

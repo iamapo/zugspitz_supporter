@@ -6,6 +6,9 @@ composeApp/build/
 *.iml
 .DS_Store
 local.properties
+keystore.properties
+*.jks
+*.keystore
 composeApp/google-services.json
 iosApp/iosApp/GoogleService-Info.plist
 
