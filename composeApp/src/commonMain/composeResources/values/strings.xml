@@ -88,6 +88,9 @@
     <string name="summary_checkin_label">Check-in</string>
     <string name="summary_checkout_label">Checkout</string>
     <string name="new_label">neu</string>
+    <string name="expected">geplant</string>
+    <string name="current_label">aktuell</string>
+    <string name="finished_label">fertig</string>
     <string name="support_info">Support-Info</string>
     <string name="support_info_text">Nach dem Check-in werden spätere VP-Fenster automatisch verschoben.</string>
     <string name="swipe_hint">Wischen für vorherigen oder nächsten VP.</string>
