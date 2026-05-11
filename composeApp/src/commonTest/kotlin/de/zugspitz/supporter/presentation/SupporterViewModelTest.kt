@@ -408,7 +408,9 @@ class SupporterViewModelTest {
         assertEquals(RaceDefinitions.EhrwaldTrailId, viewModel.uiState.value.setup.estimate.raceId)
         assertEquals(1, viewModel.uiState.value.checkIns.size)
         assertEquals(CheckIn(stationSection = 3, actualArrivalMinutes = 285), viewModel.uiState.value.checkIns.first())
-        assertEquals("Check-in Test um 03:45", viewModel.uiState.value.settings.lastLiveEventText)
+        assertEquals(CheckEventType.CheckIn, viewModel.uiState.value.settings.lastLiveEvent?.type)
+        assertEquals("Test", viewModel.uiState.value.settings.lastLiveEvent?.stationName)
+        assertEquals("03:45", viewModel.uiState.value.settings.lastLiveEvent?.raceTime)
     }
 
     @Test

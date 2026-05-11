@@ -28,6 +28,7 @@ import de.zugspitz.supporter.domain.usecase.SelectVpUseCase
 import de.zugspitz.supporter.domain.usecase.UpdateEstimateUseCase
 import de.zugspitz.supporter.presentation.state.AppUiState
 import de.zugspitz.supporter.presentation.state.CheckAction
+import de.zugspitz.supporter.presentation.state.LastLiveEventUiState
 import de.zugspitz.supporter.presentation.state.OfflineMapUiState
 import de.zugspitz.supporter.presentation.state.SettingsUiState
 import de.zugspitz.supporter.presentation.state.SetupUiState
@@ -470,7 +471,7 @@ class SupporterViewModel(
             offlineMap = offlineMap,
             settings = SettingsUiState(
                 liveRunLink = liveRunLink,
-                lastLiveEventText = checkEvents.lastOrNull()?.toStatusText(estimate.startTimeMinutes),
+                lastLiveEvent = checkEvents.lastOrNull()?.toLastLiveEventUiState(estimate.startTimeMinutes),
             ),
         )
     }
@@ -603,13 +604,11 @@ class SupporterViewModel(
         )
     }
 
-    private fun CheckEvent.toStatusText(startTimeMinutes: Int): String {
-        val action = when (type) {
-            CheckEventType.CheckIn -> "Check-in"
-            CheckEventType.CheckOut -> "Check-out"
-        }
-        return "$action ${stationName.removePrefix("Z$stationSection ")} um ${formatRaceTime(startTimeMinutes + raceMinutes)}"
-    }
+    private fun CheckEvent.toLastLiveEventUiState(startTimeMinutes: Int) = LastLiveEventUiState(
+        type = type,
+        stationName = stationName.removePrefix("Z$stationSection "),
+        raceTime = formatRaceTime(startTimeMinutes + raceMinutes),
+    )
 
     private fun generateRunCode(): String {
         val now = Clock.System.now().toEpochMilliseconds()

@@ -30,7 +30,9 @@ import de.zugspitz.supporter.util.ComposeUiUtils
 import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.summary_average_pace
+import zugspitz_supporter.composeapp.generated.resources.summary_arrived_at
 import zugspitz_supporter.composeapp.generated.resources.summary_distance_done
+import zugspitz_supporter.composeapp.generated.resources.summary_expected_at
 import zugspitz_supporter.composeapp.generated.resources.summary_last_known
 import zugspitz_supporter.composeapp.generated.resources.summary_progress
 import zugspitz_supporter.composeapp.generated.resources.summary_started
@@ -137,10 +139,11 @@ private fun androidx.compose.foundation.lazy.LazyListScope.runStationListItems(
     }
 }
 
+@Composable
 private fun timingTextForRow(station: StationProjection): String? {
-    station.actualArrival?.let { return "An $it" }
+    station.actualArrival?.let { return stringResource(Res.string.summary_arrived_at, it) }
     if (station.isCurrent) {
-        return "Erwartet ${station.window}"
+        return stringResource(Res.string.summary_expected_at, station.window)
     }
     return null
 }

@@ -50,7 +50,9 @@ import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.map_download
 import zugspitz_supporter.composeapp.generated.resources.map_offline_hint
 import zugspitz_supporter.composeapp.generated.resources.map_offline_title
+import zugspitz_supporter.composeapp.generated.resources.map_preparing
 import zugspitz_supporter.composeapp.generated.resources.map_ready
+import zugspitz_supporter.composeapp.generated.resources.map_tiles_progress
 import zugspitz_supporter.composeapp.generated.resources.tab_map
 import kotlin.math.round
 
@@ -167,7 +169,7 @@ fun OfflineMapScreen(
                             .background(Color(0xFFF4F1E8)),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("Karte wird vorbereitet…", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(Res.string.map_preparing), fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -185,7 +187,15 @@ fun OfflineMapScreen(
                         modifier = Modifier.fillMaxWidth(),
                     )
                     val downloadedMb = round(offlineMap.downloadedMegabytes * 10.0) / 10.0
-                    Text("${offlineMap.progressPercent}% · ${offlineMap.downloadedTiles}/${offlineMap.totalTiles} tiles · $downloadedMb MB")
+                    Text(
+                        stringResource(
+                            Res.string.map_tiles_progress,
+                            offlineMap.progressPercent,
+                            offlineMap.downloadedTiles,
+                            offlineMap.totalTiles,
+                            downloadedMb.toString(),
+                        ),
+                    )
                 }
                 Button(
                     onClick = onDownloadStart,

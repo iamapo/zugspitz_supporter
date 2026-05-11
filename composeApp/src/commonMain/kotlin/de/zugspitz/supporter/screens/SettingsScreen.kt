@@ -22,8 +22,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.zugspitz.supporter.components.ScreenHeader
+import de.zugspitz.supporter.data.CheckEventType
 import de.zugspitz.supporter.data.LiveRunLink
 import de.zugspitz.supporter.data.LiveRole
+import de.zugspitz.supporter.presentation.state.LastLiveEventUiState
 import de.zugspitz.supporter.presentation.state.SettingsUiState
 import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterTheme
@@ -31,6 +33,9 @@ import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.create_support_code
 import zugspitz_supporter.composeapp.generated.resources.live_code
+import zugspitz_supporter.composeapp.generated.resources.live_event_check_in
+import zugspitz_supporter.composeapp.generated.resources.live_event_check_out
+import zugspitz_supporter.composeapp.generated.resources.live_event_status
 import zugspitz_supporter.composeapp.generated.resources.live_last_event
 import zugspitz_supporter.composeapp.generated.resources.live_not_connected
 import zugspitz_supporter.composeapp.generated.resources.live_role_runner
@@ -118,9 +123,7 @@ fun SettingsScreen(
                         Text(stringResource(Res.string.create_support_code), fontWeight = FontWeight.Black)
                     }
                     Text(
-                        "${stringResource(Res.string.live_last_event)} ${
-                            state.lastLiveEventText ?: stringResource(Res.string.live_not_connected)
-                        }",
+                        "${stringResource(Res.string.live_last_event)} ${liveEventText(state.lastLiveEvent)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = SupporterColors.Muted,
                     )
@@ -149,6 +152,16 @@ fun SettingsScreen(
                 }
             }
         }
+}
+
+@Composable
+private fun liveEventText(event: LastLiveEventUiState?): String {
+    if (event == null) return stringResource(Res.string.live_not_connected)
+    val action = when (event.type) {
+        CheckEventType.CheckIn -> stringResource(Res.string.live_event_check_in)
+        CheckEventType.CheckOut -> stringResource(Res.string.live_event_check_out)
+    }
+    return stringResource(Res.string.live_event_status, action, event.stationName, event.raceTime)
 }
 
 @Composable
@@ -191,7 +204,11 @@ fun SettingsScreenPreview() {
                     runCode = "ZUT-4821",
                     isEnabled = true,
                 ),
-                lastLiveEventText = "Z4 Hämmermoosalm 06:42",
+                lastLiveEvent = LastLiveEventUiState(
+                    type = CheckEventType.CheckIn,
+                    stationName = "Hämmermoosalm",
+                    raceTime = "06:42",
+                ),
             ),
             liveSharingEnabled = true,
             onRoleSelected = {},
