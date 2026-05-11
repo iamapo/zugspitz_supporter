@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.tab_list
+import zugspitz_supporter.composeapp.generated.resources.tab_map
 import zugspitz_supporter.composeapp.generated.resources.tab_settings
 import zugspitz_supporter.composeapp.generated.resources.tab_summary
 import zugspitz_supporter.composeapp.generated.resources.tab_vp
@@ -40,6 +41,7 @@ enum class AppTab {
     Setup,
     PauseSetup,
     Vp,
+    Map,
     Summary,
     List,
     Settings,
@@ -70,6 +72,7 @@ fun AppBottomBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         BottomItem(stringResource(Res.string.tab_vp), selectedTab == AppTab.Vp, Modifier.weight(1f)) { onTabSelected(AppTab.Vp) }
+        BottomItem(stringResource(Res.string.tab_map), selectedTab == AppTab.Map, Modifier.weight(1f)) { onTabSelected(AppTab.Map) }
         BottomItem(stringResource(Res.string.tab_summary), selectedTab == AppTab.Summary, Modifier.weight(1f)) { onTabSelected(AppTab.Summary) }
         BottomItem(stringResource(Res.string.tab_list), selectedTab == AppTab.List, Modifier.weight(1f)) { onTabSelected(AppTab.List) }
         BottomItem(stringResource(Res.string.tab_settings), selectedTab == AppTab.Settings, Modifier.weight(1f)) { onTabSelected(AppTab.Settings) }

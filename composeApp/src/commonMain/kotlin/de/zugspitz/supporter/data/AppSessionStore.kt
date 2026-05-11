@@ -47,6 +47,7 @@ enum class SavedTab {
     Setup,
     PauseSetup,
     Vp,
+    Map,
     Summary,
     List,
     Settings,
@@ -59,6 +60,7 @@ fun SavedTab.toAppTab(): AppTab = when (this) {
     SavedTab.Setup -> AppTab.Setup
     SavedTab.PauseSetup -> AppTab.PauseSetup
     SavedTab.Vp -> AppTab.Vp
+    SavedTab.Map -> AppTab.Map
     SavedTab.Summary -> AppTab.Summary
     SavedTab.List -> AppTab.List
     SavedTab.Settings -> AppTab.Settings
@@ -71,6 +73,7 @@ fun AppTab.toSavedTab(): SavedTab = when (this) {
     AppTab.Setup -> SavedTab.Setup
     AppTab.PauseSetup -> SavedTab.PauseSetup
     AppTab.Vp -> SavedTab.Vp
+    AppTab.Map -> SavedTab.Map
     AppTab.Summary -> SavedTab.Summary
     AppTab.List -> SavedTab.List
     AppTab.Settings -> SavedTab.Settings

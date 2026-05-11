@@ -39,6 +39,7 @@ kotlin {
             implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
             implementation("dev.gitlive:firebase-auth:2.4.0")
             implementation("dev.gitlive:firebase-firestore:2.4.0")
+            implementation("org.maplibre.compose:maplibre-compose:0.12.1")
         }
 
         commonTest.dependencies {

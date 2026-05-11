@@ -28,6 +28,7 @@ import de.zugspitz.supporter.domain.usecase.SelectVpUseCase
 import de.zugspitz.supporter.domain.usecase.UpdateEstimateUseCase
 import de.zugspitz.supporter.presentation.state.AppUiState
 import de.zugspitz.supporter.presentation.state.CheckAction
+import de.zugspitz.supporter.presentation.state.OfflineMapUiState
 import de.zugspitz.supporter.presentation.state.SettingsUiState
 import de.zugspitz.supporter.presentation.state.SetupUiState
 import de.zugspitz.supporter.presentation.state.VpUiState
@@ -64,6 +65,35 @@ class SupporterViewModel(
     }
 
     fun onTabSelected(tab: AppTab) = updateState { copy(tab = tab) }
+
+    fun onOfflineMapDownloadStart() = updateState {
+        val totalTiles = vp.projection.stations.size * 240
+        copy(
+            offlineMap = offlineMap.copy(
+                isDownloading = true,
+                isReady = false,
+                progressPercent = 15,
+                downloadedTiles = (totalTiles * 0.15).toInt(),
+                totalTiles = totalTiles,
+                downloadedMegabytes = 28.0,
+            ),
+        )
+    }
+
+    fun onOfflineMapDownloadProgress(percent: Int) = updateState {
+        val normalized = percent.coerceIn(0, 100)
+        val totalTiles = offlineMap.totalTiles.coerceAtLeast(vp.projection.stations.size * 240)
+        copy(
+            offlineMap = offlineMap.copy(
+                isDownloading = normalized < 100,
+                isReady = normalized >= 100,
+                progressPercent = normalized,
+                downloadedTiles = (totalTiles * (normalized / 100.0)).toInt(),
+                totalTiles = totalTiles,
+                downloadedMegabytes = (totalTiles * (normalized / 100.0) * 0.012),
+            ),
+        )
+    }
 
     fun onRunnerModeSelected() {
         updateState {
@@ -369,6 +399,7 @@ class SupporterViewModel(
             checkSheetOpen = false,
             checkAction = CheckAction.CheckIn,
             checkMinutesOverride = null,
+            offlineMap = OfflineMapUiState(),
         )
     }
 
@@ -387,6 +418,7 @@ class SupporterViewModel(
                 checkSheetOpen = mutated.vp.checkSheetOpen,
                 checkAction = mutated.vp.checkAction,
                 checkMinutesOverride = mutated.vp.checkMinutes,
+                offlineMap = mutated.offlineMap,
             )
             persist(rebuilt)
             rebuilt
@@ -405,6 +437,7 @@ class SupporterViewModel(
         checkSheetOpen: Boolean,
         checkAction: CheckAction,
         checkMinutesOverride: Int?,
+        offlineMap: OfflineMapUiState,
     ): AppUiState {
         val normalizedPauseMinutes = mergePauseMinutesBySection(
             raceId = estimate.raceId,
@@ -440,6 +473,7 @@ class SupporterViewModel(
                 checkMinutes = checkMinutes,
                 checkInputTime = formatRaceTime(estimate.startTimeMinutes + checkMinutes),
             ),
+            offlineMap = offlineMap,
             settings = SettingsUiState(
                 liveRunLink = liveRunLink,
                 lastLiveEventText = checkEvents.lastOrNull()?.toStatusText(estimate.startTimeMinutes),

@@ -10,5 +10,6 @@ data class AppUiState(
     val checkEvents: List<CheckEvent>,
     val setup: SetupUiState,
     val vp: VpUiState,
+    val offlineMap: OfflineMapUiState,
     val settings: SettingsUiState,
 )
