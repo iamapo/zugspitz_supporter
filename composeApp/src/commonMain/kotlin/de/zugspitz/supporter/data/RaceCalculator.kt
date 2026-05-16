@@ -31,12 +31,17 @@ class RaceCalculator(
             windowEndDurationMinutes = maxDurationMinutes,
         )
 
+        val startCheckIn = checkIns.firstOrNull { it.stationSection == START_LINE_SECTION }
         val latestCheckIn = checkIns.maxByOrNull { it.stationSection }
         val shift = latestCheckIn?.let { checkIn ->
-            val station = plannedStations.first { it.section == checkIn.stationSection }
-            val plannedDepartureMinutes = station.plannedArrivalMinutes + station.stopMinutes
-            val actualDepartureMinutes = checkIn.actualDepartureMinutes ?: (checkIn.actualArrivalMinutes + station.stopMinutes)
-            actualDepartureMinutes - plannedDepartureMinutes
+            if (checkIn.stationSection == START_LINE_SECTION) {
+                checkIn.actualArrivalMinutes
+            } else {
+                val station = plannedStations.first { it.section == checkIn.stationSection }
+                val plannedDepartureMinutes = station.plannedArrivalMinutes + station.stopMinutes
+                val actualDepartureMinutes = checkIn.actualDepartureMinutes ?: (checkIn.actualArrivalMinutes + station.stopMinutes)
+                actualDepartureMinutes - plannedDepartureMinutes
+            }
         } ?: 0
 
         val projections = plannedStations.mapIndexed { index, station ->
@@ -51,6 +56,8 @@ class RaceCalculator(
             } else {
                 station
             }
+            val plannedDepartureMinutes = (checkIn?.actualArrivalMinutes ?: projectedStation.plannedArrivalMinutes) +
+                projectedStation.stopMinutes
             StationProjection(
                 station = projectedStation,
                 projectedArrivalMinutes = projectedStation.plannedArrivalMinutes,
@@ -62,6 +69,7 @@ class RaceCalculator(
                 windowEnd = formatRaceTime(estimate.startTimeMinutes + projectedStation.windowEndMinutes),
                 actualArrival = checkIn?.let { formatRaceTime(estimate.startTimeMinutes + it.actualArrivalMinutes) },
                 actualDeparture = checkIn?.actualDepartureMinutes?.let { formatRaceTime(estimate.startTimeMinutes + it) },
+                plannedDeparture = formatRaceTime(estimate.startTimeMinutes + plannedDepartureMinutes),
                 actualStopMinutes = checkIn?.actualDepartureMinutes?.let { it - checkIn.actualArrivalMinutes },
                 diffMinutes = checkIn?.let { it.actualArrivalMinutes - station.plannedArrivalMinutes } ?: if (shouldShift) shift else 0,
                 isCheckedIn = checkIn != null,
@@ -70,7 +78,7 @@ class RaceCalculator(
             )
         }
 
-        return RaceProjection(estimate, projections, shift)
+        return RaceProjection(estimate, projections, shift, startCheckIn?.actualArrivalMinutes)
     }
 
     private fun calculateStations(

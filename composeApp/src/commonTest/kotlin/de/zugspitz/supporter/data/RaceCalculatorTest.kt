@@ -180,6 +180,47 @@ class RaceCalculatorTest {
     }
 
     @Test
+    fun `planned departure follows actual arrival plus planned stop after check in`() {
+        val baseProjection = calculator.project(RaceEstimate(), emptyList(), selectedIndex = 0)
+        val checkedStation = baseProjection.stations[2].station
+        val actualArrivalMinutes = checkedStation.plannedArrivalMinutes + 12
+
+        val projection = calculator.project(
+            estimate = RaceEstimate(),
+            checkIns = listOf(CheckIn(checkedStation.section, actualArrivalMinutes)),
+            selectedIndex = 2,
+        )
+
+        assertEquals(
+            formatRaceTime(RaceEstimate().startTimeMinutes + actualArrivalMinutes + checkedStation.stopMinutes),
+            projection.stations[2].plannedDeparture,
+        )
+    }
+
+    @Test
+    fun `actual start shifts all station timings without changing official start`() {
+        val baseProjection = calculator.project(RaceEstimate(), emptyList(), selectedIndex = 0)
+
+        val projection = calculator.project(
+            estimate = RaceEstimate(),
+            checkIns = listOf(CheckIn(START_LINE_SECTION, actualArrivalMinutes = 9)),
+            selectedIndex = 0,
+        )
+
+        assertEquals(9, projection.actualStartMinutes)
+        assertEquals(9, projection.activeShiftMinutes)
+        assertEquals(RaceEstimate().startTimeMinutes, projection.estimate.startTimeMinutes)
+        assertEquals(
+            baseProjection.stations.first().station.plannedArrivalMinutes + 9,
+            projection.stations.first().station.plannedArrivalMinutes,
+        )
+        assertEquals(
+            baseProjection.stations.last().station.windowStartMinutes + 9,
+            projection.stations.last().station.windowStartMinutes,
+        )
+    }
+
+    @Test
     fun `checkout extends future station timings by actual stop duration`() {
         val baseProjection = calculator.project(RaceEstimate(), emptyList(), selectedIndex = 0)
         val checkedStation = baseProjection.stations[2].station

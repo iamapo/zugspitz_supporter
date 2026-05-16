@@ -18,16 +18,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,6 +44,7 @@ import de.zugspitz.supporter.components.VpCard
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.RaceProjection
+import de.zugspitz.supporter.data.formatRaceTime
 import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterRadius
 import de.zugspitz.supporter.theme.SupporterSpacing
@@ -48,12 +54,16 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.arrival_there
+import zugspitz_supporter.composeapp.generated.resources.actual_start_now
+import zugspitz_supporter.composeapp.generated.resources.actual_start_recorded
+import zugspitz_supporter.composeapp.generated.resources.actual_start_title
 import zugspitz_supporter.composeapp.generated.resources.distance
 import zugspitz_supporter.composeapp.generated.resources.duration_hours_range
 import zugspitz_supporter.composeapp.generated.resources.elevation
 import zugspitz_supporter.composeapp.generated.resources.next_section
 import zugspitz_supporter.composeapp.generated.resources.open_in_maps
 import zugspitz_supporter.composeapp.generated.resources.pace_time
+import zugspitz_supporter.composeapp.generated.resources.planned_start
 import zugspitz_supporter.composeapp.generated.resources.section_to
 import zugspitz_supporter.composeapp.generated.resources.vp_of_total
 
@@ -63,27 +73,42 @@ fun VpCardScreen(
     selectedIndex: Int,
     canEditCheckIns: Boolean,
     onPageChanged: (Int) -> Unit,
+    onActualStartNowClick: () -> Unit,
     onCheckInNowClick: (Int) -> Unit,
     onCheckOutClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uriHandler = LocalUriHandler.current
+    val pageCount = projection.stations.size + 1
+    val scope = rememberCoroutineScope()
+    val hasRaceProgress = projection.actualStartMinutes != null || projection.stations.any { it.isCheckedIn }
+    val initialPage = if (hasRaceProgress) {
+        (selectedIndex + 1).coerceIn(1, pageCount - 1)
+    } else {
+        0
+    }
     val pagerState = rememberPagerState(
-        initialPage = selectedIndex.coerceIn(0, projection.stations.lastIndex),
-        pageCount = { projection.stations.size },
+        initialPage = initialPage,
+        pageCount = { pageCount },
     )
-    LaunchedEffect(selectedIndex) {
-        if (selectedIndex != pagerState.currentPage && selectedIndex in 0 until projection.stations.size) {
-            pagerState.scrollToPage(selectedIndex)
+    var hasHandledInitialSelection by remember { mutableStateOf(false) }
+    LaunchedEffect(selectedIndex, pageCount) {
+        if (!hasHandledInitialSelection) {
+            hasHandledInitialSelection = true
+            return@LaunchedEffect
+        }
+        val targetPage = selectedIndex + 1
+        if (targetPage != pagerState.currentPage && targetPage in 1 until pageCount) {
+            pagerState.scrollToPage(targetPage)
         }
     }
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }.collect { page ->
-            if (page != selectedIndex) onPageChanged(page)
+            if (page > 0 && page - 1 != selectedIndex) onPageChanged(page - 1)
         }
     }
-    val uiPage by remember(pagerState.currentPage, projection.stations.size) {
-        derivedStateOf { pagerState.currentPage.coerceIn(0, projection.stations.lastIndex) }
+    val uiPage by remember(pagerState.currentPage, pageCount) {
+        derivedStateOf { pagerState.currentPage.coerceIn(0, pageCount - 1) }
     }
 
     Column(
@@ -94,13 +119,22 @@ fun VpCardScreen(
             .padding(top = SupporterSpacing.Xl),
         verticalArrangement = Arrangement.spacedBy(SupporterSpacing.Md),
     ) {
-        val activeProjection = projection.stations[uiPage]
-        val nextProjection = projection.stations.getOrNull(uiPage + 1)
+        val stationIndex = uiPage - 1
+        val activeProjection = projection.stations.getOrNull(stationIndex)
+        val nextProjection = if (stationIndex >= 0) {
+            projection.stations.getOrNull(stationIndex + 1)
+        } else {
+            projection.stations.firstOrNull()
+        }
 
         ScreenHeader(
             modifier = Modifier.padding(horizontal = SupporterSpacing.Xl),
-            eyebrow = stringResource(Res.string.vp_of_total, uiPage + 1, projection.stations.size),
-            title = activeProjection.station.name,
+            eyebrow = if (uiPage == 0) {
+                stringResource(Res.string.planned_start)
+            } else {
+                stringResource(Res.string.vp_of_total, stationIndex + 1, projection.stations.size)
+            },
+            title = activeProjection?.station?.name ?: stringResource(Res.string.actual_start_title),
             pill = stringResource(
                 Res.string.duration_hours_range,
                 projection.estimate.minDurationMinutes / 60,
@@ -114,17 +148,33 @@ fun VpCardScreen(
             pageSpacing = SupporterSpacing.Md,
             contentPadding = PaddingValues(horizontal = 28.dp),
         ) { page ->
-            val stationProjection = projection.stations[page]
-            VpCard(
-                projection = stationProjection,
-                completedElevation = ComposeUiUtils.completedElevation(projection, page),
-                canEditCheckIns = canEditCheckIns,
-                onCheckInNowClick = { onCheckInNowClick(page) },
-                onCheckOutClick = { onCheckOutClick(page) },
-            )
+            if (page == 0) {
+                ActualStartCard(
+                    officialStart = formatRaceTime(projection.estimate.startTimeMinutes),
+                    actualStart = projection.actualStartMinutes?.let {
+                        formatRaceTime(projection.estimate.startTimeMinutes + it)
+                    },
+                    canEditCheckIns = canEditCheckIns,
+                    onActualStartNowClick = {
+                        onActualStartNowClick()
+                        scope.launch {
+                            pagerState.animateScrollToPage(1)
+                        }
+                    },
+                )
+            } else {
+                val stationProjection = projection.stations[page - 1]
+                VpCard(
+                    projection = stationProjection,
+                    completedElevation = ComposeUiUtils.completedElevation(projection, page - 1),
+                    canEditCheckIns = canEditCheckIns,
+                    onCheckInNowClick = { onCheckInNowClick(page - 1) },
+                    onCheckOutClick = { onCheckOutClick(page - 1) },
+                )
+            }
         }
 
-        SwipeDots(index = uiPage, count = projection.stations.size, pagerState = pagerState)
+        SwipeDots(index = uiPage, count = pageCount, pagerState = pagerState)
 
         if (nextProjection != null) {
             InfoCard(
@@ -141,7 +191,7 @@ fun VpCardScreen(
                 }
                 StatTile(
                     stringResource(Res.string.pace_time),
-                    ComposeUiUtils.likelyPace(activeProjection, nextProjection),
+                    activeProjection?.let { ComposeUiUtils.likelyPace(it, nextProjection) } ?: "-",
                     null,
                     Modifier
                         .padding(top = 10.dp)
@@ -159,6 +209,73 @@ fun VpCardScreen(
                         text = stringResource(Res.string.open_in_maps),
                         fontWeight = FontWeight.Black,
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActualStartCard(
+    officialStart: String,
+    actualStart: String?,
+    canEditCheckIns: Boolean,
+    onActualStartNowClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        color = SupporterColors.Pine,
+        shape = RoundedCornerShape(8.dp),
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(Res.string.actual_start_title).uppercase(),
+                        color = Color.White.copy(alpha = 0.68f),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                    Text(
+                        actualStart ?: officialStart,
+                        color = Color.White,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Black,
+                    )
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .background(Color(0xFF7FD36B).copy(alpha = 0.14f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 10.dp, vertical = 9.dp),
+                ) {
+                    Text(
+                        stringResource(Res.string.planned_start).uppercase(),
+                        color = Color.White.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                    Text(officialStart, color = Color(0xFF8CE075), fontWeight = FontWeight.Black)
+                }
+            }
+
+            if (actualStart != null) {
+                Text(
+                    text = stringResource(Res.string.actual_start_recorded, actualStart),
+                    color = Color.White.copy(alpha = 0.82f),
+                    fontWeight = FontWeight.Bold,
+                )
+            } else if (canEditCheckIns) {
+                Button(
+                    onClick = onActualStartNowClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8CE075), contentColor = Color(0xFF0F1B12)),
+                ) {
+                    Text(stringResource(Res.string.actual_start_now), fontWeight = FontWeight.Black)
                 }
             }
         }
@@ -201,6 +318,7 @@ fun VpCardScreenPreview() {
             selectedIndex = 2,
             canEditCheckIns = true,
             onPageChanged = {},
+            onActualStartNowClick = {},
             onCheckInNowClick = {},
             onCheckOutClick = {},
         )
