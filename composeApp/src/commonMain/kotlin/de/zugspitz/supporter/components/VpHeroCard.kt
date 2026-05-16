@@ -28,7 +28,8 @@ import zugspitz_supporter.composeapp.generated.resources.check_out
 import zugspitz_supporter.composeapp.generated.resources.checked_in
 import zugspitz_supporter.composeapp.generated.resources.completed
 import zugspitz_supporter.composeapp.generated.resources.expected_arrival
-import zugspitz_supporter.composeapp.generated.resources.plan
+import zugspitz_supporter.composeapp.generated.resources.planned_check_in
+import zugspitz_supporter.composeapp.generated.resources.planned_check_out
 import zugspitz_supporter.composeapp.generated.resources.stop_time
 import zugspitz_supporter.composeapp.generated.resources.to_here
 import de.zugspitz.supporter.theme.SupporterColors
@@ -45,6 +46,14 @@ fun VpCard(
     onCheckOutClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val isPlanningCheckout = projection.isCheckedIn && !projection.isCheckedOut
+    val planLabel = if (isPlanningCheckout) {
+        stringResource(Res.string.planned_check_out)
+    } else {
+        stringResource(Res.string.planned_check_in)
+    }
+    val planTime = if (isPlanningCheckout) projection.plannedDeparture else projection.plannedArrival
+
     Surface(
         color = SupporterColors.Pine,
         shape = RoundedCornerShape(8.dp),
@@ -81,11 +90,11 @@ fun VpCard(
                         .padding(horizontal = 10.dp, vertical = 9.dp),
                 ) {
                     Text(
-                        stringResource(Res.string.plan).uppercase(),
+                        planLabel.uppercase(),
                         color = Color.White.copy(alpha = 0.7f),
                         style = MaterialTheme.typography.labelSmall,
                     )
-                    Text(projection.plannedArrival, color = Color(0xFF8CE075), fontWeight = FontWeight.Black)
+                    Text(planTime, color = Color(0xFF8CE075), fontWeight = FontWeight.Black)
                 }
             }
 
@@ -100,7 +109,7 @@ fun VpCard(
                 StatTile(
                     label = stringResource(Res.string.stop_time),
                     value = projection.actualStopMinutes?.let { "${it} min" } ?: "${projection.station.stopMinutes} min",
-                    detail = projection.actualDeparture ?: projection.actualArrival,
+                    detail = projection.actualDeparture ?: projection.plannedDeparture,
                     modifier = Modifier.weight(1f),
                     inverted = true,
                 )

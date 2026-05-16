@@ -12,6 +12,7 @@ import de.zugspitz.supporter.data.LiveRunInfo
 import de.zugspitz.supporter.data.LiveRunSnapshot
 import de.zugspitz.supporter.data.RaceDefinitions
 import de.zugspitz.supporter.data.RaceEstimate
+import de.zugspitz.supporter.data.START_LINE_SECTION
 import de.zugspitz.supporter.data.SavedTab
 import de.zugspitz.supporter.data.SessionRepository
 import de.zugspitz.supporter.data.TargetTimeMode
@@ -258,6 +259,25 @@ class SupporterViewModelTest {
         assertEquals(75, state.checkIns.first().actualArrivalMinutes)
         assertTrue(state.vp.projection.stations.first().isCheckedIn)
         assertEquals("23:15", state.vp.projection.stations.first().actualArrival)
+    }
+
+    @Test
+    fun `actual start button stores start offset and shifts first station`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = repository,
+            currentMinutesOfDay = { 22 * 60 + 9 },
+        )
+        val firstPlannedBefore = viewModel.uiState.value.vp.projection.stations.first().station.plannedArrivalMinutes
+
+        viewModel.onCalculateClick()
+        viewModel.onActualStartNowSave()
+
+        val state = viewModel.uiState.value
+        assertEquals(START_LINE_SECTION, state.checkIns.first().stationSection)
+        assertEquals(9, state.checkIns.first().actualArrivalMinutes)
+        assertEquals(9, state.vp.projection.actualStartMinutes)
+        assertEquals(firstPlannedBefore + 9, state.vp.projection.stations.first().station.plannedArrivalMinutes)
     }
 
     @Test

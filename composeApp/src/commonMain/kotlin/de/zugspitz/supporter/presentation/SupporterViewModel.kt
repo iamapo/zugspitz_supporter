@@ -17,6 +17,7 @@ import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceDefinitions
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.SessionRepository
+import de.zugspitz.supporter.data.START_LINE_SECTION
 import de.zugspitz.supporter.data.formatRaceTime
 import de.zugspitz.supporter.data.toAppTab
 import de.zugspitz.supporter.data.toSavedTab
@@ -230,6 +231,22 @@ class SupporterViewModel(
 
     fun onCheckInNow() = updateState {
         copy(vp = vp.copy(checkMinutes = currentCheckMinutes()))
+    }
+
+    fun onActualStartNowSave() = updateState {
+        val startMinutes = currentCheckMinutes()
+        val newCheckIns = saveCheckIn(
+            existingCheckIns = checkIns,
+            stationSection = START_LINE_SECTION,
+            actualArrivalMinutes = startMinutes,
+        )
+        val newEvents = appendRaceEvent(
+            stationSection = START_LINE_SECTION,
+            stationName = START_LINE_NAME,
+            type = CheckEventType.CheckIn,
+            raceMinutes = startMinutes,
+        )
+        copy(checkIns = newCheckIns, checkEvents = newEvents)
     }
 
     fun onCheckInNowSave(stationIndex: Int = uiState.value.vp.selectedIndex) = updateState {
@@ -477,23 +494,37 @@ class SupporterViewModel(
     }
 
     private fun AppUiState.appendLiveEvent(selectedIndex: Int, type: CheckEventType, raceMinutes: Int): List<CheckEvent> {
+        val station = vp.projection.stations[selectedIndex].station
+        return appendRaceEvent(
+            stationSection = station.section,
+            stationName = station.name,
+            type = type,
+            raceMinutes = raceMinutes,
+        )
+    }
+
+    private fun AppUiState.appendRaceEvent(
+        stationSection: Int,
+        stationName: String,
+        type: CheckEventType,
+        raceMinutes: Int,
+    ): List<CheckEvent> {
         val link = settings.liveRunLink
         if (!link.canPublish) return checkEvents
 
-        val station = vp.projection.stations[selectedIndex].station
         val createdAtEpochMillis = Clock.System.now().toEpochMilliseconds()
         val event = CheckEvent(
-            id = "${link.runCode}-${station.section}-${type.name}-$createdAtEpochMillis",
+            id = "${link.runCode}-$stationSection-${type.name}-$createdAtEpochMillis",
             runCode = link.runCode,
-            stationSection = station.section,
-            stationName = station.name,
+            stationSection = stationSection,
+            stationName = stationName,
             type = type,
             raceMinutes = raceMinutes,
             createdAtEpochMillis = createdAtEpochMillis,
         )
         liveRaceRepository.publish(event)
         return checkEvents.filterNot {
-            it.stationSection == station.section && it.type == type
+            it.stationSection == stationSection && it.type == type
         } + event
     }
 
@@ -617,6 +648,7 @@ class SupporterViewModel(
 
     private companion object {
         const val MAX_RUN_CODE_LENGTH = 8
+        const val START_LINE_NAME = "Start"
     }
 
     private fun defaultPauseMinutesBySection(raceId: String): Map<Int, Int> =

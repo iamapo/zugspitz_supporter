@@ -3,6 +3,8 @@ package de.zugspitz.supporter.data
 import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 
+const val START_LINE_SECTION = 0
+
 @Immutable
 @Serializable
 data class RaceEstimate(
@@ -122,6 +124,7 @@ data class StationProjection(
     val windowEnd: String,
     val actualArrival: String?,
     val actualDeparture: String?,
+    val plannedDeparture: String,
     val actualStopMinutes: Int?,
     val diffMinutes: Int,
     val isCheckedIn: Boolean,
@@ -134,4 +137,5 @@ data class RaceProjection(
     val estimate: RaceEstimate,
     val stations: List<StationProjection>,
     val activeShiftMinutes: Int,
+    val actualStartMinutes: Int?,
 )

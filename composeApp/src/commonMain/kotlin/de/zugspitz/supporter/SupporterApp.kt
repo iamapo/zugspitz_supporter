@@ -128,6 +128,7 @@ fun SupporterAppRoot(
                     selectedIndex = state.vp.selectedIndex,
                     canEditCheckIns = !state.settings.liveRunLink.canSubscribe,
                     onPageChanged = viewModel::onVpPageChanged,
+                    onActualStartNowClick = viewModel::onActualStartNowSave,
                     onCheckInNowClick = viewModel::onCheckInNowSave,
                     onCheckOutClick = viewModel::onCheckOutNowSave,
                 )
