@@ -663,7 +663,11 @@ class SupporterViewModel(
 
     private fun AppUiState.currentCheckMinutes(): Int {
         val diff = currentMinutesOfDay() - setup.estimate.startTimeMinutes
-        return if (diff < 0) diff + 24 * 60 else diff
+        return when {
+            diff < -HALF_DAY_MINUTES -> diff + FULL_DAY_MINUTES
+            diff > HALF_DAY_MINUTES -> diff - FULL_DAY_MINUTES
+            else -> diff
+        }
     }
 }
 
@@ -671,3 +675,6 @@ private fun systemMinutesOfDay(): Int {
     val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
     return now.hour * 60 + now.minute
 }
+
+private const val FULL_DAY_MINUTES = 24 * 60
+private const val HALF_DAY_MINUTES = 12 * 60

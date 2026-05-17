@@ -50,8 +50,15 @@ object ComposeUiUtils {
         return pace(sectionDurationMinutes / sectionKm)
     }
 
-    fun sectionDurationMinutes(current: StationProjection, previous: StationProjection?): Int? {
-        val sectionStartMinutes = previous?.actualDepartureMinutes ?: previous?.actualArrivalMinutes ?: 0
+    fun sectionDurationMinutes(
+        current: StationProjection,
+        previous: StationProjection?,
+        actualStartMinutes: Int? = null,
+    ): Int? {
+        val sectionStartMinutes = previous?.actualDepartureMinutes
+            ?: previous?.actualArrivalMinutes
+            ?: actualStartMinutes
+            ?: 0
         return current.actualArrivalMinutes?.minus(sectionStartMinutes)
     }
 

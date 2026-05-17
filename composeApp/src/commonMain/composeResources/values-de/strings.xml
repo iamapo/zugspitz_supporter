@@ -44,8 +44,8 @@
     <string name="preview_note">Ankunftsfenster werden je VP aus der gewählten Range berechnet.</string>
     <string name="expected_arrival">Erwartete Ankunft</string>
     <string name="plan">Plan</string>
-    <string name="planned_check_in">Plan Check-in</string>
-    <string name="planned_check_out">Plan Check-out</string>
+    <string name="planned_check_in">Geplanter Check-in</string>
+    <string name="planned_check_out">Geplanter Check-out</string>
     <string name="completed">Absolviert</string>
     <string name="to_here">Bis hier</string>
     <string name="check_in">Check-in</string>
@@ -53,7 +53,7 @@
     <string name="checked_in">Eingecheckt</string>
     <string name="check_in_now">Jetzt einchecken</string>
     <string name="actual_start_title">Tatsächlicher Start</string>
-    <string name="actual_start_now">Startlinie jetzt</string>
+    <string name="actual_start_now">Start</string>
     <string name="actual_start_recorded">Gestartet um %1$s</string>
     <string name="enter_time">Zeit eintragen</string>
     <string name="change_time">Zeit ändern</string>

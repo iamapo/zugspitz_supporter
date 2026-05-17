@@ -133,7 +133,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.runStationListItems(
         VpListRow(
             projection = station,
             timingText = timingTextForRow(station),
-            paceText = paceTextForRow(station, previousStation),
+            paceText = paceTextForRow(station, previousStation, projection.actualStartMinutes),
             onClick = { onStationClick(index) },
         )
     }
@@ -151,8 +151,9 @@ private fun timingTextForRow(station: StationProjection): String? {
 private fun paceTextForRow(
     station: StationProjection,
     previousStation: StationProjection?,
+    actualStartMinutes: Int?,
 ): String {
-    val sectionDuration = ComposeUiUtils.sectionDurationMinutes(station, previousStation)
+    val sectionDuration = ComposeUiUtils.sectionDurationMinutes(station, previousStation, actualStartMinutes)
     return ComposeUiUtils.sectionPace(sectionDuration, station.station.sectionKm)
 }
 

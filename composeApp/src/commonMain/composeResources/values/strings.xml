@@ -44,8 +44,8 @@
     <string name="preview_note">Arrival windows are calculated for each VP from the selected range.</string>
     <string name="expected_arrival">Expected arrival</string>
     <string name="plan">Plan</string>
-    <string name="planned_check_in">Plan check-in</string>
-    <string name="planned_check_out">Plan check-out</string>
+    <string name="planned_check_in">Planned check-in</string>
+    <string name="planned_check_out">Planned check-out</string>
     <string name="completed">Completed</string>
     <string name="to_here">To here</string>
     <string name="check_in">Check-in</string>
@@ -53,7 +53,7 @@
     <string name="checked_in">Checked in</string>
     <string name="check_in_now">Check in now</string>
     <string name="actual_start_title">Actual start</string>
-    <string name="actual_start_now">Start line now</string>
+    <string name="actual_start_now">Start</string>
     <string name="actual_start_recorded">Started at %1$s</string>
     <string name="enter_time">Enter time</string>
     <string name="change_time">Change time</string>
