@@ -106,7 +106,7 @@ fun OfflineMapScreen(
                     longitude = focusStation?.longitude ?: 11.092212,
                     latitude = focusStation?.latitude ?: 47.494648,
                 ),
-                zoom = 11.0,
+                zoom = 10.0,
             ),
         )
         val uncheckedPointsJson = rememberVpPointsGeoJson(
