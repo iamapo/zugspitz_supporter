@@ -31,17 +31,29 @@ object ComposeUiUtils {
     fun likelyPace(from: StationProjection, to: StationProjection): String {
         val startMinutes = from.actualArrivalMinutes ?: from.projectedArrivalMinutes
         val segmentMinutes = (to.projectedArrivalMinutes - startMinutes).coerceAtLeast(1)
-        val paceMinutesPerKm = segmentMinutes / to.station.sectionKm
+        return pacePerKm(segmentMinutes, to.station.sectionKm, compact = true)
+    }
+
+    fun likelyPaceFromStart(to: StationProjection, actualStartMinutes: Int?): String {
+        val startMinutes = actualStartMinutes ?: 0
+        val segmentMinutes = (to.projectedArrivalMinutes - startMinutes).coerceAtLeast(1)
+        return pacePerKm(segmentMinutes, to.station.sectionKm, compact = true)
+    }
+
+    private fun pacePerKm(segmentMinutes: Int, sectionKm: Double, compact: Boolean): String {
+        if (sectionKm <= 0.0) return "-"
+        val paceMinutesPerKm = segmentMinutes / sectionKm
         val totalSeconds = (paceMinutesPerKm * 60).toInt().coerceAtLeast(0)
         val paceMinutes = totalSeconds / 60
         val paceSeconds = totalSeconds % 60
-        return "${paceMinutes}:${paceSeconds.toString().padStart(2, '0')}/km"
+        val suffix = if (compact) "/km" else " min/km"
+        return "${paceMinutes}:${paceSeconds.toString().padStart(2, '0')}$suffix"
     }
 
     fun formattedKm(km: Double): String = "${oneDecimal(km)} km"
 
     fun averagePace(minutes: Int?, distanceKm: Double): String {
-        if (minutes == null || distanceKm <= 0.0) return "-"
+        if (minutes == null || minutes <= 0 || distanceKm <= 0.0) return "-"
         return pace(minutes / distanceKm)
     }
 

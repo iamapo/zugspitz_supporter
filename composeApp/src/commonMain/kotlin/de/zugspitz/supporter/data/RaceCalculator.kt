@@ -32,26 +32,30 @@ class RaceCalculator(
         )
 
         val startCheckIn = checkIns.firstOrNull { it.stationSection == START_LINE_SECTION }
-        val latestCheckIn = checkIns.maxByOrNull { it.stationSection }
-        val shift = latestCheckIn?.let { checkIn ->
-            if (checkIn.stationSection == START_LINE_SECTION) {
-                checkIn.actualArrivalMinutes
-            } else {
-                val station = plannedStations.first { it.section == checkIn.stationSection }
-                val plannedDepartureMinutes = station.plannedArrivalMinutes + station.stopMinutes
-                val actualDepartureMinutes = checkIn.actualDepartureMinutes ?: (checkIn.actualArrivalMinutes + station.stopMinutes)
-                actualDepartureMinutes - plannedDepartureMinutes
-            }
+        val startOffsetMinutes = startCheckIn?.actualArrivalMinutes ?: 0
+        val latestStationCheckIn = checkIns
+            .filter { it.stationSection != START_LINE_SECTION }
+            .maxByOrNull { it.stationSection }
+        val performanceShiftMinutes = latestStationCheckIn?.let { checkIn ->
+            val station = plannedStations.first { it.section == checkIn.stationSection }
+            val plannedDepartureMinutes = station.plannedArrivalMinutes + startOffsetMinutes + station.stopMinutes
+            val actualDepartureMinutes = checkIn.actualDepartureMinutes ?: (checkIn.actualArrivalMinutes + station.stopMinutes)
+            actualDepartureMinutes - plannedDepartureMinutes
         } ?: 0
 
         val projections = plannedStations.mapIndexed { index, station ->
             val checkIn = checkIns.firstOrNull { it.stationSection == station.section }
-            val shouldShift = latestCheckIn != null && station.section > latestCheckIn.stationSection
-            val projectedStation = if (shouldShift) {
+            val stationShiftMinutes = (if (startCheckIn != null) startOffsetMinutes else 0) +
+                if (latestStationCheckIn != null && station.section > latestStationCheckIn.stationSection) {
+                    performanceShiftMinutes
+                } else {
+                    0
+                }
+            val projectedStation = if (stationShiftMinutes != 0) {
                 station.copy(
-                    plannedArrivalMinutes = station.plannedArrivalMinutes + shift,
-                    windowStartMinutes = station.windowStartMinutes + shift,
-                    windowEndMinutes = station.windowEndMinutes + shift,
+                    plannedArrivalMinutes = station.plannedArrivalMinutes + stationShiftMinutes,
+                    windowStartMinutes = station.windowStartMinutes + stationShiftMinutes,
+                    windowEndMinutes = station.windowEndMinutes + stationShiftMinutes,
                 )
             } else {
                 station
@@ -71,14 +75,20 @@ class RaceCalculator(
                 actualDeparture = checkIn?.actualDepartureMinutes?.let { formatRaceTime(estimate.startTimeMinutes + it) },
                 plannedDeparture = formatRaceTime(estimate.startTimeMinutes + plannedDepartureMinutes),
                 actualStopMinutes = checkIn?.actualDepartureMinutes?.let { it - checkIn.actualArrivalMinutes },
-                diffMinutes = checkIn?.let { it.actualArrivalMinutes - station.plannedArrivalMinutes } ?: if (shouldShift) shift else 0,
+                diffMinutes = checkIn?.let {
+                    it.actualArrivalMinutes - projectedStation.plannedArrivalMinutes
+                } ?: if (latestStationCheckIn != null && station.section > latestStationCheckIn.stationSection) {
+                    performanceShiftMinutes
+                } else {
+                    0
+                },
                 isCheckedIn = checkIn != null,
                 isCheckedOut = checkIn?.actualDepartureMinutes != null,
                 isCurrent = index == selectedIndex,
             )
         }
 
-        return RaceProjection(estimate, projections, shift, startCheckIn?.actualArrivalMinutes)
+        return RaceProjection(estimate, projections, performanceShiftMinutes, startCheckIn?.actualArrivalMinutes)
     }
 
     private fun calculateStations(

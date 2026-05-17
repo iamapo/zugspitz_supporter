@@ -208,7 +208,7 @@ class RaceCalculatorTest {
         )
 
         assertEquals(9, projection.actualStartMinutes)
-        assertEquals(9, projection.activeShiftMinutes)
+        assertEquals(0, projection.activeShiftMinutes)
         assertEquals(RaceEstimate().startTimeMinutes, projection.estimate.startTimeMinutes)
         assertEquals(
             baseProjection.stations.first().station.plannedArrivalMinutes + 9,
@@ -218,6 +218,27 @@ class RaceCalculatorTest {
             baseProjection.stations.last().station.windowStartMinutes + 9,
             projection.stations.last().station.windowStartMinutes,
         )
+    }
+
+    @Test
+    fun `station check in on actual start based schedule is still on plan`() {
+        val baseProjection = calculator.project(RaceEstimate(), emptyList(), selectedIndex = 0)
+        val firstStation = baseProjection.stations.first().station
+        val actualStartOffset = 9
+        val actualArrivalMinutes = firstStation.plannedArrivalMinutes + actualStartOffset
+
+        val projection = calculator.project(
+            estimate = RaceEstimate(),
+            checkIns = listOf(
+                CheckIn(START_LINE_SECTION, actualArrivalMinutes = actualStartOffset),
+                CheckIn(firstStation.section, actualArrivalMinutes = actualArrivalMinutes),
+            ),
+            selectedIndex = 0,
+        )
+
+        assertEquals(0, projection.activeShiftMinutes)
+        assertEquals(0, projection.stations.first().diffMinutes)
+        assertEquals(firstStation.plannedArrivalMinutes + actualStartOffset, projection.stations.first().station.plannedArrivalMinutes)
     }
 
     @Test

@@ -25,6 +25,7 @@ fun ScreenHeader(
     title: String,
     subtitle: String? = null,
     pill: String? = null,
+    pillLabel: String? = null,
     pillTextColor: Color = SupporterColors.Pine,
     pillBackgroundColor: Color = SupporterColors.Mint,
     modifier: Modifier = Modifier,
@@ -58,14 +59,26 @@ fun ScreenHeader(
             }
         }
         if (pill != null) {
-            Text(
-                text = pill,
-                color = pillTextColor,
-                fontWeight = FontWeight.Black,
+            Column(
+                horizontalAlignment = Alignment.End,
                 modifier = Modifier
                     .background(pillBackgroundColor, RoundedCornerShape(999.dp))
                     .padding(horizontal = 10.dp, vertical = 8.dp),
-            )
+            ) {
+                if (pillLabel != null) {
+                    Text(
+                        text = pillLabel.uppercase(),
+                        color = pillTextColor.copy(alpha = 0.72f),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                }
+                Text(
+                    text = pill,
+                    color = pillTextColor,
+                    fontWeight = FontWeight.Black,
+                )
+            }
         }
     }
 }

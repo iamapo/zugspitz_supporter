@@ -50,8 +50,12 @@ import de.zugspitz.supporter.theme.SupporterRadius
 import de.zugspitz.supporter.theme.SupporterSpacing
 import de.zugspitz.supporter.theme.SupporterTheme
 import de.zugspitz.supporter.util.ComposeUiUtils
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Clock
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.arrival_there
 import zugspitz_supporter.composeapp.generated.resources.actual_start_now
@@ -63,6 +67,7 @@ import zugspitz_supporter.composeapp.generated.resources.elevation
 import zugspitz_supporter.composeapp.generated.resources.next_section
 import zugspitz_supporter.composeapp.generated.resources.open_in_maps
 import zugspitz_supporter.composeapp.generated.resources.pace_time
+import zugspitz_supporter.composeapp.generated.resources.planned_duration
 import zugspitz_supporter.composeapp.generated.resources.planned_start
 import zugspitz_supporter.composeapp.generated.resources.section_to
 import zugspitz_supporter.composeapp.generated.resources.vp_of_total
@@ -140,17 +145,19 @@ fun VpCardScreen(
                 projection.estimate.minDurationMinutes / 60,
                 projection.estimate.maxDurationMinutes / 60,
             ),
+            pillLabel = stringResource(Res.string.planned_duration),
         )
 
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxWidth(),
             pageSpacing = SupporterSpacing.Md,
-            contentPadding = PaddingValues(horizontal = 28.dp),
+            contentPadding = PaddingValues(start = 28.dp, top = 0.dp, end = 28.dp, bottom = SupporterSpacing.Md),
         ) { page ->
             if (page == 0) {
                 ActualStartCard(
                     officialStart = formatRaceTime(projection.estimate.startTimeMinutes),
+                    currentStartPreview = rememberCurrentTimeLabel(),
                     actualStart = projection.actualStartMinutes?.let {
                         formatRaceTime(projection.estimate.startTimeMinutes + it)
                     },
@@ -191,7 +198,9 @@ fun VpCardScreen(
                 }
                 StatTile(
                     stringResource(Res.string.pace_time),
-                    activeProjection?.let { ComposeUiUtils.likelyPace(it, nextProjection) } ?: "-",
+                    activeProjection?.let {
+                        ComposeUiUtils.likelyPace(it, nextProjection)
+                    } ?: ComposeUiUtils.likelyPaceFromStart(nextProjection, projection.actualStartMinutes),
                     null,
                     Modifier
                         .padding(top = 10.dp)
@@ -218,6 +227,7 @@ fun VpCardScreen(
 @Composable
 private fun ActualStartCard(
     officialStart: String,
+    currentStartPreview: String,
     actualStart: String?,
     canEditCheckIns: Boolean,
     onActualStartNowClick: () -> Unit,
@@ -241,7 +251,7 @@ private fun ActualStartCard(
                         fontWeight = FontWeight.ExtraBold,
                     )
                     Text(
-                        actualStart ?: officialStart,
+                        actualStart ?: currentStartPreview,
                         color = Color.White,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Black,
@@ -280,6 +290,23 @@ private fun ActualStartCard(
             }
         }
     }
+}
+
+@Composable
+private fun rememberCurrentTimeLabel(): String {
+    var currentMinutes by remember { mutableStateOf(currentLocalMinutesOfDay()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            currentMinutes = currentLocalMinutesOfDay()
+            delay(30_000L)
+        }
+    }
+    return formatRaceTime(currentMinutes)
+}
+
+private fun currentLocalMinutesOfDay(): Int {
+    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+    return now.hour * 60 + now.minute
 }
 
 @Composable
