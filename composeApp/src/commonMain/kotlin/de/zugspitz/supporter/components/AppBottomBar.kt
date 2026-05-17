@@ -71,8 +71,8 @@ fun AppBottomBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         BottomItem(stringResource(Res.string.tab_vp), selectedTab == AppTab.Vp, Modifier.weight(1f)) { onTabSelected(AppTab.Vp) }
-        BottomItem(stringResource(Res.string.tab_map), selectedTab == AppTab.Map, Modifier.weight(1f)) { onTabSelected(AppTab.Map) }
         BottomItem(stringResource(Res.string.tab_list), selectedTab == AppTab.List, Modifier.weight(1f)) { onTabSelected(AppTab.List) }
+        BottomItem(stringResource(Res.string.tab_map), selectedTab == AppTab.Map, Modifier.weight(1f)) { onTabSelected(AppTab.Map) }
         BottomItem(stringResource(Res.string.tab_settings), selectedTab == AppTab.Settings, Modifier.weight(1f)) { onTabSelected(AppTab.Settings) }
     }
 }
@@ -93,6 +93,10 @@ private fun BottomItem(label: String, selected: Boolean, modifier: Modifier, onC
                 modifier = Modifier
                     .width(24.dp)
                     .height(12.dp)
+                    .background(
+                        color = if (selected) SupporterColors.Moss else Color.Transparent,
+                        shape = RoundedCornerShape(6.dp),
+                    )
                     .border(
                         width = 2.dp,
                         color = if (selected) SupporterColors.Moss else SupporterColors.Muted,

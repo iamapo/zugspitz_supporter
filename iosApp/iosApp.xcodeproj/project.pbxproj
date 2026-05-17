@@ -311,6 +311,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Zugspitz Supporter";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Zugspitz Supporter verwendet deinen Standort, um deine Position auf der Karte anzuzeigen. Standortdaten werden nicht gespeichert oder geteilt.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Zugspitz Supporter verwendet deinen Standort, um deine Position auf der Karte anzuzeigen. Standortdaten werden nicht gespeichert oder geteilt.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -352,6 +353,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Zugspitz Supporter";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Zugspitz Supporter verwendet deinen Standort, um deine Position auf der Karte anzuzeigen. Standortdaten werden nicht gespeichert oder geteilt.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Zugspitz Supporter verwendet deinen Standort, um deine Position auf der Karte anzuzeigen. Standortdaten werden nicht gespeichert oder geteilt.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

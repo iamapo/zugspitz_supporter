@@ -98,6 +98,7 @@ private fun RunSummaryContent(
     val completedStations = projection.stations.filter { it.isCheckedIn }
     val lastKnown = completedStations.maxByOrNull { it.station.section }
     val lastKnownMinutes = lastKnown?.actualDepartureMinutes ?: lastKnown?.actualArrivalMinutes
+    val elapsedMinutes = lastKnownMinutes?.minus(projection.actualStartMinutes ?: 0)
     val distanceDone = lastKnown?.station?.totalKm ?: 0.0
 
     Column(
@@ -113,7 +114,7 @@ private fun RunSummaryContent(
                 )
                 StatTile(
                     label = stringResource(Res.string.summary_average_pace),
-                    value = ComposeUiUtils.averagePace(lastKnownMinutes, distanceDone),
+                    value = ComposeUiUtils.averagePace(elapsedMinutes, distanceDone),
                     detail = lastKnownMinutes?.let { formatRaceTime(projection.estimate.startTimeMinutes + it) }
                         ?: stringResource(Res.string.summary_last_known),
                     modifier = Modifier.weight(1f),
