@@ -281,6 +281,51 @@ class SupporterViewModelTest {
     }
 
     @Test
+    fun `actual start before planned start remains a negative offset`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = repository,
+            currentMinutesOfDay = { 15 * 60 },
+        )
+
+        viewModel.onCalculateClick()
+        viewModel.onActualStartNowSave()
+
+        val state = viewModel.uiState.value
+        assertEquals(-7 * 60, state.checkIns.first().actualArrivalMinutes)
+        assertEquals(-7 * 60, state.vp.projection.actualStartMinutes)
+    }
+
+    @Test
+    fun `check in after midnight is treated as next race day`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = repository,
+            currentMinutesOfDay = { 1 * 60 },
+        )
+
+        viewModel.onCalculateClick()
+        viewModel.onCheckInNowSave()
+
+        assertEquals(3 * 60, viewModel.uiState.value.checkIns.first().actualArrivalMinutes)
+    }
+
+    @Test
+    fun `check in on previous evening before morning start remains negative`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = repository,
+            currentMinutesOfDay = { 22 * 60 },
+        )
+
+        viewModel.onRaceSelected(RaceDefinitions.LeutaschTrailId)
+        viewModel.onCalculateClick()
+        viewModel.onCheckInNowSave()
+
+        assertEquals(-11 * 60, viewModel.uiState.value.checkIns.first().actualArrivalMinutes)
+    }
+
+    @Test
     fun `checkout stores departure on existing check in`() {
         val repository = FakeSessionRepository(
             AppSessionState(
