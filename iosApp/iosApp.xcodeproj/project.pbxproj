@@ -14,6 +14,7 @@
 		A00000000000000000000005 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = A000000000000000000000C1 /* FirebaseCore */; };
 		D458A0282FAFEA530016F0E6 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D458A0272FAFEA530016F0E6 /* FirebaseAuth */; };
 		D458A02A2FAFEA530016F0E6 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D458A0292FAFEA530016F0E6 /* FirebaseFirestore */; };
+		D458A02D2FAFEA530016F0E6 /* MapLibre in Frameworks */ = {isa = PBXBuildFile; productRef = D458A02C2FAFEA530016F0E6 /* MapLibre */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 				A00000000000000000000005 /* FirebaseCore in Frameworks */,
 				D458A0282FAFEA530016F0E6 /* FirebaseAuth in Frameworks */,
 				D458A02A2FAFEA530016F0E6 /* FirebaseFirestore in Frameworks */,
+				D458A02D2FAFEA530016F0E6 /* MapLibre in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -86,6 +88,7 @@
 				A000000000000000000000C1 /* FirebaseCore */,
 				D458A0272FAFEA530016F0E6 /* FirebaseAuth */,
 				D458A0292FAFEA530016F0E6 /* FirebaseFirestore */,
+				D458A02C2FAFEA530016F0E6 /* MapLibre */,
 			);
 			productName = iosApp;
 			productReference = A00000000000000000000010 /* iosApp.app */;
@@ -117,6 +120,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				D458A0262FAFEA530016F0E6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				D458A02B2FAFEA530016F0E6 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A00000000000000000000032 /* Products */;
@@ -401,6 +405,14 @@
 				minimumVersion = 12.13.0;
 			};
 		};
+		D458A02B2FAFEA530016F0E6 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/maplibre/maplibre-gl-native-distribution.git";
+			requirement = {
+				kind = exactVersion;
+				version = 6.17.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -418,6 +430,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D458A0262FAFEA530016F0E6 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		D458A02C2FAFEA530016F0E6 /* MapLibre */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D458A02B2FAFEA530016F0E6 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */;
+			productName = MapLibre;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
