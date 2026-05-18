@@ -49,3 +49,53 @@ with check (true);
 
 grant select, insert, update on public.runs to authenticated;
 grant select, insert, update on public.events to authenticated;
+
+create or replace function public.create_live_run(
+    p_estimate jsonb,
+    p_created_at_epoch_millis bigint
+)
+returns public.runs
+language plpgsql
+security invoker
+as $$
+declare
+    v_code text;
+    v_row public.runs;
+    v_chars constant text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    v_length constant integer := 8;
+    v_attempt integer := 0;
+    v_index integer;
+begin
+    loop
+        v_attempt := v_attempt + 1;
+        v_code := '';
+
+        for v_index in 1..v_length loop
+            v_code := v_code || substr(v_chars, 1 + floor(random() * length(v_chars))::int, 1);
+        end loop;
+
+        begin
+            insert into public.runs (
+                run_code,
+                estimate,
+                created_at_epoch_millis
+            )
+            values (
+                v_code,
+                p_estimate,
+                p_created_at_epoch_millis
+            )
+            returning * into v_row;
+
+            return v_row;
+        exception
+            when unique_violation then
+                if v_attempt >= 20 then
+                    raise exception 'Could not generate unique run code after % attempts', v_attempt;
+                end if;
+        end;
+    end loop;
+end;
+$$;
+
+grant execute on function public.create_live_run(jsonb, bigint) to authenticated;

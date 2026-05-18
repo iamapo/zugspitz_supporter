@@ -1,5 +1,6 @@
 package de.zugspitz.supporter.presentation
 
+import de.zugspitz.supporter.LiveSharingLogger
 import de.zugspitz.supporter.components.AppTab
 import de.zugspitz.supporter.data.AppSessionState
 import de.zugspitz.supporter.data.CheckEvent
@@ -37,10 +38,14 @@ import de.zugspitz.supporter.presentation.state.SetupUiState
 import de.zugspitz.supporter.presentation.state.VpUiState
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlin.time.Clock
 
 class SupporterViewModel(
@@ -50,6 +55,7 @@ class SupporterViewModel(
     private val calculator: RaceCalculator = RaceCalculator(),
     private val currentMinutesOfDay: () -> Int = ::systemMinutesOfDay,
 ) {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val loadSession = LoadSessionUseCase(sessionRepository)
     private val saveSession = SaveSessionUseCase(sessionRepository)
     private val resetSession = ResetSessionUseCase(sessionRepository)
@@ -376,19 +382,33 @@ class SupporterViewModel(
 
     fun onCreateRunCode() {
         if (!liveSharingEnabled) return
-        updateState {
-            copy(
-                settings = settings.copy(
-                    liveRunLink = settings.liveRunLink.copy(
-                        role = LiveRole.Runner,
-                        runCode = generateRunCode(),
-                        isEnabled = true,
+        val estimate = _uiState.value.setup.estimate
+        scope.launch {
+            val liveRunInfo = runCatching {
+                liveRaceRepository.createRun(estimate)
+            }.onFailure { throwable ->
+                LiveSharingLogger.e("Creating run code failed", throwable)
+            }.getOrNull()
+
+            if (liveRunInfo == null) {
+                return@launch
+            }
+
+            updateState {
+                copy(
+                    settings = settings.copy(
+                        liveRunLink = settings.liveRunLink.copy(
+                            role = LiveRole.Runner,
+                            runCode = liveRunInfo.runCode,
+                            isEnabled = true,
+                        ),
                     ),
-                ),
-            )
+                )
+            }
+            LiveSharingLogger.d("Run code created runCode=${liveRunInfo.runCode}")
+            publishCurrentRunInfo()
+            syncLiveSubscription()
         }
-        publishCurrentRunInfo()
-        syncLiveSubscription()
     }
 
     fun onLiveSharingToggle(enabled: Boolean) {
@@ -663,11 +683,6 @@ class SupporterViewModel(
         stationName = stationName.removePrefix("Z$stationSection "),
         raceTime = formatRaceTime(startTimeMinutes + raceMinutes),
     )
-
-    private fun generateRunCode(): String {
-        val now = Clock.System.now().toEpochMilliseconds()
-        return now.toString(36).takeLast(MAX_RUN_CODE_LENGTH).uppercase()
-    }
 
     private companion object {
         const val MAX_RUN_CODE_LENGTH = 8
