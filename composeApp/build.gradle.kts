@@ -128,9 +128,9 @@ android {
         }
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
-            buildConfigField("boolean", "LIVE_SHARING_ENABLED", "false")
-            buildConfigField("String", "SUPABASE_URL", "\"\"")
-            buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"\"")
+            buildConfigField("boolean", "LIVE_SHARING_ENABLED", "true")
+            buildConfigField("String", "SUPABASE_URL", escapedBuildConfigString(supabaseUrl))
+            buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", escapedBuildConfigString(supabasePublishableKey))
         }
     }
 }
