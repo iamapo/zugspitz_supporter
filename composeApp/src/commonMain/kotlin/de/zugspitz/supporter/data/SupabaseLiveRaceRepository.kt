@@ -25,6 +25,11 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlin.time.Clock
 
 class SupabaseLiveRaceRepository(
     config: LiveSharingBackendConfig,
@@ -43,11 +48,29 @@ class SupabaseLiveRaceRepository(
         install(Postgrest)
         install(Realtime)
     }
+    private val postgrest = supabase.pluginManager.getPlugin(Postgrest)
 
     private val authMutex = Mutex()
     private val pendingMutex = Mutex()
     private val pendingWrites = linkedMapOf<String, PendingWrite>()
     private var senderJob: Job? = null
+
+    override suspend fun createRun(estimate: RaceEstimate): LiveRunInfo? {
+        ensureSignedIn()
+        val createdAtEpochMillis = Clock.System.now().toEpochMilliseconds()
+        LiveSharingLogger.d("Requesting reserved run code from Supabase RPC")
+        return postgrest.rpc(
+            CREATE_LIVE_RUN_RPC,
+            buildJsonObject {
+                put("p_estimate", Json.encodeToJsonElement(RaceEstimate.serializer(), estimate))
+                put("p_created_at_epoch_millis", JsonPrimitive(createdAtEpochMillis))
+            }
+        ).decodeAs<SupabaseRunRow>()
+            .toModel()
+            .also { info ->
+                LiveSharingLogger.d("Supabase RPC created run code=${info.runCode}")
+            }
+    }
 
     override fun publishRunInfo(info: LiveRunInfo) {
         enqueue(
@@ -69,10 +92,7 @@ class SupabaseLiveRaceRepository(
         var latestInfo: LiveRunInfo? = null
         var latestEvents: List<CheckEvent> = emptyList()
 
-        fun emitSnapshot(reason: String) {
-            LiveSharingLogger.d(
-                "Emitting snapshot for runCode=$runCode reason=$reason info=${latestInfo != null} events=${latestEvents.size}"
-            )
+        fun emitSnapshot() {
             onSnapshotChanged(LiveRunSnapshot(info = latestInfo, events = latestEvents))
         }
 
@@ -81,7 +101,8 @@ class SupabaseLiveRaceRepository(
                 ensureSignedIn()
                 latestInfo = fetchRunInfo(runCode)
                 latestEvents = fetchEvents(runCode)
-                emitSnapshot("initial-load")
+                LiveSharingLogger.d("Initial snapshot loaded for runCode=$runCode info=${latestInfo != null} events=${latestEvents.size}")
+                emitSnapshot()
             }.onFailure { throwable ->
                 logError("Initial snapshot load failed for runCode=$runCode", throwable)
             }
@@ -93,9 +114,9 @@ class SupabaseLiveRaceRepository(
                     table = RUNS_TABLE
                     filter(RUNS_RUN_CODE_COLUMN, FilterOperator.EQ, runCode)
                 }.collectLatest { action ->
-                    LiveSharingLogger.d("Realtime run change received for runCode=$runCode action=${action::class.simpleName}")
                     latestInfo = fetchRunInfo(runCode)
-                    emitSnapshot("run-change")
+                    LiveSharingLogger.d("Realtime run sync runCode=$runCode action=${action::class.simpleName} info=${latestInfo != null}")
+                    emitSnapshot()
                 }
             }.onFailure { throwable ->
                 logError("Realtime run subscription failed for runCode=$runCode", throwable)
@@ -108,9 +129,9 @@ class SupabaseLiveRaceRepository(
                     table = EVENTS_TABLE
                     filter(EVENTS_RUN_CODE_COLUMN, FilterOperator.EQ, runCode)
                 }.collectLatest { action ->
-                    LiveSharingLogger.d("Realtime event change received for runCode=$runCode action=${action::class.simpleName}")
                     latestEvents = fetchEvents(runCode)
-                    emitSnapshot("event-change")
+                    LiveSharingLogger.d("Realtime event sync runCode=$runCode action=${action::class.simpleName} events=${latestEvents.size}")
+                    emitSnapshot()
                 }
             }.onFailure { throwable ->
                 logError("Realtime event subscription failed for runCode=$runCode", throwable)
@@ -149,7 +170,6 @@ class SupabaseLiveRaceRepository(
     }
 
     private fun enqueue(key: String, write: PendingWrite) {
-        LiveSharingLogger.d("Queueing live write key=$key")
         scope.launch {
             pendingMutex.withLock {
                 pendingWrites[key] = write
@@ -233,9 +253,6 @@ class SupabaseLiveRaceRepository(
             .decodeList<SupabaseRunRow>()
             .firstOrNull()
             ?.toModel()
-            .also { info ->
-                LiveSharingLogger.d("Fetched run info for runCode=$runCode found=${info != null}")
-            }
 
     private suspend fun fetchEvents(runCode: String): List<CheckEvent> =
         supabase
@@ -248,9 +265,6 @@ class SupabaseLiveRaceRepository(
             }
             .decodeList<SupabaseEventRow>()
             .map(SupabaseEventRow::toModel)
-            .also { events ->
-                LiveSharingLogger.d("Fetched ${events.size} events for runCode=$runCode")
-            }
 
     private fun logError(message: String, throwable: Throwable) {
         LiveSharingLogger.e(message, throwable)
@@ -258,6 +272,7 @@ class SupabaseLiveRaceRepository(
     }
 
     private companion object {
+        const val CREATE_LIVE_RUN_RPC = "create_live_run"
         const val PUBLIC_SCHEMA = "public"
         const val RUNS_TABLE = "runs"
         const val EVENTS_TABLE = "events"

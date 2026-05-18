@@ -85,6 +85,13 @@ Info.plist keys in the Xcode project.
 Apply the schema and RLS policies from `supabase/live_sharing.sql` to your
 Supabase project before using live sharing.
 
+For Android logcat during live-sharing tests, filter to `LiveSharing` and
+`Supabase-Realtime` to avoid unrelated `View` noise. For example:
+
+```bash
+adb logcat LiveSharing:D Supabase-Realtime:I *:S
+```
+
 ### Run on iOS
 
 Open the `iosApp` project in Xcode after syncing the Gradle project and building the shared framework as needed from the Kotlin Multiplatform setup.

@@ -57,6 +57,7 @@ data class CheckEvent(
 )
 
 interface LiveRaceRepository {
+    suspend fun createRun(estimate: RaceEstimate): LiveRunInfo?
     fun publishRunInfo(info: LiveRunInfo)
     fun publish(event: CheckEvent)
     fun subscribe(runCode: String, onSnapshotChanged: (LiveRunSnapshot) -> Unit): LiveRaceSubscription
@@ -67,6 +68,8 @@ interface LiveRaceSubscription {
 }
 
 class NoOpLiveRaceRepository : LiveRaceRepository {
+    override suspend fun createRun(estimate: RaceEstimate): LiveRunInfo? = null
+
     override fun publishRunInfo(info: LiveRunInfo) = Unit
 
     override fun publish(event: CheckEvent) = Unit
