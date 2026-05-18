@@ -82,7 +82,7 @@
   <main>
     <article>
       <h1>Datenschutzerklaerung fuer Zugspitz Supporter</h1>
-      <p class="meta">Stand: 17. Mai 2026</p>
+      <p class="meta">Stand: 18. Mai 2026</p>
 
       <h2>1. Verantwortlicher</h2>
       <p>
@@ -109,25 +109,29 @@
       <p>
         Die App kann lokal auf dem Geraet Daten zur ausgewaehlten Strecke, zu
         geplanten Zielzeiten, Check-in- und Check-out-Zeiten sowie Einstellungen
-        speichern. Diese lokalen Daten verbleiben auf dem Geraet, soweit sie
-        nicht ueber die Live-Sharing-Funktion geteilt werden.
+        wie Rolle, Laufcode und einen optional eingegebenen Namen speichern.
+        Diese lokalen Daten verbleiben auf dem Geraet, soweit sie nicht ueber
+        die Live-Sharing-Funktion geteilt werden.
       </p>
       <p>
         Wenn die Live-Sharing-Funktion aktiviert wird, koennen folgende Daten in
-        Firebase gespeichert werden:
+        Supabase gespeichert werden:
       </p>
       <ul>
         <li>ein zufaellig erzeugter Laufcode,</li>
-        <li>die Rolle der Nutzung, zum Beispiel Runner oder Supporter,</li>
-        <li>ein optional eingegebener Name der Laeuferin oder des Laeufers,</li>
         <li>ausgewaehlte Lauf- und Zielzeitdaten,</li>
         <li>Station, Stationsnummer, Check-in- oder Check-out-Ereignis, Rennzeit und Zeitstempel,</li>
-        <li>eine anonyme Firebase-Authentifizierungs-ID.</li>
+        <li>eine anonyme Supabase-Authentifizierungs-ID.</li>
       </ul>
       <p>
         Ereignisse koennen technisch beispielsweise in der Form
         "MOZJ3KZP-1-CheckIn-1778402818210" gespeichert werden. Der Laufcode dient
         dazu, die Ereignisse einer geteilten Laufsitzung zuzuordnen.
+      </p>
+      <p>
+        Die Live-Sharing-Funktion ist in der aktuellen App-Konfiguration fuer
+        Debug- beziehungsweise Test-Builds vorgesehen und wird dort fuer
+        Entwicklungs- und Funktionstests verwendet.
       </p>
 
       <h2>4. Keine Standortverfolgung</h2>
@@ -141,7 +145,7 @@
         Falls iOS wegen der eingebundenen Kartenbibliothek nach Standortzugriff
         fragt oder eine Standortanzeige auf der Karte verwendet wird, wird der
         Standort nur auf dem Geraet zur Anzeige der eigenen Position auf der
-        Karte genutzt. Standortdaten werden dabei nicht in Firebase gespeichert
+        Karte genutzt. Standortdaten werden dabei nicht in Supabase gespeichert
         und nicht mit anderen Nutzerinnen oder Nutzern geteilt.
       </p>
 
@@ -151,22 +155,29 @@
         Tracking-Technologien und keine Analytics-Dienste. Es werden keine Daten
         zu Werbezwecken verarbeitet oder an Werbenetzwerke weitergegeben.
       </p>
-
-      <h2>6. Firebase</h2>
       <p>
-        Fuer die optionale Live-Sharing-Funktion nutzt die App Firebase-Dienste,
-        insbesondere Firebase Authentication zur anonymen Anmeldung und Cloud
-        Firestore zur Speicherung und Synchronisierung von Laufereignissen.
-        Anbieter ist Google Ireland Limited, Gordon House, Barrow Street, Dublin
-        4, Irland. Eine Verarbeitung durch verbundene Google-Unternehmen,
-        insbesondere Google LLC in den USA, kann nicht ausgeschlossen werden.
+        In Debug- oder Test-Builds kann die App technische Diagnoseprotokolle
+        erzeugen, zum Beispiel zum anonymen Login, zu Sendevorgaengen und zu
+        eingehenden Live-Updates. Diese Diagnoseprotokolle dienen ausschliesslich
+        der Fehlersuche waehrend Entwicklung und Test und werden nicht als
+        eigener Analytics-Dienst an Dritte uebermittelt. Sie koennen jedoch auf
+        dem jeweils verwendeten Testgeraet oder in angeschlossenen
+        Entwicklungswerkzeugen sichtbar sein.
+      </p>
+
+      <h2>6. Supabase</h2>
+      <p>
+        Fuer die optionale Live-Sharing-Funktion nutzt die App Supabase-Dienste,
+        insbesondere Supabase Auth zur anonymen Anmeldung und die Supabase
+        Datenbank sowie Realtime-Funktionen zur Speicherung und
+        Synchronisierung von Laufereignissen. Anbieter ist Supabase, Inc. Die
+        konkrete Datenverarbeitung richtet sich nach dem gewaehlten
+        Supabase-Projekt und dessen Hosting-Region.
       </p>
       <p>
-        Weitere Informationen zur Datenverarbeitung durch Google/Firebase finden
+        Weitere Informationen zur Datenverarbeitung durch Supabase finden
         sich unter
-        <a href="https://firebase.google.com/support/privacy" rel="noopener">https://firebase.google.com/support/privacy</a>
-        und in der Datenschutzerklaerung von Google unter
-        <a href="https://policies.google.com/privacy" rel="noopener">https://policies.google.com/privacy</a>.
+        <a href="https://supabase.com/privacy" rel="noopener">https://supabase.com/privacy</a>.
       </p>
 
       <h2>7. Rechtsgrundlage</h2>
@@ -183,9 +194,14 @@
       <p>
         Lokal gespeicherte Daten koennen durch Loeschen der App oder durch
         Zuruecksetzen der App-Daten entfernt werden. Live-Sharing-Daten in
-        Firebase werden grundsaetzlich spaetestens 30 Tage nach dem betreffenden
+        Supabase werden grundsaetzlich spaetestens 30 Tage nach dem betreffenden
         Event geloescht, sofern keine laengere Speicherung aus technischen oder
         rechtlichen Gruenden erforderlich ist.
+      </p>
+      <p>
+        Lokal sichtbare Diagnoseprotokolle in Debug- oder Test-Umgebungen werden
+        im Rahmen der jeweiligen Entwicklungsumgebung oder des Betriebssystems
+        verwaltet und nicht als gesonderter Datenbestand der App archiviert.
       </p>
       <p>
         Eine fruehere Loeschung kann per E-Mail an
@@ -197,7 +213,7 @@
       <h2>9. Empfaenger und Drittlanduebermittlung</h2>
       <p>
         Personenbezogene Daten werden nicht verkauft. Empfaenger koennen
-        technische Dienstleister sein, insbesondere Google/Firebase, soweit dies
+        technische Dienstleister sein, insbesondere Supabase, soweit dies
         fuer den Betrieb der Live-Sharing-Funktion erforderlich ist. Bei einer
         Verarbeitung ausserhalb der Europaeischen Union oder des Europaeischen
         Wirtschaftsraums werden geeignete Schutzmassnahmen nach den gesetzlichen

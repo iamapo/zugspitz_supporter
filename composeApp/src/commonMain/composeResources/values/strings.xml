@@ -113,7 +113,7 @@
     <string name="settings_title">Settings</string>
     <string name="settings_subtitle">Live connection and locally saved app data.</string>
     <string name="live_sharing">Live-Sharing</string>
-    <string name="live_sharing_hint">Minimal Firebase app contract: share a code, send events, or listen in.</string>
+    <string name="live_sharing_hint">Minimal Supabase app contract: share a code, send events, or listen in.</string>
     <string name="live_role_runner">Runner</string>
     <string name="live_role_supporter">Crew</string>
     <string name="live_code">Support-Code</string>

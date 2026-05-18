@@ -67,6 +67,24 @@ Current Gradle configuration includes:
 
 Open the project in Android Studio to run the Android app or use Compose previews.
 
+### Configure Supabase live sharing
+
+Debug live sharing now uses Supabase instead of Firebase.
+
+Add these values to `local.properties` for Android builds:
+
+```properties
+SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY
+```
+
+For iOS debug builds, either set `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`
+as environment variables in the Xcode scheme, or fill the matching generated
+Info.plist keys in the Xcode project.
+
+Apply the schema and RLS policies from `supabase/live_sharing.sql` to your
+Supabase project before using live sharing.
+
 ### Run on iOS
 
 Open the `iosApp` project in Xcode after syncing the Gradle project and building the shared framework as needed from the Kotlin Multiplatform setup.

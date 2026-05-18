@@ -5,7 +5,6 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
     id("com.android.application")
-    id("com.google.gms.google-services")
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
 }
@@ -19,6 +18,23 @@ val keystoreProperties = Properties().apply {
 
 fun signingValue(name: String): String? =
     keystoreProperties.getProperty(name) ?: System.getenv("ANDROID_${name.uppercase()}")
+
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties().apply {
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use(::load)
+    }
+}
+
+fun localConfigValue(name: String): String? =
+    localProperties.getProperty(name) ?: System.getenv(name)
+
+fun escapedBuildConfigString(value: String?): String =
+    "\"${(value ?: "").replace("\\", "\\\\").replace("\"", "\\\"")}\""
+
+val supabaseUrl = localConfigValue("SUPABASE_URL")
+val supabasePublishableKey = localConfigValue("SUPABASE_PUBLISHABLE_KEY")
+    ?: localConfigValue("SUPABASE_ANON_KEY")
 
 kotlin {
     androidTarget {
@@ -48,8 +64,10 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
             implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
-            implementation("dev.gitlive:firebase-auth:2.4.0")
-            implementation("dev.gitlive:firebase-firestore:2.4.0")
+            implementation(project.dependencies.platform("io.github.jan-tennert.supabase:bom:3.2.4"))
+            implementation("io.github.jan-tennert.supabase:auth-kt")
+            implementation("io.github.jan-tennert.supabase:postgrest-kt")
+            implementation("io.github.jan-tennert.supabase:realtime-kt")
             implementation("org.maplibre.compose:maplibre-compose:0.12.1")
         }
 
@@ -60,6 +78,11 @@ kotlin {
 
         androidMain.dependencies {
             implementation("androidx.activity:activity-compose:1.13.0")
+            implementation("io.ktor:ktor-client-okhttp:3.3.1")
+        }
+
+        iosMain.dependencies {
+            implementation("io.ktor:ktor-client-darwin:3.3.1")
         }
     }
 }
@@ -74,6 +97,7 @@ android {
     }
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -99,18 +123,20 @@ android {
     buildTypes {
         getByName("debug") {
             buildConfigField("boolean", "LIVE_SHARING_ENABLED", "true")
+            buildConfigField("String", "SUPABASE_URL", escapedBuildConfigString(supabaseUrl))
+            buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", escapedBuildConfigString(supabasePublishableKey))
         }
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
             buildConfigField("boolean", "LIVE_SHARING_ENABLED", "false")
+            buildConfigField("String", "SUPABASE_URL", "\"\"")
+            buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"\"")
         }
     }
 }
 
 dependencies {
-    add("androidMainImplementation", platform("com.google.firebase:firebase-bom:34.13.0"))
-    add("androidMainImplementation", "com.google.firebase:firebase-auth")
-    add("androidMainImplementation", "com.google.firebase:firebase-firestore")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     debugImplementation("org.jetbrains.compose.ui:ui-tooling:1.10.3")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
