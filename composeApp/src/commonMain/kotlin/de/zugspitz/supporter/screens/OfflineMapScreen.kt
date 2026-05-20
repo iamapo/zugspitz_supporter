@@ -83,10 +83,15 @@ fun OfflineMapScreen(
             ?.station
             ?: projection.stations.firstOrNull()?.station
         val vpBounds = rememberVpBounds(projection)
-        val routeGeoJson by produceState<String?>(initialValue = null, key1 = projection.estimate.raceId) {
+        val raceId = projection.estimate.raceId
+        val routeGeoJson by produceState<String?>(initialValue = routeGeoJsonCache[raceId], key1 = raceId) {
+            routeGeoJsonCache[raceId]?.let { cachedRoute ->
+                value = cachedRoute
+                return@produceState
+            }
             val fallbackStations = projection.stations.map { it.station }
-            value = withContext(Dispatchers.Default) {
-                val gpxPath = gpxPathForRace(projection.estimate.raceId)
+            val parsedRoute = withContext(Dispatchers.Default) {
+                val gpxPath = gpxPathForRace(raceId)
                 runCatching {
                     gpxPath
                         ?.let { Res.readBytes(it).decodeToString() }
@@ -95,6 +100,8 @@ fun OfflineMapScreen(
                         ?: buildRouteFallbackGeoJson(fallbackStations)
                 }.getOrNull() ?: buildRouteFallbackGeoJson(fallbackStations)
             }
+            routeGeoJsonCache[raceId] = parsedRoute
+            value = parsedRoute
         }
         val cameraState = rememberCameraState(
             firstPosition = CameraPosition(
@@ -227,6 +234,7 @@ private fun gpxPathForRace(raceId: String): String? = when (raceId) {
     else -> null
 }
 
+private val routeGeoJsonCache = mutableMapOf<String, String>()
 private val routePointTagRegex = Regex("""<(?:trkpt|rtept)\b([^>]*)>""")
 
 internal fun parseRouteLineGeoJson(gpxContent: String): String {
