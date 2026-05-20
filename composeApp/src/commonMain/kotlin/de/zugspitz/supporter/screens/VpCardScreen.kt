@@ -253,7 +253,7 @@ private fun ActualStartCard(
                     Text(
                         actualStart ?: currentStartPreview,
                         color = Color.White,
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Black,
                     )
                 }
