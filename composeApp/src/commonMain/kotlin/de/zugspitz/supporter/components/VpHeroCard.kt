@@ -78,7 +78,7 @@ fun VpCard(
                     Text(
                         projection.actualArrival ?: projection.window,
                         color = Color.White,
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Black,
                     )
                 }

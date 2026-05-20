@@ -33,6 +33,8 @@ import de.zugspitz.supporter.data.RaceProjection
 import de.zugspitz.supporter.presentation.state.OfflineMapUiState
 import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.rememberCameraState
@@ -82,14 +84,17 @@ fun OfflineMapScreen(
             ?: projection.stations.firstOrNull()?.station
         val vpBounds = rememberVpBounds(projection)
         val routeGeoJson by produceState<String?>(initialValue = null, key1 = projection.estimate.raceId) {
-            val gpxPath = gpxPathForRace(projection.estimate.raceId)
-            value = runCatching {
-                gpxPath
-                    ?.let { Res.readBytes(it).decodeToString() }
-                    ?.let(::parseRouteLineGeoJson)
-                    ?.takeIf(::geoJsonHasCoordinates)
-                    ?: buildRouteFallbackGeoJson(projection.stations.map { it.station })
-            }.getOrNull() ?: buildRouteFallbackGeoJson(projection.stations.map { it.station })
+            val fallbackStations = projection.stations.map { it.station }
+            value = withContext(Dispatchers.Default) {
+                val gpxPath = gpxPathForRace(projection.estimate.raceId)
+                runCatching {
+                    gpxPath
+                        ?.let { Res.readBytes(it).decodeToString() }
+                        ?.let(::parseRouteLineGeoJson)
+                        ?.takeIf(::geoJsonHasCoordinates)
+                        ?: buildRouteFallbackGeoJson(fallbackStations)
+                }.getOrNull() ?: buildRouteFallbackGeoJson(fallbackStations)
+            }
         }
         val cameraState = rememberCameraState(
             firstPosition = CameraPosition(
@@ -222,20 +227,30 @@ private fun gpxPathForRace(raceId: String): String? = when (raceId) {
     else -> null
 }
 
+private val routePointTagRegex = Regex("""<(?:trkpt|rtept)\b([^>]*)>""")
+
 internal fun parseRouteLineGeoJson(gpxContent: String): String {
-    val pointTagRegex = Regex("""<(?:trkpt|rtept)\b([^>]*)>""")
-    val attributeRegex = Regex("""([a-zA-Z]+)="([^"]+)"""")
-    val coordinates = pointTagRegex.findAll(gpxContent)
-        .mapNotNull { match ->
-            val attributes = attributeRegex.findAll(match.groupValues[1]).associate { it.groupValues[1] to it.groupValues[2] }
-            val latitude = attributes["lat"]?.toDoubleOrNull()
-            val longitude = attributes["lon"]?.toDoubleOrNull()
-            if (latitude == null || longitude == null) null else "[${longitude},${latitude}]"
+    val coordinates = mutableListOf<String>()
+    routePointTagRegex.findAll(gpxContent).forEach { match ->
+        val attributes = match.groupValues[1]
+        val latitude = attributes.readXmlAttribute("lat")?.toDoubleOrNull()
+        val longitude = attributes.readXmlAttribute("lon")?.toDoubleOrNull()
+        if (latitude != null && longitude != null) {
+            coordinates += "[${longitude},${latitude}]"
         }
-        .filterNotNull()
-        .toList()
+    }
 
     return buildLineStringGeoJson(coordinates)
+}
+
+private fun String.readXmlAttribute(name: String): String? {
+    val valuePrefix = "$name=\""
+    val valueStart = indexOf(valuePrefix)
+        .takeIf { it >= 0 }
+        ?.plus(valuePrefix.length)
+        ?: return null
+    val valueEnd = indexOf('"', startIndex = valueStart).takeIf { it >= 0 } ?: return null
+    return substring(valueStart, valueEnd)
 }
 
 internal fun buildRouteFallbackGeoJson(stations: List<AidStation>): String {
