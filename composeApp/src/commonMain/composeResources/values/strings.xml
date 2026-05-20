@@ -37,6 +37,7 @@
     <string name="to">To</string>
     <string name="start_time">Start time</string>
     <string name="planned_start">Planned start</string>
+    <string name="back_to_race_selection">Back to race selection</string>
     <string name="calculate_plan">Calculate VP schedule</string>
     <string name="continue_to_vp_pause_setup">Continue to VP stops</string>
     <string name="preview">Preview</string>

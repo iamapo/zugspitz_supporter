@@ -13,7 +13,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -26,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.zugspitz.supporter.components.ScreenHeader
+import de.zugspitz.supporter.data.AidStation
 import de.zugspitz.supporter.data.CheckIn
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceEstimate
@@ -33,7 +33,6 @@ import de.zugspitz.supporter.data.RaceProjection
 import de.zugspitz.supporter.presentation.state.OfflineMapUiState
 import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterTheme
-import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.rememberCameraState
@@ -61,15 +60,8 @@ fun OfflineMapScreen(
     projection: RaceProjection,
     offlineMap: OfflineMapUiState,
     onDownloadStart: () -> Unit,
-    onDownloadProgress: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LaunchedEffect(offlineMap.isDownloading, offlineMap.progressPercent) {
-        if (!offlineMap.isDownloading) return@LaunchedEffect
-        delay(280)
-        onDownloadProgress((offlineMap.progressPercent + 7).coerceAtMost(100))
-    }
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -91,14 +83,13 @@ fun OfflineMapScreen(
         val vpBounds = rememberVpBounds(projection)
         val routeGeoJson by produceState<String?>(initialValue = null, key1 = projection.estimate.raceId) {
             val gpxPath = gpxPathForRace(projection.estimate.raceId)
-            if (gpxPath == null) {
-                value = null
-                return@produceState
-            }
             value = runCatching {
-                val bytes = Res.readBytes(gpxPath)
-                parseRouteLineGeoJson(bytes.decodeToString())
-            }.getOrNull()
+                gpxPath
+                    ?.let { Res.readBytes(it).decodeToString() }
+                    ?.let(::parseRouteLineGeoJson)
+                    ?.takeIf(::geoJsonHasCoordinates)
+                    ?: buildRouteFallbackGeoJson(projection.stations.map { it.station })
+            }.getOrNull() ?: buildRouteFallbackGeoJson(projection.stations.map { it.station })
         }
         val cameraState = rememberCameraState(
             firstPosition = CameraPosition(
@@ -231,25 +222,39 @@ private fun gpxPathForRace(raceId: String): String? = when (raceId) {
     else -> null
 }
 
-private fun parseRouteLineGeoJson(gpxContent: String): String {
-    val trackPointRegex = Regex("""<trkpt\s+lat="([^"]+)"\s+lon="([^"]+)"""")
-    val coordinates = trackPointRegex.findAll(gpxContent)
-        .map { match ->
-            val latitude = match.groupValues[1].toDoubleOrNull()
-            val longitude = match.groupValues[2].toDoubleOrNull()
-            if (latitude == null || longitude == null) {
-                null
-            } else {
-                "[${longitude},${latitude}]"
-            }
+internal fun parseRouteLineGeoJson(gpxContent: String): String {
+    val pointTagRegex = Regex("""<(?:trkpt|rtept)\b([^>]*)>""")
+    val attributeRegex = Regex("""([a-zA-Z]+)="([^"]+)"""")
+    val coordinates = pointTagRegex.findAll(gpxContent)
+        .mapNotNull { match ->
+            val attributes = attributeRegex.findAll(match.groupValues[1]).associate { it.groupValues[1] to it.groupValues[2] }
+            val latitude = attributes["lat"]?.toDoubleOrNull()
+            val longitude = attributes["lon"]?.toDoubleOrNull()
+            if (latitude == null || longitude == null) null else "[${longitude},${latitude}]"
         }
         .filterNotNull()
         .toList()
 
-    if (coordinates.size < 2) return """{"type":"FeatureCollection","features":[]}"""
+    return buildLineStringGeoJson(coordinates)
+}
 
+internal fun buildRouteFallbackGeoJson(stations: List<AidStation>): String {
+    val coordinates = stations
+        .asSequence()
+        .map { station -> station.longitude to station.latitude }
+        .filter { (longitude, latitude) -> longitude != 0.0 || latitude != 0.0 }
+        .distinct()
+        .map { (longitude, latitude) -> "[${longitude},${latitude}]" }
+        .toList()
+    return buildLineStringGeoJson(coordinates)
+}
+
+private fun buildLineStringGeoJson(coordinates: List<String>): String {
+    if (coordinates.size < 2) return """{"type":"FeatureCollection","features":[]}"""
     return """{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"kind":"route"},"geometry":{"type":"LineString","coordinates":[${coordinates.joinToString(",")}]} }]}"""
 }
+
+private fun geoJsonHasCoordinates(geoJson: String): Boolean = "\"coordinates\":[" in geoJson && geoJson.count { it == '[' } > 2
 
 @Composable
 private fun rememberVpPointsGeoJson(
@@ -284,7 +289,6 @@ fun OfflineMapScreenPreview() {
                 isReady = false,
             ),
             onDownloadStart = {},
-            onDownloadProgress = {},
         )
     }
 }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,6 +44,7 @@ import de.zugspitz.supporter.theme.SupporterTheme
 import de.zugspitz.supporter.util.ComposeUiUtils
 import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
+import zugspitz_supporter.composeapp.generated.resources.back_to_race_selection
 import zugspitz_supporter.composeapp.generated.resources.calculate_plan
 import zugspitz_supporter.composeapp.generated.resources.custom_time
 import zugspitz_supporter.composeapp.generated.resources.expected_duration
@@ -63,6 +65,7 @@ fun SetupScreen(
     pauseMinutesBySection: Map<Int, Int>,
     onEstimateChange: (RaceEstimate) -> Unit,
     onPauseMinutesChange: (section: Int, minutes: Int) -> Unit,
+    onBackClick: (() -> Unit)? = null,
     onCalculateClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -181,7 +184,9 @@ fun SetupScreen(
 
             SetupCard(title = stringResource(Res.string.vp_pause_setup_title)) {
                 Column(verticalArrangement = Arrangement.spacedBy(SupporterSpacing.Sm)) {
-                    selectedRace.stations.forEach { station ->
+                    selectedRace.stations
+                        .filter { it.stopMinutes > 0 }
+                        .forEach { station ->
                         var inputValue by remember(station.section, pauseMinutesBySection[station.section]) {
                             mutableStateOf((pauseMinutesBySection[station.section] ?: station.stopMinutes).toString())
                         }
@@ -241,6 +246,20 @@ fun SetupScreen(
                 }
             }
 
+            if (onBackClick != null) {
+                OutlinedButton(
+                    onClick = onBackClick,
+                    shape = RoundedCornerShape(SupporterRadius.Card),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        stringResource(Res.string.back_to_race_selection),
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(SupporterSpacing.Sm),
+                    )
+                }
+            }
+
             Button(
                 onClick = onCalculateClick,
                 shape = RoundedCornerShape(SupporterRadius.Card),
@@ -285,7 +304,7 @@ private fun Segment(label: String, selected: Boolean, modifier: Modifier, onClic
 @Composable
 fun SetupScreenPreview() {
     SupporterTheme {
-        SetupScreen(RaceEstimate(), emptyMap(), {}, { _, _ -> }, {})
+        SetupScreen(RaceEstimate(), emptyMap(), {}, { _, _ -> }, {}, {})
     }
 }
 
@@ -301,6 +320,7 @@ fun SetupScreenFixedPreview() {
             pauseMinutesBySection = emptyMap(),
             onEstimateChange = {},
             onPauseMinutesChange = { _, _ -> },
+            onBackClick = {},
             onCalculateClick = {},
         )
     }

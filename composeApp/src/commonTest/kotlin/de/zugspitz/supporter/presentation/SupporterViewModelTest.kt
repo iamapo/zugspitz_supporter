@@ -436,6 +436,28 @@ class SupporterViewModelTest {
     }
 
     @Test
+    fun `setup back returns to race selection`() {
+        val repository = FakeSessionRepository()
+        val viewModel = SupporterViewModel(sessionRepository = repository)
+
+        viewModel.onRaceSelected(RaceDefinitions.ZugspitzUltratrailId)
+        viewModel.onSetupBack()
+
+        assertEquals(AppTab.Race, viewModel.uiState.value.tab)
+    }
+
+    @Test
+    fun `all race defaults use a one hour target range`() {
+        RaceDefinitions.All.forEach { race ->
+            assertEquals(
+                60,
+                race.defaultMaxDurationMinutes - race.defaultMinDurationMinutes,
+                race.id,
+            )
+        }
+    }
+
+    @Test
     fun `supporter subscription applies remote race info and check in events`() {
         val liveRepository = FakeLiveRaceRepository()
         val viewModel = SupporterViewModel(
