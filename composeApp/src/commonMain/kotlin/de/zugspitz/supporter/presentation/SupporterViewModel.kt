@@ -184,6 +184,10 @@ class SupporterViewModel(
         )
     }
 
+    fun onSetupBack() = updateState {
+        copy(tab = AppTab.Race)
+    }
+
     fun onPauseMinutesChanged(section: Int, minutes: Int) = updateState {
         copy(
             setup = setup.copy(

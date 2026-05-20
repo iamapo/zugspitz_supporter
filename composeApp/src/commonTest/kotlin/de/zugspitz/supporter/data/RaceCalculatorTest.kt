@@ -54,7 +54,7 @@ class RaceCalculatorTest {
         assertEquals(9, projection.stations.size)
         assertEquals("Z3 Pestkapelle", projection.stations.first().station.name)
         assertEquals("Ziel Garmisch", projection.stations.last().station.name)
-        assertEquals("17:00-20:00", projection.stations.last().window)
+        assertEquals("13:00-14:00", projection.stations.last().window)
     }
 
     @Test
@@ -68,7 +68,7 @@ class RaceCalculatorTest {
         assertEquals(7, projection.stations.size)
         assertEquals("Z5 Hubertushof", projection.stations.first().station.name)
         assertEquals("Ziel Garmisch", projection.stations.last().station.name)
-        assertEquals("21:00-01:00", projection.stations.last().window)
+        assertEquals("20:00-21:00", projection.stations.last().window)
     }
 
     @Test
@@ -82,7 +82,7 @@ class RaceCalculatorTest {
         assertEquals(5, projection.stations.size)
         assertEquals("Z7 Schloss Elmau", projection.stations.first().station.name)
         assertEquals("Ziel Garmisch", projection.stations.last().station.name)
-        assertEquals("15:00-17:00", projection.stations.last().window)
+        assertEquals("14:00-15:00", projection.stations.last().window)
     }
 
     @Test
@@ -96,7 +96,7 @@ class RaceCalculatorTest {
         assertEquals(4, projection.stations.size)
         assertEquals("Z8 Laubhütte", projection.stations.first().station.name)
         assertEquals("Ziel Garmisch", projection.stations.last().station.name)
-        assertEquals("15:00-17:00", projection.stations.last().window)
+        assertEquals("14:00-15:00", projection.stations.last().window)
     }
 
     @Test
@@ -110,7 +110,7 @@ class RaceCalculatorTest {
         assertEquals(2, projection.stations.size)
         assertEquals("Z10 Tröglift", projection.stations.first().station.name)
         assertEquals("Ziel Garmisch", projection.stations.last().station.name)
-        assertEquals("20:00-22:00", projection.stations.last().window)
+        assertEquals("20:00-21:00", projection.stations.last().window)
     }
 
     @Test
@@ -124,7 +124,7 @@ class RaceCalculatorTest {
         assertEquals(16, projection.stations.size)
         assertEquals("Z1 Eibsee", projection.stations.first().station.name)
         assertEquals("Ziel Garmisch", projection.stations.last().station.name)
-        assertEquals("10:00-15:00", projection.stations.last().window)
+        assertEquals("23:00-00:00", projection.stations.last().window)
     }
 
     @Test

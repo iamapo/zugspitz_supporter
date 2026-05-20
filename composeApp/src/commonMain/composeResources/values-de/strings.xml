@@ -37,6 +37,7 @@
     <string name="to">Bis</string>
     <string name="start_time">Startzeit</string>
     <string name="planned_start">Geplanter Start</string>
+    <string name="back_to_race_selection">Zurück zur Rennauswahl</string>
     <string name="calculate_plan">VP-Zeitplan berechnen</string>
     <string name="continue_to_vp_pause_setup">Weiter zu VP-Pausen</string>
     <string name="preview">Vorschau</string>
