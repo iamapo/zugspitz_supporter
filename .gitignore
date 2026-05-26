@@ -15,3 +15,4 @@ iosApp/iosApp/GoogleService-Info.plist
 # Kotlin/Native and Xcode user-specific files
 *.xcuserstate
 xcuserdata/
+/iosApp/iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
