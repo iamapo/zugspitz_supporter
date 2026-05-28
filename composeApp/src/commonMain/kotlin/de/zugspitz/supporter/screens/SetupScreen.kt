@@ -158,7 +158,6 @@ fun SetupScreen(
                         onDurationChange = { durationMinutes ->
                             onEstimateChange(estimate.copy(fixedDurationMinutes = durationMinutes))
                         },
-                        label = stringResource(Res.string.custom_time),
                         isError = fixedDurationInvalid,
                         supportingText = if (fixedDurationInvalid) {
                             stringResource(Res.string.invalid_duration_for_pauses)

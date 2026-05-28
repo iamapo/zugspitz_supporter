@@ -104,8 +104,8 @@ fun TimeRangeInput(
 fun DurationPicker(
     durationMinutes: Int,
     onDurationChange: (Int) -> Unit,
-    label: String,
     modifier: Modifier = Modifier,
+    label: String? = null,
     isError: Boolean = false,
     supportingText: String? = null,
 ) {
@@ -147,7 +147,7 @@ fun DurationPicker(
 
 @Composable
 private fun TimeField(
-    label: String,
+    label: String?,
     value: String,
     selected: Boolean,
     isError: Boolean,
@@ -167,7 +167,9 @@ private fun TimeField(
             .border(1.dp, borderColor, RoundedCornerShape(SupporterRadius.Card))
             .padding(SupporterSpacing.Md),
     ) {
-        Text(label, color = SupporterColors.Muted, style = MaterialTheme.typography.bodySmall)
+        label?.let {
+            Text(it, color = SupporterColors.Muted, style = MaterialTheme.typography.bodySmall)
+        }
         Text(value, fontWeight = FontWeight.Black, style = MaterialTheme.typography.headlineSmall)
     }
 }
@@ -223,7 +225,6 @@ fun DurationPickerPreview() {
         DurationPicker(
             durationMinutes = 17 * 60 + 30,
             onDurationChange = {},
-            label = "Laufzeit",
             modifier = Modifier.padding(16.dp),
         )
     }
