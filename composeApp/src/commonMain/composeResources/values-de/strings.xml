@@ -66,6 +66,7 @@
     <string name="arrival_there">Ankunft dort</string>
     <string name="distance">Distanz</string>
     <string name="elevation">Höhenmeter</string>
+    <string name="elevation_profile">Höhenprofil</string>
     <string name="coordinates">Koordinaten</string>
     <string name="open_in_maps">In Karten öffnen</string>
     <string name="start_time_placeholder">17:00</string>

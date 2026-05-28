@@ -66,6 +66,7 @@
     <string name="arrival_there">Arrival there</string>
     <string name="distance">Distance</string>
     <string name="elevation">Elevation gain</string>
+    <string name="elevation_profile">Elevation profile</string>
     <string name="coordinates">Coordinates</string>
     <string name="open_in_maps">Open in maps</string>
     <string name="start_time_placeholder">17:00</string>
