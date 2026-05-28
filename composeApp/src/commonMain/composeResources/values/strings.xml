@@ -107,6 +107,8 @@
     <string name="arrival_window">Arrival window</string>
     <string name="stop_time">Stop time</string>
     <string name="custom_time">Custom time</string>
+    <string name="invalid_duration_for_pauses">Target time must be longer than all VP stops.</string>
+    <string name="invalid_pause_for_duration">Too much stop time for the selected target.</string>
     <string name="settings_title">Settings</string>
     <string name="settings_subtitle">Live connection and locally saved app data.</string>
     <string name="live_sharing">Live-Sharing</string>

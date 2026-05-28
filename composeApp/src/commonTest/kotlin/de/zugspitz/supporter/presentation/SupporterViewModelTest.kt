@@ -573,6 +573,22 @@ class SupporterViewModelTest {
         assertEquals(AppTab.Vp, state.tab)
         assertEquals(RaceDefinitions.GrainauTrailId, state.setup.estimate.raceId)
     }
+
+    @Test
+    fun `too short fixed target time is ignored instead of crashing during typing`() {
+        val viewModel = SupporterViewModel(sessionRepository = FakeSessionRepository())
+
+        viewModel.onEstimateChange(
+            viewModel.uiState.value.setup.estimate.copy(
+                targetMode = TargetTimeMode.Fixed,
+                fixedDurationMinutes = 1,
+            ),
+        )
+
+        val state = viewModel.uiState.value
+        assertTrue(state.setup.estimate.fixedDurationMinutes > 1)
+        assertTrue(state.vp.projection.stations.isNotEmpty())
+    }
 }
 
 private class FakeSessionRepository(

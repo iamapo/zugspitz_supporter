@@ -18,6 +18,7 @@ import de.zugspitz.supporter.data.RaceDefinitions
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.SessionRepository
 import de.zugspitz.supporter.data.START_LINE_SECTION
+import de.zugspitz.supporter.data.TargetTimeMode
 import de.zugspitz.supporter.data.formatRaceTime
 import de.zugspitz.supporter.data.toAppTab
 import de.zugspitz.supporter.data.toSavedTab
@@ -155,6 +156,13 @@ class SupporterViewModel(
 
     fun onEstimateChange(estimate: RaceEstimate) {
         updateState {
+            val normalizedPauseMinutes = mergePauseMinutesBySection(
+                raceId = estimate.raceId,
+                overrides = setup.pauseMinutesBySection,
+            )
+            if (!estimate.hasValidTargetDurations(totalStopMinutes(estimate.raceId, normalizedPauseMinutes))) {
+                return@updateState this
+            }
             copy(setup = setup.copy(estimate = updateEstimate(estimate)))
         }
         publishCurrentRunInfo()
@@ -189,9 +197,17 @@ class SupporterViewModel(
     }
 
     fun onPauseMinutesChanged(section: Int, minutes: Int) = updateState {
+        val updatedPauseMinutes = setup.pauseMinutesBySection + (section to minutes.coerceAtLeast(0))
+        val normalizedPauseMinutes = mergePauseMinutesBySection(
+            raceId = setup.estimate.raceId,
+            overrides = updatedPauseMinutes,
+        )
+        if (!setup.estimate.hasValidTargetDurations(totalStopMinutes(setup.estimate.raceId, normalizedPauseMinutes))) {
+            return@updateState this
+        }
         copy(
             setup = setup.copy(
-                pauseMinutesBySection = setup.pauseMinutesBySection + (section to minutes.coerceAtLeast(0)),
+                pauseMinutesBySection = updatedPauseMinutes,
             ),
         )
     }
@@ -462,7 +478,10 @@ class SupporterViewModel(
         val stationsWithPauseOverrides = RaceDefinitions.byId(estimate.raceId).stations.map { station ->
             station.copy(stopMinutes = normalizedPauseMinutes[station.section] ?: station.stopMinutes)
         }
-        val projection = calculator.project(estimate, checkIns, selectedIndex, stationsWithPauseOverrides)
+        val safeEstimate = estimate.coerceToValidTargetDurations(
+            totalStopMinutes = stationsWithPauseOverrides.sumOf { it.stopMinutes },
+        )
+        val projection = calculator.project(safeEstimate, checkIns, selectedIndex, stationsWithPauseOverrides)
         val clampedIndex = selectedIndex.coerceIn(0, projection.stations.lastIndex)
         val selectedStation = projection.stations[clampedIndex]
         val defaultCheckMinutes = when (checkAction) {
@@ -477,7 +496,7 @@ class SupporterViewModel(
             checkIns = checkIns,
             checkEvents = checkEvents,
             setup = SetupUiState(
-                estimate = estimate,
+                estimate = safeEstimate,
                 hasSelectedRace = hasSelectedRace,
                 pauseMinutesBySection = normalizedPauseMinutes,
             ),
@@ -678,6 +697,34 @@ class SupporterViewModel(
 private fun systemMinutesOfDay(): Int {
     val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
     return now.hour * 60 + now.minute
+}
+
+private fun RaceEstimate.hasValidTargetDurations(totalStopMinutes: Int): Boolean = when (targetMode) {
+    TargetTimeMode.Fixed -> fixedDurationMinutes > totalStopMinutes
+    TargetTimeMode.Range -> minDurationMinutes > totalStopMinutes && maxDurationMinutes > totalStopMinutes
+}
+
+private fun RaceEstimate.coerceToValidTargetDurations(totalStopMinutes: Int): RaceEstimate {
+    val minimumDurationMinutes = totalStopMinutes + 1
+    return when (targetMode) {
+        TargetTimeMode.Fixed -> copy(
+            fixedDurationMinutes = fixedDurationMinutes.coerceAtLeast(minimumDurationMinutes),
+        )
+        TargetTimeMode.Range -> {
+            val safeMinDuration = minDurationMinutes.coerceAtLeast(minimumDurationMinutes)
+            copy(
+                minDurationMinutes = safeMinDuration,
+                maxDurationMinutes = maxDurationMinutes.coerceAtLeast(safeMinDuration),
+            )
+        }
+    }
+}
+
+private fun totalStopMinutes(
+    raceId: String,
+    pauseMinutesBySection: Map<Int, Int>,
+): Int = RaceDefinitions.byId(raceId).stations.sumOf { station ->
+    pauseMinutesBySection[station.section] ?: station.stopMinutes
 }
 
 private const val FULL_DAY_MINUTES = 24 * 60

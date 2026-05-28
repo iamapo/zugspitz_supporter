@@ -39,43 +39,108 @@ import zugspitz_supporter.composeapp.generated.resources.to
 
 @Composable
 fun TimeRangeInput(
-    minHours: Int,
-    maxHours: Int,
-    onMinDecrease: () -> Unit,
-    onMinIncrease: () -> Unit,
-    onMaxDecrease: () -> Unit,
-    onMaxIncrease: () -> Unit,
+    minDurationMinutes: Int,
+    maxDurationMinutes: Int,
+    onMinDurationChange: (Int) -> Unit,
+    onMaxDurationChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    isError: Boolean = false,
+    supportingText: String? = null,
 ) {
     var selectedField by remember { mutableStateOf(TimeRangeField.From) }
-    val onDecrease = when (selectedField) {
-        TimeRangeField.From -> onMinDecrease
-        TimeRangeField.To -> onMaxDecrease
+    val selectedDuration = when (selectedField) {
+        TimeRangeField.From -> minDurationMinutes
+        TimeRangeField.To -> maxDurationMinutes
     }
-    val onIncrease = when (selectedField) {
-        TimeRangeField.From -> onMinIncrease
-        TimeRangeField.To -> onMaxIncrease
+    val onDurationChange = when (selectedField) {
+        TimeRangeField.From -> onMinDurationChange
+        TimeRangeField.To -> onMaxDurationChange
     }
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(SupporterSpacing.Sm)) {
         TimeField(
             label = stringResource(Res.string.from),
-            value = "${minHours}:00 h",
+            value = formatDuration(minDurationMinutes),
             selected = selectedField == TimeRangeField.From,
+            isError = isError,
             onClick = { selectedField = TimeRangeField.From },
         )
         TimeField(
             label = stringResource(Res.string.to),
-            value = "${maxHours}:00 h",
+            value = formatDuration(maxDurationMinutes),
             selected = selectedField == TimeRangeField.To,
+            isError = isError,
             onClick = { selectedField = TimeRangeField.To },
         )
         Row(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            StepperButton(stringResource(Res.string.stepper_minus), onDecrease)
-            StepperButton(stringResource(Res.string.stepper_plus), onIncrease)
+            StepperButton(
+                label = stringResource(Res.string.stepper_minus),
+                onClick = {
+                    onDurationChange((selectedDuration - DurationStepMinutes).coerceAtLeast(0))
+                },
+            )
+            StepperButton(
+                label = stringResource(Res.string.stepper_plus),
+                onClick = {
+                    onDurationChange(selectedDuration + DurationStepMinutes)
+                },
+            )
+        }
+        if (supportingText != null) {
+            Text(
+                text = supportingText,
+                color = if (isError) SupporterColors.Danger else SupporterColors.Muted,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+    }
+}
+
+@Composable
+fun DurationPicker(
+    durationMinutes: Int,
+    onDurationChange: (Int) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
+    supportingText: String? = null,
+) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(SupporterSpacing.Sm)) {
+        TimeField(
+            label = label,
+            value = formatDuration(durationMinutes),
+            selected = true,
+            isError = isError,
+            onClick = {},
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            StepperButton(
+                label = stringResource(Res.string.stepper_minus),
+                onClick = {
+                    onDurationChange((durationMinutes - DurationStepMinutes).coerceAtLeast(0))
+                },
+            )
+            StepperButton(
+                label = stringResource(Res.string.stepper_plus),
+                onClick = {
+                    onDurationChange(durationMinutes + DurationStepMinutes)
+                },
+            )
+        }
+        if (supportingText != null) {
+            Text(
+                text = supportingText,
+                color = if (isError) SupporterColors.Danger else SupporterColors.Muted,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.SemiBold,
+            )
         }
     }
 }
@@ -85,9 +150,14 @@ private fun TimeField(
     label: String,
     value: String,
     selected: Boolean,
+    isError: Boolean,
     onClick: () -> Unit,
 ) {
-    val borderColor = if (selected) SupporterColors.Moss else SupporterColors.Line
+    val borderColor = when {
+        isError -> SupporterColors.Danger
+        selected -> SupporterColors.Moss
+        else -> SupporterColors.Line
+    }
     val backgroundColor = if (selected) SupporterColors.Mint else Color(0xFFFBFCFA)
     Column(
         modifier = Modifier
@@ -105,6 +175,14 @@ private fun TimeField(
 private enum class TimeRangeField {
     From,
     To,
+}
+
+private const val DurationStepMinutes = 15
+
+private fun formatDuration(totalMinutes: Int): String {
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    return "${hours}:${minutes.toString().padStart(2, '0')} h"
 }
 
 @Composable
@@ -128,6 +206,25 @@ private fun StepperButton(label: String, onClick: () -> Unit) {
 @Composable
 fun TimeRangeInputPreview() {
     SupporterTheme {
-        TimeRangeInput(17, 18, {}, {}, {}, {}, Modifier.padding(16.dp))
+        TimeRangeInput(
+            minDurationMinutes = 17 * 60 + 15,
+            maxDurationMinutes = 17 * 60 + 45,
+            onMinDurationChange = {},
+            onMaxDurationChange = {},
+            modifier = Modifier.padding(16.dp),
+        )
+    }
+}
+
+@Preview
+@Composable
+fun DurationPickerPreview() {
+    SupporterTheme {
+        DurationPicker(
+            durationMinutes = 17 * 60 + 30,
+            onDurationChange = {},
+            label = "Laufzeit",
+            modifier = Modifier.padding(16.dp),
+        )
     }
 }

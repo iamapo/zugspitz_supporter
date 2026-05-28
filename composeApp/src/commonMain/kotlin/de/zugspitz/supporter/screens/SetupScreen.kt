@@ -22,15 +22,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import de.zugspitz.supporter.components.DurationPicker
 import de.zugspitz.supporter.components.ScreenHeader
 import de.zugspitz.supporter.components.TimeRangeInput
 import de.zugspitz.supporter.data.RaceDefinitions
@@ -41,7 +40,6 @@ import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterRadius
 import de.zugspitz.supporter.theme.SupporterSpacing
 import de.zugspitz.supporter.theme.SupporterTheme
-import de.zugspitz.supporter.util.ComposeUiUtils
 import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.back_to_race_selection
@@ -49,12 +47,13 @@ import zugspitz_supporter.composeapp.generated.resources.calculate_plan
 import zugspitz_supporter.composeapp.generated.resources.custom_time
 import zugspitz_supporter.composeapp.generated.resources.expected_duration
 import zugspitz_supporter.composeapp.generated.resources.fixed_time
+import zugspitz_supporter.composeapp.generated.resources.invalid_duration_for_pauses
+import zugspitz_supporter.composeapp.generated.resources.invalid_pause_for_duration
 import zugspitz_supporter.composeapp.generated.resources.planned_start
 import zugspitz_supporter.composeapp.generated.resources.range_time
 import zugspitz_supporter.composeapp.generated.resources.setup_subtitle
 import zugspitz_supporter.composeapp.generated.resources.setup_title
 import zugspitz_supporter.composeapp.generated.resources.start_time
-import zugspitz_supporter.composeapp.generated.resources.start_time_placeholder
 import zugspitz_supporter.composeapp.generated.resources.target_time_mode
 import zugspitz_supporter.composeapp.generated.resources.vp_pause_minutes
 import zugspitz_supporter.composeapp.generated.resources.vp_pause_setup_title
@@ -70,8 +69,28 @@ fun SetupScreen(
     modifier: Modifier = Modifier,
 ) {
         val selectedRace = RaceDefinitions.byId(estimate.raceId)
-        var fixedInput by remember(estimate.fixedDurationMinutes) {
-            mutableStateOf(ComposeUiUtils.minutesToDurationInput(estimate.fixedDurationMinutes))
+        val pauseInputValues = remember(estimate.raceId) { mutableStateMapOf<Int, String>() }
+        val displayedPauseMinutesBySection = selectedRace.stations.associate { station ->
+            val inputValue = pauseInputValues[station.section]
+            station.section to (inputValue?.toIntOrNull() ?: pauseMinutesBySection[station.section] ?: station.stopMinutes)
+        }
+        val totalStopMinutes = selectedRace.stations.sumOf { station ->
+            displayedPauseMinutesBySection[station.section] ?: station.stopMinutes
+        }
+        val fixedDurationInvalid = estimate.targetMode == TargetTimeMode.Fixed &&
+            estimate.fixedDurationMinutes <= totalStopMinutes
+        val rangeDurationInvalid = estimate.targetMode == TargetTimeMode.Range &&
+            (estimate.minDurationMinutes <= totalStopMinutes || estimate.maxDurationMinutes <= totalStopMinutes)
+        val hasInvalidInput = fixedDurationInvalid || rangeDurationInvalid || selectedRace.stations.any { station ->
+            val inputValue = pauseInputValues[station.section] ?: return@any false
+            val parsedMinutes = inputValue.toIntOrNull() ?: return@any false
+            val candidateTotalStopMinutes = selectedRace.stations.sumOf { candidateStation ->
+                when (candidateStation.section) {
+                    station.section -> parsedMinutes
+                    else -> displayedPauseMinutesBySection[candidateStation.section] ?: candidateStation.stopMinutes
+                }
+            }
+            !estimate.canSupportStopMinutes(candidateTotalStopMinutes)
         }
         Column(
             modifier = modifier
@@ -107,19 +126,9 @@ fun SetupScreen(
             if (estimate.targetMode == TargetTimeMode.Range) {
                 SetupCard(title = stringResource(Res.string.expected_duration)) {
                     TimeRangeInput(
-                        minHours = estimate.minDurationMinutes / 60,
-                        maxHours = estimate.maxDurationMinutes / 60,
-                        onMinDecrease = {
-                            if (estimate.minDurationMinutes > 14 * 60) {
-                                onEstimateChange(
-                                    estimate.copy(
-                                        minDurationMinutes = estimate.minDurationMinutes - 60,
-                                    ),
-                                )
-                            }
-                        },
-                        onMinIncrease = {
-                            val newMinDurationMinutes = estimate.minDurationMinutes + 60
+                        minDurationMinutes = estimate.minDurationMinutes,
+                        maxDurationMinutes = estimate.maxDurationMinutes,
+                        onMinDurationChange = { newMinDurationMinutes ->
                             onEstimateChange(
                                 estimate.copy(
                                     minDurationMinutes = newMinDurationMinutes,
@@ -127,39 +136,35 @@ fun SetupScreen(
                                 ),
                             )
                         },
-                        onMaxDecrease = {
-                            if (estimate.maxDurationMinutes > estimate.minDurationMinutes) {
-                                onEstimateChange(
-                                    estimate.copy(maxDurationMinutes = estimate.maxDurationMinutes - 60),
-                                )
-                            }
-                        },
-                        onMaxIncrease = {
+                        onMaxDurationChange = { newMaxDurationMinutes ->
                             onEstimateChange(
-                                estimate.copy(maxDurationMinutes = estimate.maxDurationMinutes + 60),
+                                estimate.copy(
+                                    maxDurationMinutes = newMaxDurationMinutes.coerceAtLeast(estimate.minDurationMinutes),
+                                ),
                             )
+                        },
+                        isError = rangeDurationInvalid,
+                        supportingText = if (rangeDurationInvalid) {
+                            stringResource(Res.string.invalid_duration_for_pauses)
+                        } else {
+                            null
                         },
                     )
                 }
             } else {
                 SetupCard(title = stringResource(Res.string.expected_duration)) {
-                    OutlinedTextField(
-                        value = fixedInput,
-                        onValueChange = { value ->
-                            fixedInput = value
-                            ComposeUiUtils.parseDurationInput(value)?.let { parsedMinutes ->
-                                onEstimateChange(estimate.copy(fixedDurationMinutes = parsedMinutes))
-                            }
+                    DurationPicker(
+                        durationMinutes = estimate.fixedDurationMinutes,
+                        onDurationChange = { durationMinutes ->
+                            onEstimateChange(estimate.copy(fixedDurationMinutes = durationMinutes))
                         },
-                        label = { Text(stringResource(Res.string.custom_time)) },
-                        placeholder = { Text(stringResource(Res.string.start_time_placeholder)) },
-                        textStyle = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Black),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = androidx.compose.ui.graphics.Color(0xFFFBFCFA),
-                            unfocusedContainerColor = androidx.compose.ui.graphics.Color(0xFFFBFCFA),
-                        ),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        label = stringResource(Res.string.custom_time),
+                        isError = fixedDurationInvalid,
+                        supportingText = if (fixedDurationInvalid) {
+                            stringResource(Res.string.invalid_duration_for_pauses)
+                        } else {
+                            null
+                        },
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
@@ -187,9 +192,18 @@ fun SetupScreen(
                     selectedRace.stations
                         .filter { it.stopMinutes > 0 }
                         .forEach { station ->
-                        var inputValue by remember(station.section, pauseMinutesBySection[station.section]) {
-                            mutableStateOf((pauseMinutesBySection[station.section] ?: station.stopMinutes).toString())
+                        val inputValue = pauseInputValues.getOrPut(station.section) {
+                            (pauseMinutesBySection[station.section] ?: station.stopMinutes).toString()
                         }
+                        val parsedPauseMinutes = inputValue.toIntOrNull()
+                        val candidateTotalStopMinutes = selectedRace.stations.sumOf { candidateStation ->
+                            when (candidateStation.section) {
+                                station.section -> parsedPauseMinutes ?: 0
+                                else -> displayedPauseMinutesBySection[candidateStation.section] ?: candidateStation.stopMinutes
+                            }
+                        }
+                        val pauseInvalid = parsedPauseMinutes != null &&
+                            !estimate.canSupportStopMinutes(candidateTotalStopMinutes)
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -199,7 +213,7 @@ fun SetupScreen(
                                 )
                                 .border(
                                     width = 1.dp,
-                                    color = SupporterColors.Line,
+                                    color = if (pauseInvalid) SupporterColors.Danger else SupporterColors.Line,
                                     shape = RoundedCornerShape(SupporterRadius.Card),
                                 )
                                 .padding(SupporterSpacing.Md),
@@ -223,10 +237,24 @@ fun SetupScreen(
                                 value = inputValue,
                                 onValueChange = { value ->
                                     val normalized = value.filter { it.isDigit() }.take(3)
-                                    inputValue = normalized
+                                    pauseInputValues[station.section] = normalized
                                     normalized.toIntOrNull()?.let { parsedMinutes ->
-                                        onPauseMinutesChange(station.section, parsedMinutes)
+                                        val nextTotalStopMinutes = selectedRace.stations.sumOf { candidateStation ->
+                                            when (candidateStation.section) {
+                                                station.section -> parsedMinutes
+                                                else -> displayedPauseMinutesBySection[candidateStation.section] ?: candidateStation.stopMinutes
+                                            }
+                                        }
+                                        if (estimate.canSupportStopMinutes(nextTotalStopMinutes)) {
+                                            onPauseMinutesChange(station.section, parsedMinutes)
+                                        }
                                     }
+                                },
+                                isError = pauseInvalid,
+                                supportingText = if (pauseInvalid) {
+                                    { Text(stringResource(Res.string.invalid_pause_for_duration)) }
+                                } else {
+                                    null
                                 },
                                 label = { Text(stringResource(Res.string.vp_pause_minutes)) },
                                 singleLine = true,
@@ -262,6 +290,7 @@ fun SetupScreen(
 
             Button(
                 onClick = onCalculateClick,
+                enabled = !hasInvalidInput,
                 shape = RoundedCornerShape(SupporterRadius.Card),
                 colors = ButtonDefaults.buttonColors(containerColor = SupporterColors.Pine),
                 modifier = Modifier.fillMaxWidth(),
@@ -298,6 +327,11 @@ private fun Segment(label: String, selected: Boolean, modifier: Modifier, onClic
                 .padding(vertical = 10.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
+}
+
+private fun RaceEstimate.canSupportStopMinutes(totalStopMinutes: Int): Boolean = when (targetMode) {
+    TargetTimeMode.Fixed -> fixedDurationMinutes > totalStopMinutes
+    TargetTimeMode.Range -> minDurationMinutes > totalStopMinutes && maxDurationMinutes > totalStopMinutes
 }
 
 @Preview

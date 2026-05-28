@@ -107,6 +107,8 @@
     <string name="arrival_window">Ankunftsfenster</string>
     <string name="stop_time">Stopzeit</string>
     <string name="custom_time">Eigene Zeit</string>
+    <string name="invalid_duration_for_pauses">Zielzeit muss länger als alle VP-Pausen sein.</string>
+    <string name="invalid_pause_for_duration">Zu viel Pausenzeit für die gewählte Zielzeit.</string>
     <string name="settings_title">Einstellungen</string>
     <string name="settings_subtitle">Live-Verbindung und lokal gespeicherte App-Daten.</string>
     <string name="live_sharing">Live-Sharing</string>
