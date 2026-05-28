@@ -30,6 +30,7 @@ import de.zugspitz.supporter.data.CheckIn
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.RaceProjection
+import de.zugspitz.supporter.data.gpxPathForRace
 import de.zugspitz.supporter.presentation.state.OfflineMapUiState
 import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterTheme
@@ -222,16 +223,6 @@ private fun rememberVpBounds(projection: RaceProjection): BoundingBox? {
     val north = latitudes.maxOrNull() ?: return null
     if (west == east || south == north) return null
     return BoundingBox(west = west, south = south, east = east, north = north)
-}
-
-private fun gpxPathForRace(raceId: String): String? = when (raceId) {
-    "zugspitz-ultratrail" -> "files/gpx/Ultratrail_ZUT_2025_3b6cbaa510.gpx"
-    "mittenwald-trail" -> "files/gpx/Mittenwald_Trail_ZUT_2025_fa6c0d4010.gpx"
-    "leutasch-trail" -> "files/gpx/Leutasch_Trail_ZUT_2025_620e36ae36.gpx"
-    "zut-100" -> "files/gpx/ZUT_100_2026_Start_Ga_Pa_5bcee57cdf.gpx"
-    "ehrwald-trail" -> "files/gpx/Ehrwald_Trail_ZUT_2025_85a841b963.gpx"
-    "garmisch-partenkirchen-trail" -> "files/gpx/Garmisch_Partenkirchen_Trail_ZUT_2025_1d59df01ee.gpx"
-    else -> null
 }
 
 private val routeGeoJsonCache = mutableMapOf<String, String>()
