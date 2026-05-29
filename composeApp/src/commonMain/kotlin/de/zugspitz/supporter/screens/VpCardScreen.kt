@@ -21,7 +21,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -38,23 +37,18 @@ import de.zugspitz.supporter.components.PagerDots
 import de.zugspitz.supporter.components.ScreenHeader
 import de.zugspitz.supporter.components.StatTile
 import de.zugspitz.supporter.components.VpCard
-import de.zugspitz.supporter.data.ElevationSample
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.RaceProjection
 import de.zugspitz.supporter.data.formatRaceTime
-import de.zugspitz.supporter.data.gpxPathForRace
-import de.zugspitz.supporter.data.parseElevationProfile
 import de.zugspitz.supporter.data.sectionElevationProfile
 import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterRadius
 import de.zugspitz.supporter.theme.SupporterSpacing
 import de.zugspitz.supporter.theme.SupporterTheme
 import de.zugspitz.supporter.util.ComposeUiUtils
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
@@ -118,25 +112,7 @@ fun VpCardScreen(
         derivedStateOf { pagerState.currentPage.coerceIn(0, pageCount - 1) }
     }
     val raceId = projection.estimate.raceId
-    val routeElevationProfile by produceState(
-        initialValue = elevationProfileCache[raceId].orEmpty(),
-        key1 = raceId,
-    ) {
-        elevationProfileCache[raceId]?.let { cachedProfile ->
-            value = cachedProfile
-            return@produceState
-        }
-        val parsedProfile = withContext(Dispatchers.Default) {
-            runCatching {
-                gpxPathForRace(raceId)
-                    ?.let { Res.readBytes(it).decodeToString() }
-                    ?.let(::parseElevationProfile)
-                    .orEmpty()
-            }.getOrDefault(emptyList())
-        }
-        elevationProfileCache[raceId] = parsedProfile
-        value = parsedProfile
-    }
+    val routeElevationProfile = rememberRouteElevationProfile(raceId)
 
     Column(
         modifier = modifier
@@ -286,8 +262,6 @@ private fun currentLocalMinutesOfDay(): Int {
     val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
     return now.hour * 60 + now.minute
 }
-
-private val elevationProfileCache = mutableMapOf<String, List<ElevationSample>>()
 
 @Preview
 @Composable

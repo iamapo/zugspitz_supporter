@@ -87,6 +87,7 @@
     <string name="summary_title">Race so far</string>
     <string name="summary_subtitle">Check-ins, check-outs, and pace up to the last known station.</string>
     <string name="summary_progress">Progress</string>
+    <string name="summary_route_profile">Full route profile</string>
     <string name="summary_sections">Sections</string>
     <string name="summary_started">Start</string>
     <string name="summary_last_known">Last known</string>
