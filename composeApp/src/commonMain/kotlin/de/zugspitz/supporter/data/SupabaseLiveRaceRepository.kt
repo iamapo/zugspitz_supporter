@@ -86,6 +86,30 @@ class SupabaseLiveRaceRepository(
         )
     }
 
+    override fun registerSupporterPushToken(runCode: String, platform: PushPlatform, deviceToken: String) {
+        enqueue(
+            key = "push-token:$runCode:${platform.name}:$deviceToken",
+            write = PendingWrite.PushToken(
+                runCode = runCode,
+                platform = platform,
+                deviceToken = deviceToken,
+                isEnabled = true,
+            ),
+        )
+    }
+
+    override fun unregisterSupporterPushToken(runCode: String, platform: PushPlatform, deviceToken: String) {
+        enqueue(
+            key = "push-token:$runCode:${platform.name}:$deviceToken",
+            write = PendingWrite.PushToken(
+                runCode = runCode,
+                platform = platform,
+                deviceToken = deviceToken,
+                isEnabled = false,
+            ),
+        )
+    }
+
     override fun subscribe(runCode: String, onSnapshotChanged: (LiveRunSnapshot) -> Unit): LiveRaceSubscription {
         LiveSharingLogger.d("Subscribing to live updates for runCode=$runCode")
         val channel = supabase.channel("live:$runCode")
@@ -218,6 +242,23 @@ class SupabaseLiveRaceRepository(
                                 onConflict = EVENTS_ID_COLUMN
                             }
                     }
+                    is PendingWrite.PushToken -> {
+                        val now = Clock.System.now().toEpochMilliseconds()
+                        LiveSharingLogger.d(
+                            "Saving supporter push token runCode=${write.runCode} " +
+                                "platform=${write.platform.databaseValue()} enabled=${write.isEnabled}",
+                        )
+                        postgrest.rpc(
+                            UPSERT_SUPPORTER_PUSH_TOKEN_RPC,
+                            buildJsonObject {
+                                put("p_run_code", write.runCode)
+                                put("p_platform", write.platform.databaseValue())
+                                put("p_device_token", write.deviceToken)
+                                put("p_is_enabled", write.isEnabled)
+                                put("p_now_epoch_millis", JsonPrimitive(now))
+                            },
+                        )
+                    }
                 }
             }
             if (result.isSuccess) {
@@ -273,6 +314,7 @@ class SupabaseLiveRaceRepository(
 
     private companion object {
         const val CREATE_LIVE_RUN_RPC = "create_live_run"
+        const val UPSERT_SUPPORTER_PUSH_TOKEN_RPC = "upsert_supporter_push_token"
         const val PUBLIC_SCHEMA = "public"
         const val RUNS_TABLE = "runs"
         const val EVENTS_TABLE = "events"
@@ -345,9 +387,20 @@ private fun SupabaseEventRow.toModel() = CheckEvent(
 private sealed interface PendingWrite {
     data class RunInfo(val info: LiveRunInfo) : PendingWrite
     data class Event(val event: CheckEvent) : PendingWrite
+    data class PushToken(
+        val runCode: String,
+        val platform: PushPlatform,
+        val deviceToken: String,
+        val isEnabled: Boolean,
+    ) : PendingWrite
 }
 
 private fun PendingWrite.logLabel(): String = when (this) {
     is PendingWrite.RunInfo -> "run-info:${info.runCode}"
     is PendingWrite.Event -> "event:${event.id}"
+    is PendingWrite.PushToken -> "push-token:$runCode:${platform.databaseValue()}:$isEnabled"
+}
+
+private fun PushPlatform.databaseValue(): String = when (this) {
+    PushPlatform.Ios -> "ios"
 }

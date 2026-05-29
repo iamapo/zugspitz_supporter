@@ -85,6 +85,38 @@ Info.plist keys in the Xcode project.
 Apply the schema and RLS policies from `supabase/live_sharing.sql` to your
 Supabase project before using live sharing.
 
+### Configure iOS supporter push notifications
+
+The iOS app registers the supporter device with APNs after a support code is
+connected. The APNs token is stored in Supabase through the
+`upsert_supporter_push_token` RPC from `supabase/live_sharing.sql`.
+
+To send a notification when a runner starts, checks in, checks out, or reaches
+the finish:
+
+1. Deploy `supabase/functions/send-check-in-push`.
+2. Set these Edge Function secrets:
+
+```bash
+supabase secrets set \
+  SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY \
+  CHECK_IN_PUSH_WEBHOOK_SECRET=YOUR_WEBHOOK_SECRET \
+  APNS_KEY_ID=YOUR_APPLE_KEY_ID \
+  APNS_TEAM_ID=YOUR_APPLE_TEAM_ID \
+  APNS_BUNDLE_ID=de.zugspitz.supporter \
+  APNS_ENVIRONMENT=development \
+  APNS_PRIVATE_KEY="$(cat AuthKey_YOUR_KEY_ID.p8)"
+```
+
+Use `APNS_ENVIRONMENT=production` for TestFlight/App Store builds. In Supabase,
+create a Database Webhook for inserts on `public.events`, point it at
+`/functions/v1/send-check-in-push`, and send these headers:
+
+```text
+Authorization: Bearer YOUR_SERVICE_ROLE_KEY
+x-webhook-secret: YOUR_WEBHOOK_SECRET
+```
+
 For Android logcat during live-sharing tests, filter to `LiveSharing` and
 `Supabase-Realtime` to avoid unrelated `View` noise. For example:
 
