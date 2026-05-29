@@ -82,7 +82,7 @@
   <main>
     <article>
       <h1>Datenschutzerklaerung fuer Zugspitz Supporter</h1>
-      <p class="meta">Stand: 18. Mai 2026</p>
+      <p class="meta">Stand: 29. Mai 2026</p>
 
       <h2>1. Verantwortlicher</h2>
       <p>
@@ -121,6 +121,7 @@
         <li>ein zufaellig erzeugter Laufcode,</li>
         <li>ausgewaehlte Lauf- und Zielzeitdaten,</li>
         <li>Station, Stationsnummer, Check-in- oder Check-out-Ereignis, Rennzeit und Zeitstempel,</li>
+        <li>bei aktivierten Push-Benachrichtigungen fuer Supporter: ein APNs-Geraetetoken, Plattform, Aktivierungsstatus und Zeitstempel,</li>
         <li>eine anonyme Supabase-Authentifizierungs-ID.</li>
       </ul>
       <p>
@@ -145,9 +146,9 @@
 
       <h2>5. Keine Werbung, kein Tracking, keine Analytics</h2>
       <p>
-        Die App verwendet keine Werbung, keine Push-Benachrichtigungen, keine
-        Tracking-Technologien und keine Analytics-Dienste. Es werden keine Daten
-        zu Werbezwecken verarbeitet oder an Werbenetzwerke weitergegeben.
+        Die App verwendet keine Werbung, keine Tracking-Technologien und keine
+        Analytics-Dienste. Es werden keine Daten zu Werbezwecken verarbeitet
+        oder an Werbenetzwerke weitergegeben.
       </p>
       <p>
         Die App kann technische Protokolle erzeugen, zum Beispiel zum anonymen
@@ -175,7 +176,26 @@
         <a href="https://supabase.com/privacy" rel="noopener">https://supabase.com/privacy</a>.
       </p>
 
-      <h2>7. Rechtsgrundlage</h2>
+      <h2>7. Push-Benachrichtigungen</h2>
+      <p>
+        Supporter koennen optional Push-Benachrichtigungen aktivieren, um ueber
+        Laufereignisse informiert zu werden, zum Beispiel Start, Check-in,
+        Check-out oder Zieleinlauf. Hierfuer registriert iOS das Geraet bei
+        Apple Push Notification service (APNs). Die App speichert das von Apple
+        bereitgestellte APNs-Geraetetoken zusammen mit dem Laufcode in Supabase.
+        Das Token wird verwendet, um Benachrichtigungen zu genau diesem Laufcode
+        an das Supporter-Geraet zu senden.
+      </p>
+      <p>
+        Die Push-Benachrichtigung enthaelt technische Nutzdaten wie Laufcode,
+        Ereignis-ID, Stationsnummer und Ereignistyp sowie den angezeigten
+        Benachrichtigungstext. Push-Benachrichtigungen koennen in den
+        iOS-Systemeinstellungen deaktiviert werden. Beim Verlassen oder
+        Zuruecksetzen einer Live-Verbindung versucht die App, das gespeicherte
+        Push-Token fuer den betreffenden Laufcode zu deaktivieren.
+      </p>
+
+      <h2>8. Rechtsgrundlage</h2>
       <p>
         Die Verarbeitung erfolgt, soweit sie fuer die Bereitstellung der
         App-Funktionen erforderlich ist, auf Grundlage von Art. 6 Abs. 1 lit. b
@@ -185,13 +205,14 @@
         zuverlaessigen Bereitstellung der App.
       </p>
 
-      <h2>8. Speicherdauer und Loeschung</h2>
+      <h2>9. Speicherdauer und Loeschung</h2>
       <p>
         Lokal gespeicherte Daten koennen durch Loeschen der App oder durch
         Zuruecksetzen der App-Daten entfernt werden. Live-Sharing-Daten in
-        Supabase werden grundsaetzlich spaetestens 30 Tage nach dem betreffenden
-        Event geloescht, sofern keine laengere Speicherung aus technischen oder
-        rechtlichen Gruenden erforderlich ist.
+        Supabase, einschliesslich mit einem Laufcode verknuepfter
+        Push-Geraetetokens, werden grundsaetzlich spaetestens 30 Tage nach dem
+        betreffenden Event geloescht, sofern keine laengere Speicherung aus
+        technischen oder rechtlichen Gruenden erforderlich ist.
       </p>
       <p>
         Lokal sichtbare technische Protokolle werden im Rahmen des jeweiligen
@@ -205,17 +226,18 @@
         an.
       </p>
 
-      <h2>9. Empfaenger und Drittlanduebermittlung</h2>
+      <h2>10. Empfaenger und Drittlanduebermittlung</h2>
       <p>
         Personenbezogene Daten werden nicht verkauft. Empfaenger koennen
-        technische Dienstleister sein, insbesondere Supabase, soweit dies
-        fuer den Betrieb der Live-Sharing-Funktion erforderlich ist. Bei einer
-        Verarbeitung ausserhalb der Europaeischen Union oder des Europaeischen
-        Wirtschaftsraums werden geeignete Schutzmassnahmen nach den gesetzlichen
-        Vorgaben verwendet.
+        technische Dienstleister sein, insbesondere Supabase fuer die
+        Live-Sharing-Funktion und Apple fuer die Zustellung von
+        Push-Benachrichtigungen ueber APNs, soweit dies fuer den Betrieb der
+        jeweiligen Funktion erforderlich ist. Bei einer Verarbeitung ausserhalb
+        der Europaeischen Union oder des Europaeischen Wirtschaftsraums werden
+        geeignete Schutzmassnahmen nach den gesetzlichen Vorgaben verwendet.
       </p>
 
-      <h2>10. Rechte der betroffenen Personen</h2>
+      <h2>11. Rechte der betroffenen Personen</h2>
       <p>
         Betroffene Personen haben nach Massgabe der DSGVO das Recht auf Auskunft,
         Berichtigung, Loeschung, Einschraenkung der Verarbeitung,
@@ -229,7 +251,7 @@
         Wohnort oder am Sitz des Verantwortlichen sein.
       </p>
 
-      <h2>11. TestFlight</h2>
+      <h2>12. TestFlight</h2>
       <p>
         Wird die App ueber Apple TestFlight getestet, verarbeitet Apple
         zusaetzlich Daten im Zusammenhang mit der Bereitstellung, Installation
@@ -237,7 +259,7 @@
         Datenschutzinformationen von Apple.
       </p>
 
-      <h2>12. Aenderungen dieser Datenschutzerklaerung</h2>
+      <h2>13. Aenderungen dieser Datenschutzerklaerung</h2>
       <p>
         Diese Datenschutzerklaerung kann angepasst werden, wenn sich Funktionen
         der App, technische Dienste oder rechtliche Anforderungen aendern. Die
