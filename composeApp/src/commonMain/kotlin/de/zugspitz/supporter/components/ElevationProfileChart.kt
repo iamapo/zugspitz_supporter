@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
@@ -35,11 +36,19 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToInt
 
+data class ElevationProfileMarker(
+    val distanceKm: Double,
+    val isCheckedIn: Boolean,
+)
+
 @Composable
 fun ElevationProfileChart(
     points: List<ElevationSample>,
     title: String,
     modifier: Modifier = Modifier,
+    markers: List<ElevationProfileMarker> = emptyList(),
+    containerColor: Color = SupporterColors.Paper,
+    headerValue: String? = null,
 ) {
     if (points.size < 2) return
 
@@ -52,7 +61,7 @@ fun ElevationProfileChart(
 
     Column(
         modifier = modifier
-            .background(SupporterColors.Paper, RoundedCornerShape(SupporterRadius.Card))
+            .background(containerColor, RoundedCornerShape(SupporterRadius.Card))
             .border(1.dp, SupporterColors.Line, RoundedCornerShape(SupporterRadius.Card))
             .padding(11.dp),
     ) {
@@ -68,7 +77,7 @@ fun ElevationProfileChart(
                 fontWeight = FontWeight.ExtraBold,
             )
             Text(
-                text = "${minElevation.roundToInt()}-${maxElevation.roundToInt()} m",
+                text = headerValue ?: "${minElevation.roundToInt()}-${maxElevation.roundToInt()} m",
                 color = SupporterColors.Muted,
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.SemiBold,
@@ -93,6 +102,27 @@ fun ElevationProfileChart(
             fun offsetFor(sample: ElevationSample): Offset {
                 val x = xForDistance(sample.distanceKm)
                 val y = topPadding + ((maxElevation - sample.elevationMeters) / elevationSpan).toFloat() * graphHeight
+                return Offset(x, y)
+            }
+
+            fun elevationAt(distanceKm: Double): Double? {
+                points.firstOrNull { it.distanceKm == distanceKm }?.let { return it.elevationMeters }
+                val rightIndex = points.indexOfFirst { it.distanceKm > distanceKm }
+                if (rightIndex <= 0) return null
+                val left = points[rightIndex - 1]
+                val right = points[rightIndex]
+                val span = right.distanceKm - left.distanceKm
+                if (span <= 0.0) return left.elevationMeters
+
+                val fraction = (distanceKm - left.distanceKm) / span
+                return left.elevationMeters + (right.elevationMeters - left.elevationMeters) * fraction
+            }
+
+            fun offsetForMarker(marker: ElevationProfileMarker): Offset? {
+                if (marker.distanceKm < firstDistanceKm || marker.distanceKm > points.last().distanceKm) return null
+                val elevation = elevationAt(marker.distanceKm) ?: return null
+                val x = xForDistance(marker.distanceKm)
+                val y = topPadding + ((maxElevation - elevation) / elevationSpan).toFloat() * graphHeight
                 return Offset(x, y)
             }
 
@@ -173,16 +203,32 @@ fun ElevationProfileChart(
                     join = StrokeJoin.Round,
                 ),
             )
-            drawCircle(
-                color = SupporterColors.Pine,
-                radius = 4.dp.toPx(),
-                center = firstOffset,
-            )
-            drawCircle(
-                color = SupporterColors.Amber,
-                radius = 4.dp.toPx(),
-                center = lastOffset,
-            )
+            if (markers.isEmpty()) {
+                drawCircle(
+                    color = SupporterColors.Pine,
+                    radius = 4.dp.toPx(),
+                    center = firstOffset,
+                )
+                drawCircle(
+                    color = SupporterColors.Amber,
+                    radius = 4.dp.toPx(),
+                    center = lastOffset,
+                )
+            } else {
+                markers.forEach { marker ->
+                    val offset = offsetForMarker(marker) ?: return@forEach
+                    drawCircle(
+                        color = Color.White,
+                        radius = 6.dp.toPx(),
+                        center = offset,
+                    )
+                    drawCircle(
+                        color = if (marker.isCheckedIn) Color(0xFFD62828) else Color(0xFF264653),
+                        radius = 4.dp.toPx(),
+                        center = offset,
+                    )
+                }
+            }
         }
     }
 }

@@ -10,9 +10,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import de.zugspitz.supporter.components.ElevationProfileChart
+import de.zugspitz.supporter.components.ElevationProfileMarker
 import de.zugspitz.supporter.components.InfoCard
 import de.zugspitz.supporter.components.ScreenHeader
 import de.zugspitz.supporter.components.StatTile
@@ -35,6 +38,7 @@ import zugspitz_supporter.composeapp.generated.resources.summary_distance_done
 import zugspitz_supporter.composeapp.generated.resources.summary_expected_at
 import zugspitz_supporter.composeapp.generated.resources.summary_last_known
 import zugspitz_supporter.composeapp.generated.resources.summary_progress
+import zugspitz_supporter.composeapp.generated.resources.summary_route_profile
 import zugspitz_supporter.composeapp.generated.resources.summary_started
 import zugspitz_supporter.composeapp.generated.resources.summary_subtitle
 import zugspitz_supporter.composeapp.generated.resources.summary_title
@@ -57,6 +61,19 @@ fun RunOverviewScreen(
     } else {
         SupporterColors.Danger.copy(alpha = 0.16f)
     }
+    val routeElevationProfile = rememberRouteElevationProfile(projection.estimate.raceId)
+    val routeMarkers = remember(projection.stations) {
+        projection.stations.map { stationProjection ->
+            ElevationProfileMarker(
+                distanceKm = stationProjection.station.totalKm,
+                isCheckedIn = stationProjection.isCheckedIn,
+            )
+        }
+    }
+    val completedClimbMeters = projection.stations
+        .filter { it.isCheckedIn }
+        .sumOf { it.station.climbMeters }
+    val totalClimbMeters = projection.stations.sumOf { it.station.climbMeters }
 
     Column(
         modifier = modifier
@@ -82,6 +99,18 @@ fun RunOverviewScreen(
                 RunSummaryContent(
                     projection = projection,
                 )
+            }
+            if (routeElevationProfile.size >= 2) {
+                item {
+                    ElevationProfileChart(
+                        points = routeElevationProfile,
+                        title = stringResource(Res.string.summary_route_profile),
+                        markers = routeMarkers,
+                        containerColor = SupporterColors.Card,
+                        headerValue = "+$completedClimbMeters / +$totalClimbMeters hm",
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
             runStationListItems(
                 projection = projection,
