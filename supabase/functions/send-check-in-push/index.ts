@@ -16,6 +16,10 @@ type PushTokenRow = {
   device_token: string;
 };
 
+type RunRow = {
+  runner_name: string | null;
+};
+
 type WebhookBody = {
   record?: CheckEventRecord;
 };
@@ -50,6 +54,16 @@ Deno.serve(async (request) => {
     auth: { persistSession: false },
   });
 
+  const { data: runInfo, error: runError } = await supabase
+    .from("runs")
+    .select("runner_name")
+    .eq("run_code", event.run_code)
+    .maybeSingle();
+
+  if (runError) {
+    console.error("Could not load run info for push text", runError);
+  }
+
   const { data: tokens, error } = await supabase
     .from("supporter_push_tokens")
     .select("run_code, platform, device_token")
@@ -69,7 +83,7 @@ Deno.serve(async (request) => {
   const payload = {
     aps: {
       alert: {
-        title: message,
+        title: notificationMessage(event, (runInfo as RunRow | null)?.runner_name ?? "") ?? message,
       },
       sound: "default",
     },
@@ -107,19 +121,21 @@ Deno.serve(async (request) => {
   });
 });
 
-function notificationMessage(event: CheckEventRecord): string | null {
+function notificationMessage(event: CheckEventRecord, runnerName = ""): string | null {
+  const subject = runnerName.trim() || "Läufer";
+
   if (isStartEvent(event)) {
-    return "Läufer gestartet";
+    return `${subject} ist gestartet.`;
   }
 
   if (isFinishEvent(event)) {
-    return event.type === "CheckIn" ? "Läufer ist im Ziel" : null;
+    return event.type === "CheckIn" ? `${subject} ist im Ziel.` : null;
   }
 
   const stationLabel = `VP${event.station_section} ${event.station_name}`;
   return event.type === "CheckIn"
-    ? `Läufer am ${stationLabel} eingecheckt`
-    : `Läufer am ${stationLabel} ausgecheckt`;
+    ? `${subject} ist am ${stationLabel} eingecheckt.`
+    : `${subject} ist am ${stationLabel} ausgecheckt.`;
 }
 
 function isStartEvent(event: CheckEventRecord): boolean {

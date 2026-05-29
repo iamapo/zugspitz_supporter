@@ -1,8 +1,12 @@
 create table if not exists public.runs (
     run_code text primary key,
     estimate jsonb not null,
-    created_at_epoch_millis bigint not null
+    created_at_epoch_millis bigint not null,
+    runner_name text not null default ''
 );
+
+alter table public.runs
+add column if not exists runner_name text not null default '';
 
 create table if not exists public.events (
     id text primary key,

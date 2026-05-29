@@ -334,6 +334,8 @@ private data class SupabaseRunRow(
     val estimate: RaceEstimate,
     @SerialName("created_at_epoch_millis")
     val createdAtEpochMillis: Long,
+    @SerialName("runner_name")
+    val runnerName: String = "",
 )
 
 @Serializable
@@ -356,12 +358,14 @@ private fun LiveRunInfo.toRow() = SupabaseRunRow(
     runCode = runCode,
     estimate = estimate,
     createdAtEpochMillis = createdAtEpochMillis,
+    runnerName = runnerName,
 )
 
 private fun SupabaseRunRow.toModel() = LiveRunInfo(
     runCode = runCode,
     estimate = estimate,
     createdAtEpochMillis = createdAtEpochMillis,
+    runnerName = runnerName,
 )
 
 private fun CheckEvent.toRow() = SupabaseEventRow(

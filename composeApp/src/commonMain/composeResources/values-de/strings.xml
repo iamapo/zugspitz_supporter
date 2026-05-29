@@ -101,6 +101,7 @@
     <string name="new_label">neu</string>
     <string name="expected">geplant</string>
     <string name="current_label">aktuell</string>
+    <string name="next_label">nächster</string>
     <string name="finished_label">fertig</string>
     <string name="support_info">Support-Info</string>
     <string name="support_info_text">Nach dem Check-in werden spätere VP-Fenster automatisch verschoben.</string>
@@ -117,6 +118,8 @@
     <string name="live_role_runner">Läufer</string>
     <string name="live_role_supporter">Supporter</string>
     <string name="live_code">Support-Code</string>
+    <string name="live_code_empty">Noch nicht erstellt</string>
+    <string name="live_runner_name">Läufername (optional)</string>
     <string name="create_support_code">Support-Code erstellen</string>
     <string name="live_last_event">Letztes Live-Event:</string>
     <string name="live_not_connected">noch keins</string>
