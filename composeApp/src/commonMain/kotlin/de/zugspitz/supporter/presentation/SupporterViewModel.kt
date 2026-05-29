@@ -392,6 +392,20 @@ class SupporterViewModel(
         syncSupporterPushRegistration()
     }
 
+    fun onRunnerNameChanged(runnerName: String) {
+        if (!liveSharingEnabled) return
+        updateState {
+            copy(
+                settings = settings.copy(
+                    liveRunLink = settings.liveRunLink.copy(
+                        runnerName = runnerName.normalizeRunnerName(),
+                    ),
+                ),
+            )
+        }
+        publishCurrentRunInfo()
+    }
+
     fun onCreateRunCode() {
         if (!liveSharingEnabled) return
         val estimate = _uiState.value.setup.estimate
@@ -720,6 +734,7 @@ class SupporterViewModel(
                 runCode = link.runCode,
                 estimate = state.setup.estimate,
                 createdAtEpochMillis = Clock.System.now().toEpochMilliseconds(),
+                runnerName = link.runnerName,
             ),
         )
     }
@@ -781,6 +796,11 @@ private fun RaceEstimate.coerceToValidTargetDurations(totalStopMinutes: Int): Ra
     }
 }
 
+private fun String.normalizeRunnerName(): String =
+    trim()
+        .replace(Regex("\\s+"), " ")
+        .take(MAX_RUNNER_NAME_LENGTH)
+
 private fun totalStopMinutes(
     raceId: String,
     pauseMinutesBySection: Map<Int, Int>,
@@ -790,3 +810,4 @@ private fun totalStopMinutes(
 
 private const val FULL_DAY_MINUTES = 24 * 60
 private const val HALF_DAY_MINUTES = 12 * 60
+private const val MAX_RUNNER_NAME_LENGTH = 40

@@ -101,6 +101,7 @@
     <string name="new_label">new</string>
     <string name="expected">planned</string>
     <string name="current_label">current</string>
+    <string name="next_label">next</string>
     <string name="finished_label">done</string>
     <string name="support_info">Crew info</string>
     <string name="support_info_text">After check-in, later VP windows are shifted automatically.</string>
@@ -117,6 +118,8 @@
     <string name="live_role_runner">Runner</string>
     <string name="live_role_supporter">Crew</string>
     <string name="live_code">Support-Code</string>
+    <string name="live_code_empty">Not generated yet</string>
+    <string name="live_runner_name">Runner name (optional)</string>
     <string name="create_support_code">Create support code</string>
     <string name="live_last_event">Last live event:</string>
     <string name="live_not_connected">none yet</string>

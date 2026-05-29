@@ -421,6 +421,24 @@ class SupporterViewModelTest {
     }
 
     @Test
+    fun `runner name is normalized and published with run info`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+        )
+
+        viewModel.onRunCodeChanged("run42")
+        viewModel.onLiveSharingToggle(true)
+        liveRepository.runInfos.clear()
+        viewModel.onRunnerNameChanged("  Andre\nRedenius  ")
+
+        assertEquals("Andre Redenius", viewModel.uiState.value.settings.liveRunLink.runnerName)
+        assertEquals("Andre Redenius", liveRepository.runInfos.single().runnerName)
+    }
+
+    @Test
     fun `setup starts with default station stop minutes and can be changed`() {
         val repository = FakeSessionRepository()
         val viewModel = SupporterViewModel(sessionRepository = repository)

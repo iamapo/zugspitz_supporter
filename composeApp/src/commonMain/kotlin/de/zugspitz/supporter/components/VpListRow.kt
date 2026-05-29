@@ -27,10 +27,12 @@ import zugspitz_supporter.composeapp.generated.resources.check_out
 import zugspitz_supporter.composeapp.generated.resources.checked_in
 import zugspitz_supporter.composeapp.generated.resources.current_label
 import zugspitz_supporter.composeapp.generated.resources.expected
+import zugspitz_supporter.composeapp.generated.resources.next_label
 
 @Composable
 fun VpListRow(
     projection: StationProjection,
+    isNextAfterCheckout: Boolean = false,
     timingText: String? = null,
     paceText: String? = null,
     onClick: () -> Unit,
@@ -87,6 +89,7 @@ fun VpListRow(
                     text = when {
                         projection.isCheckedOut -> stringResource(Res.string.check_out)
                         projection.isCheckedIn -> stringResource(Res.string.checked_in)
+                        isNextAfterCheckout -> stringResource(Res.string.next_label)
                         projection.isCurrent -> stringResource(Res.string.current_label)
                         else -> stringResource(Res.string.expected)
                     },

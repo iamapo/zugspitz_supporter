@@ -160,8 +160,10 @@ private fun androidx.compose.foundation.lazy.LazyListScope.runStationListItems(
     val stations = projection.stations
     itemsIndexed(stations) { index, station ->
         val previousStation = stations.getOrNull(index - 1)
+        val isNextAfterCheckout = previousStation?.isCheckedOut == true && !station.isCheckedIn
         VpListRow(
             projection = station,
+            isNextAfterCheckout = isNextAfterCheckout,
             timingText = timingTextForRow(station),
             paceText = paceTextForRow(station, previousStation, projection.actualStartMinutes),
             onClick = { onStationClick(index) },

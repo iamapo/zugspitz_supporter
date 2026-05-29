@@ -2,7 +2,9 @@ package de.zugspitz.supporter
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -11,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalDensity
 import de.zugspitz.supporter.components.AppBottomBar
 import de.zugspitz.supporter.components.AppTab
 import de.zugspitz.supporter.presentation.SupporterViewModel
@@ -59,6 +62,8 @@ fun SupporterAppRoot(
         )
     }
     val state by viewModel.uiState.collectAsState()
+    val density = LocalDensity.current
+    val isKeyboardVisible = WindowInsets.ime.getBottom(density) > 0
 
     LaunchedEffect(state.offlineMap.isDownloading, state.offlineMap.progressPercent) {
         if (!state.offlineMap.isDownloading) return@LaunchedEffect
@@ -68,7 +73,13 @@ fun SupporterAppRoot(
 
     Scaffold(
         containerColor = SupporterColors.Paper,
-        bottomBar = if (state.tab == AppTab.Role || state.tab == AppTab.SupportCode || state.tab == AppTab.Race || state.tab == AppTab.Setup) {
+        bottomBar = if (
+            isKeyboardVisible ||
+            state.tab == AppTab.Role ||
+            state.tab == AppTab.SupportCode ||
+            state.tab == AppTab.Race ||
+            state.tab == AppTab.Setup
+        ) {
             {}
         } else {
             {
@@ -145,9 +156,11 @@ fun SupporterAppRoot(
                     liveSharingEnabled = liveSharingEnabled,
                     onRoleSelected = viewModel::onLiveRoleSelected,
                     onRunCodeChanged = viewModel::onRunCodeChanged,
+                    onRunnerNameChanged = viewModel::onRunnerNameChanged,
                     onCreateRunCode = viewModel::onCreateRunCode,
                     onLiveSharingToggle = viewModel::onLiveSharingToggle,
                     onResetClick = viewModel::onResetAllData,
+                    isKeyboardVisible = isKeyboardVisible,
                 )
             }
 

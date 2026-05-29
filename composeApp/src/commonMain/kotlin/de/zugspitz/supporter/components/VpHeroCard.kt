@@ -47,12 +47,16 @@ fun VpCard(
     modifier: Modifier = Modifier,
 ) {
     val isPlanningCheckout = projection.isCheckedIn && !projection.isCheckedOut
-    val planLabel = if (isPlanningCheckout) {
-        stringResource(Res.string.planned_check_out)
-    } else {
-        stringResource(Res.string.planned_check_in)
+    val planLabel = when {
+        projection.isCheckedOut -> stringResource(Res.string.check_out)
+        isPlanningCheckout -> stringResource(Res.string.planned_check_out)
+        else -> stringResource(Res.string.planned_check_in)
     }
-    val planTime = if (isPlanningCheckout) projection.plannedDeparture else projection.plannedArrival
+    val planTime = when {
+        projection.isCheckedOut -> projection.actualDeparture ?: projection.plannedDeparture
+        isPlanningCheckout -> projection.plannedDeparture
+        else -> projection.plannedArrival
+    }
 
     Surface(
         color = SupporterColors.Pine,

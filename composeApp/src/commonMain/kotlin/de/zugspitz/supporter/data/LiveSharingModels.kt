@@ -30,6 +30,7 @@ data class LiveRunInfo(
     val runCode: String,
     val estimate: RaceEstimate,
     val createdAtEpochMillis: Long,
+    val runnerName: String = "",
 )
 
 @Immutable
