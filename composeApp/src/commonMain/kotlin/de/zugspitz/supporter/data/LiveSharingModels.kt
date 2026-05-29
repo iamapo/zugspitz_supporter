@@ -56,10 +56,17 @@ data class CheckEvent(
     val createdAtEpochMillis: Long,
 )
 
+@Serializable
+enum class PushPlatform {
+    Ios,
+}
+
 interface LiveRaceRepository {
     suspend fun createRun(estimate: RaceEstimate): LiveRunInfo?
     fun publishRunInfo(info: LiveRunInfo)
     fun publish(event: CheckEvent)
+    fun registerSupporterPushToken(runCode: String, platform: PushPlatform, deviceToken: String)
+    fun unregisterSupporterPushToken(runCode: String, platform: PushPlatform, deviceToken: String)
     fun subscribe(runCode: String, onSnapshotChanged: (LiveRunSnapshot) -> Unit): LiveRaceSubscription
 }
 
@@ -73,6 +80,10 @@ class NoOpLiveRaceRepository : LiveRaceRepository {
     override fun publishRunInfo(info: LiveRunInfo) = Unit
 
     override fun publish(event: CheckEvent) = Unit
+
+    override fun registerSupporterPushToken(runCode: String, platform: PushPlatform, deviceToken: String) = Unit
+
+    override fun unregisterSupporterPushToken(runCode: String, platform: PushPlatform, deviceToken: String) = Unit
 
     override fun subscribe(runCode: String, onSnapshotChanged: (LiveRunSnapshot) -> Unit): LiveRaceSubscription {
         return NoOpLiveRaceSubscription

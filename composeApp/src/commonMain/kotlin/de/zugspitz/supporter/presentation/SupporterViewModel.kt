@@ -1,6 +1,8 @@
 package de.zugspitz.supporter.presentation
 
 import de.zugspitz.supporter.LiveSharingLogger
+import de.zugspitz.supporter.NoOpSupporterPushNotifications
+import de.zugspitz.supporter.SupporterPushNotifications
 import de.zugspitz.supporter.components.AppTab
 import de.zugspitz.supporter.data.AppSessionState
 import de.zugspitz.supporter.data.CheckEvent
@@ -14,6 +16,7 @@ import de.zugspitz.supporter.data.LiveRunInfo
 import de.zugspitz.supporter.data.LiveRunLink
 import de.zugspitz.supporter.data.LiveRunSnapshot
 import de.zugspitz.supporter.data.NoOpLiveRaceRepository
+import de.zugspitz.supporter.data.PushPlatform
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceDefinitions
 import de.zugspitz.supporter.data.RaceEstimate
@@ -52,6 +55,7 @@ class SupporterViewModel(
     sessionRepository: SessionRepository = DefaultSessionRepository(),
     private val liveRaceRepository: LiveRaceRepository = NoOpLiveRaceRepository(),
     private val liveSharingEnabled: Boolean = false,
+    private val supporterPushNotifications: SupporterPushNotifications = NoOpSupporterPushNotifications,
     private val calculator: RaceCalculator = RaceCalculator(),
     private val currentMinutesOfDay: () -> Int = ::systemMinutesOfDay,
 ) {
@@ -68,9 +72,11 @@ class SupporterViewModel(
 
     private var liveSubscription: LiveRaceSubscription? = null
     private var liveSubscriptionCode: String? = null
+    private var registeredPushRunCode: String? = null
 
     init {
         syncLiveSubscription(_uiState.value.settings.liveRunLink)
+        syncSupporterPushRegistration(_uiState.value.settings.liveRunLink)
     }
 
     fun onTabSelected(tab: AppTab) = updateState { copy(tab = tab) }
@@ -114,6 +120,7 @@ class SupporterViewModel(
             )
         }
         syncLiveSubscription()
+        syncSupporterPushRegistration()
     }
 
     fun onSupporterModeSelected() {
@@ -130,6 +137,7 @@ class SupporterViewModel(
             )
         }
         syncLiveSubscription()
+        syncSupporterPushRegistration()
     }
 
     fun onSupportCodeConnect() {
@@ -146,6 +154,7 @@ class SupporterViewModel(
             )
         }
         syncLiveSubscription()
+        syncSupporterPushRegistration()
     }
 
     fun onContinueWithoutSupportCode() {
@@ -158,6 +167,7 @@ class SupporterViewModel(
             )
         }
         syncLiveSubscription()
+        syncSupporterPushRegistration()
     }
 
     fun onEstimateChange(estimate: RaceEstimate) {
@@ -365,6 +375,7 @@ class SupporterViewModel(
             copy(settings = settings.copy(liveRunLink = settings.liveRunLink.copy(role = role)))
         }
         syncLiveSubscription()
+        syncSupporterPushRegistration()
     }
 
     fun onRunCodeChanged(runCode: String) {
@@ -378,6 +389,7 @@ class SupporterViewModel(
         }
         publishCurrentRunInfo()
         syncLiveSubscription()
+        syncSupporterPushRegistration()
     }
 
     fun onCreateRunCode() {
@@ -408,6 +420,7 @@ class SupporterViewModel(
             LiveSharingLogger.d("Run code created runCode=${liveRunInfo.runCode}")
             publishCurrentRunInfo()
             syncLiveSubscription()
+            syncSupporterPushRegistration()
         }
     }
 
@@ -418,9 +431,11 @@ class SupporterViewModel(
         }
         publishCurrentRunInfo()
         syncLiveSubscription()
+        syncSupporterPushRegistration()
     }
 
     fun onResetAllData() {
+        syncSupporterPushRegistration(LiveRunLink())
         resetSession()
         _uiState.value = createInitialState()
     }
@@ -600,6 +615,37 @@ class SupporterViewModel(
         liveSubscriptionCode = requestedCode
         liveSubscription = liveRaceRepository.subscribe(requestedCode) { remoteSnapshot ->
             applyRemoteSnapshot(requestedCode, remoteSnapshot)
+        }
+    }
+
+    private fun syncSupporterPushRegistration(link: LiveRunLink = _uiState.value.settings.liveRunLink) {
+        if (!liveSharingEnabled) return
+
+        val requestedCode = link.runCode.takeIf { link.canSubscribe }
+        val previousCode = registeredPushRunCode
+        if (previousCode != null && previousCode != requestedCode) {
+            supporterPushNotifications.currentToken()?.let { token ->
+                liveRaceRepository.unregisterSupporterPushToken(
+                    runCode = previousCode,
+                    platform = PushPlatform.Ios,
+                    deviceToken = token,
+                )
+            }
+            registeredPushRunCode = null
+        }
+
+        if (requestedCode == null || requestedCode == registeredPushRunCode) return
+
+        supporterPushNotifications.requestToken { token ->
+            val currentLink = _uiState.value.settings.liveRunLink
+            if (currentLink.runCode != requestedCode || !currentLink.canSubscribe) return@requestToken
+            if (requestedCode == registeredPushRunCode) return@requestToken
+            liveRaceRepository.registerSupporterPushToken(
+                runCode = requestedCode,
+                platform = PushPlatform.Ios,
+                deviceToken = token,
+            )
+            registeredPushRunCode = requestedCode
         }
     }
 

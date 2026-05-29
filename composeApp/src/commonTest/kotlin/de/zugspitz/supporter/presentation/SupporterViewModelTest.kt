@@ -1,6 +1,7 @@
 package de.zugspitz.supporter.presentation
 
 import de.zugspitz.supporter.components.AppTab
+import de.zugspitz.supporter.SupporterPushNotifications
 import de.zugspitz.supporter.data.AppSessionState
 import de.zugspitz.supporter.data.CheckEvent
 import de.zugspitz.supporter.data.CheckEventType
@@ -10,12 +11,15 @@ import de.zugspitz.supporter.data.LiveRaceSubscription
 import de.zugspitz.supporter.data.LiveRole
 import de.zugspitz.supporter.data.LiveRunInfo
 import de.zugspitz.supporter.data.LiveRunSnapshot
+import de.zugspitz.supporter.data.PushPlatform
 import de.zugspitz.supporter.data.RaceDefinitions
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.START_LINE_SECTION
 import de.zugspitz.supporter.data.SavedTab
 import de.zugspitz.supporter.data.SessionRepository
 import de.zugspitz.supporter.data.TargetTimeMode
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -409,6 +413,7 @@ class SupporterViewModelTest {
 
         viewModel.onRaceSelected(RaceDefinitions.EhrwaldTrailId)
         viewModel.onCreateRunCode()
+        waitUntil { liveRepository.runInfos.isNotEmpty() }
 
         val publishedInfo = liveRepository.runInfos.single()
         assertEquals(viewModel.uiState.value.settings.liveRunLink.runCode, publishedInfo.runCode)
@@ -575,6 +580,44 @@ class SupporterViewModelTest {
     }
 
     @Test
+    fun `support code connect registers supporter push token`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+            supporterPushNotifications = FakeSupporterPushNotifications(token = "ios-token"),
+        )
+
+        viewModel.onSupporterModeSelected()
+        viewModel.onRunCodeChanged("run42")
+        viewModel.onSupportCodeConnect()
+
+        assertEquals(listOf("RUN42:ios:ios-token:true"), liveRepository.pushTokens)
+    }
+
+    @Test
+    fun `leaving supporter live mode unregisters supporter push token`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+            supporterPushNotifications = FakeSupporterPushNotifications(token = "ios-token"),
+        )
+
+        viewModel.onSupporterModeSelected()
+        viewModel.onRunCodeChanged("run42")
+        viewModel.onSupportCodeConnect()
+        viewModel.onContinueWithoutSupportCode()
+
+        assertEquals(
+            listOf("RUN42:ios:ios-token:true", "RUN42:ios:ios-token:false"),
+            liveRepository.pushTokens,
+        )
+    }
+
+    @Test
     fun `too short fixed target time is ignored instead of crashing during typing`() {
         val viewModel = SupporterViewModel(sessionRepository = FakeSessionRepository())
 
@@ -608,7 +651,16 @@ private class FakeSessionRepository(
 private class FakeLiveRaceRepository : LiveRaceRepository {
     val runInfos = mutableListOf<LiveRunInfo>()
     val events = mutableListOf<CheckEvent>()
+    val pushTokens = mutableListOf<String>()
     private val listeners = mutableMapOf<String, (LiveRunSnapshot) -> Unit>()
+
+    override suspend fun createRun(estimate: RaceEstimate): LiveRunInfo {
+        return LiveRunInfo(
+            runCode = "ABC12345",
+            estimate = estimate,
+            createdAtEpochMillis = 0L,
+        )
+    }
 
     override fun publishRunInfo(info: LiveRunInfo) {
         runInfos += info
@@ -616,6 +668,14 @@ private class FakeLiveRaceRepository : LiveRaceRepository {
 
     override fun publish(event: CheckEvent) {
         events += event
+    }
+
+    override fun registerSupporterPushToken(runCode: String, platform: PushPlatform, deviceToken: String) {
+        pushTokens += "$runCode:${platform.databaseValue()}:$deviceToken:true"
+    }
+
+    override fun unregisterSupporterPushToken(runCode: String, platform: PushPlatform, deviceToken: String) {
+        pushTokens += "$runCode:${platform.databaseValue()}:$deviceToken:false"
     }
 
     override fun subscribe(runCode: String, onSnapshotChanged: (LiveRunSnapshot) -> Unit): LiveRaceSubscription {
@@ -629,5 +689,27 @@ private class FakeLiveRaceRepository : LiveRaceRepository {
 
     fun emit(runCode: String, snapshot: LiveRunSnapshot) {
         listeners[runCode]?.invoke(snapshot)
+    }
+}
+
+private class FakeSupporterPushNotifications(
+    private val token: String?,
+) : SupporterPushNotifications {
+    override fun currentToken(): String? = token
+
+    override fun requestToken(onToken: (String) -> Unit) {
+        token?.let(onToken)
+    }
+}
+
+private fun PushPlatform.databaseValue(): String = when (this) {
+    PushPlatform.Ios -> "ios"
+}
+
+private fun waitUntil(timeoutMs: Long = 1_000L, condition: () -> Boolean) = runBlocking {
+    val attempts = (timeoutMs / 25L).coerceAtLeast(1L).toInt()
+    repeat(attempts) {
+        if (condition()) return@runBlocking
+        delay(25L)
     }
 }

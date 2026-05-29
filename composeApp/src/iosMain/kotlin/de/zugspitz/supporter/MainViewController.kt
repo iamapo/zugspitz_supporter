@@ -20,5 +20,6 @@ fun MainViewController() = ComposeUIViewController(
     SupporterApp(
         liveRaceRepository = liveRaceRepository,
         liveSharingEnabled = liveSharingEnabled,
+        supporterPushNotifications = platformSupporterPushNotifications(),
     )
 }

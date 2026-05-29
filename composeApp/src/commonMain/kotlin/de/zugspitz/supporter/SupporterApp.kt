@@ -34,11 +34,13 @@ import kotlinx.coroutines.delay
 fun SupporterApp(
     liveRaceRepository: LiveRaceRepository = NoOpLiveRaceRepository(),
     liveSharingEnabled: Boolean = AppFeatureFlags.LiveSharingEnabled,
+    supporterPushNotifications: SupporterPushNotifications = NoOpSupporterPushNotifications,
 ) {
     SupporterTheme {
         SupporterAppRoot(
             liveRaceRepository = liveRaceRepository,
             liveSharingEnabled = liveSharingEnabled,
+            supporterPushNotifications = supporterPushNotifications,
         )
     }
 }
@@ -47,11 +49,13 @@ fun SupporterApp(
 fun SupporterAppRoot(
     liveRaceRepository: LiveRaceRepository = NoOpLiveRaceRepository(),
     liveSharingEnabled: Boolean = AppFeatureFlags.LiveSharingEnabled,
+    supporterPushNotifications: SupporterPushNotifications = NoOpSupporterPushNotifications,
 ) {
-    val viewModel = remember(liveRaceRepository, liveSharingEnabled) {
+    val viewModel = remember(liveRaceRepository, liveSharingEnabled, supporterPushNotifications) {
         SupporterViewModel(
             liveRaceRepository = liveRaceRepository,
             liveSharingEnabled = liveSharingEnabled,
+            supporterPushNotifications = supporterPushNotifications,
         )
     }
     val state by viewModel.uiState.collectAsState()
