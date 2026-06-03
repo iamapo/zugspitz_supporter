@@ -106,8 +106,8 @@ android {
         applicationId = "de.zugspitz.supporter"
         minSdk = 24
         targetSdk = 36
-        versionCode = 5
-        versionName = "1.4"
+        versionCode = 9
+        versionName = "1.5.1"
     }
     signingConfigs {
         create("release") {
