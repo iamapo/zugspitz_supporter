@@ -449,6 +449,11 @@ class SupporterViewModel(
     }
 
     fun onResetAllData() {
+        val liveRunLink = _uiState.value.settings.liveRunLink
+        if (liveSharingEnabled && liveRunLink.canPublish) {
+            liveRaceRepository.deleteRun(liveRunLink.runCode)
+        }
+        syncLiveSubscription(LiveRunLink())
         syncSupporterPushRegistration(LiveRunLink())
         resetSession()
         _uiState.value = createInitialState()

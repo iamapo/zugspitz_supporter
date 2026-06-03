@@ -79,6 +79,13 @@ class SupabaseLiveRaceRepository(
         )
     }
 
+    override fun deleteRun(runCode: String) {
+        enqueue(
+            key = "delete-run:$runCode",
+            write = PendingWrite.DeleteRun(runCode),
+        )
+    }
+
     override fun publish(event: CheckEvent) {
         enqueue(
             key = "event:${event.id}",
@@ -196,6 +203,11 @@ class SupabaseLiveRaceRepository(
     private fun enqueue(key: String, write: PendingWrite) {
         scope.launch {
             pendingMutex.withLock {
+                if (write is PendingWrite.DeleteRun) {
+                    pendingWrites.entries.removeAll { (_, pendingWrite) ->
+                        pendingWrite.runCode == write.runCode
+                    }
+                }
                 pendingWrites[key] = write
                 if (senderJob?.isActive != true) {
                     senderJob = scope.launch { flushQueueLoop() }
@@ -258,6 +270,16 @@ class SupabaseLiveRaceRepository(
                                 put("p_now_epoch_millis", JsonPrimitive(now))
                             },
                         )
+                    }
+                    is PendingWrite.DeleteRun -> {
+                        LiveSharingLogger.d("Deleting live run runCode=${write.runCode}")
+                        supabase
+                            .from(RUNS_TABLE)
+                            .delete {
+                                filter {
+                                    eq(RUNS_RUN_CODE_COLUMN, write.runCode)
+                                }
+                            }
                     }
                 }
             }
@@ -389,10 +411,22 @@ private fun SupabaseEventRow.toModel() = CheckEvent(
 )
 
 private sealed interface PendingWrite {
-    data class RunInfo(val info: LiveRunInfo) : PendingWrite
-    data class Event(val event: CheckEvent) : PendingWrite
+    val runCode: String
+
+    data class RunInfo(val info: LiveRunInfo) : PendingWrite {
+        override val runCode: String
+            get() = info.runCode
+    }
+
+    data class DeleteRun(override val runCode: String) : PendingWrite
+
+    data class Event(val event: CheckEvent) : PendingWrite {
+        override val runCode: String
+            get() = event.runCode
+    }
+
     data class PushToken(
-        val runCode: String,
+        override val runCode: String,
         val platform: PushPlatform,
         val deviceToken: String,
         val isEnabled: Boolean,
@@ -401,6 +435,7 @@ private sealed interface PendingWrite {
 
 private fun PendingWrite.logLabel(): String = when (this) {
     is PendingWrite.RunInfo -> "run-info:${info.runCode}"
+    is PendingWrite.DeleteRun -> "delete-run:$runCode"
     is PendingWrite.Event -> "event:${event.id}"
     is PendingWrite.PushToken -> "push-token:$runCode:${platform.databaseValue()}:$isEnabled"
 }

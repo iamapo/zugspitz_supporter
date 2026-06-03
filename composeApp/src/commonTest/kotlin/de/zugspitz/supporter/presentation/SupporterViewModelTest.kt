@@ -114,6 +114,40 @@ class SupporterViewModelTest {
     }
 
     @Test
+    fun `runner reset deletes live run in supabase repository`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+        )
+
+        viewModel.onRunCodeChanged("run42")
+        viewModel.onLiveSharingToggle(true)
+        viewModel.onResetAllData()
+
+        assertEquals(listOf("RUN42"), liveRepository.deletedRuns)
+        assertEquals("", viewModel.uiState.value.settings.liveRunLink.runCode)
+    }
+
+    @Test
+    fun `supporter reset keeps remote live run`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+        )
+
+        viewModel.onSupporterModeSelected()
+        viewModel.onRunCodeChanged("run42")
+        viewModel.onSupportCodeConnect()
+        viewModel.onResetAllData()
+
+        assertTrue(liveRepository.deletedRuns.isEmpty())
+    }
+
+    @Test
     fun `check in now uses current time of day relative to start`() {
         val repository = FakeSessionRepository()
         val viewModel = SupporterViewModel(
@@ -670,6 +704,7 @@ private class FakeLiveRaceRepository : LiveRaceRepository {
     val runInfos = mutableListOf<LiveRunInfo>()
     val events = mutableListOf<CheckEvent>()
     val pushTokens = mutableListOf<String>()
+    val deletedRuns = mutableListOf<String>()
     private val listeners = mutableMapOf<String, (LiveRunSnapshot) -> Unit>()
 
     override suspend fun createRun(estimate: RaceEstimate): LiveRunInfo {
@@ -678,6 +713,10 @@ private class FakeLiveRaceRepository : LiveRaceRepository {
             estimate = estimate,
             createdAtEpochMillis = 0L,
         )
+    }
+
+    override fun deleteRun(runCode: String) {
+        deletedRuns += runCode
     }
 
     override fun publishRunInfo(info: LiveRunInfo) {

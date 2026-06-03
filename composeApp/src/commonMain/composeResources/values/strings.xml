@@ -127,7 +127,7 @@
     <string name="live_event_check_out">Check-out</string>
     <string name="live_event_status">%1$s %2$s at %3$s</string>
     <string name="reset_all_data">Reset all data</string>
-    <string name="reset_all_data_hint">Deletes setup, check-ins, and the last view. The app will start in setup again.</string>
+    <string name="reset_all_data_hint">Deletes setup, check-ins, and the last view. As runner, this also deletes live data for the support code.</string>
     <string name="map_offline_title">Offline map package</string>
     <string name="map_offline_hint">VP data stays available locally. Download map tiles for the region before race day.</string>
     <string name="map_preparing">Preparing map...</string>

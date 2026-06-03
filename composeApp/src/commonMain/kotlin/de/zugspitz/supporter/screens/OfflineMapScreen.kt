@@ -13,7 +13,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -122,17 +121,12 @@ fun OfflineMapScreen(
             projection = projection,
             onlyCheckedIn = true,
         )
-        var mapReady by remember { mutableStateOf(false) }
-        var mapBaseStyle by remember(raceId) { mutableStateOf<BaseStyle>(BaseStyle.Empty) }
-        LaunchedEffect(raceId) {
-            mapReady = false
-            mapBaseStyle = SUPPORTER_MAP_STYLE
-        }
+        var mapReady by remember(raceId) { mutableStateOf(false) }
         Card {
             Box(modifier = Modifier.fillMaxWidth().height(280.dp)) {
                 MaplibreMap(
                     modifier = Modifier.fillMaxSize(),
-                    baseStyle = mapBaseStyle,
+                    baseStyle = SUPPORTER_MAP_STYLE,
                     cameraState = cameraState,
                     boundingBox = vpBounds,
                     onMapLoadFinished = { mapReady = true },
@@ -233,7 +227,7 @@ private fun rememberVpBounds(projection: RaceProjection): BoundingBox? {
 
 private val routeGeoJsonCache = mutableMapOf<String, String>()
 private val routePointTagRegex = Regex("""<(?:trkpt|rtept)\b([^>]*)>""")
-private val SUPPORTER_MAP_STYLE = BaseStyle.Uri("https://tiles.openfreemap.org/styles/liberty")
+private val SUPPORTER_MAP_STYLE = BaseStyle.Uri("https://tiles.openfreemap.org/styles/liberty/style.json")
 
 internal fun parseRouteLineGeoJson(gpxContent: String): String {
     val coordinates = mutableListOf<String>()

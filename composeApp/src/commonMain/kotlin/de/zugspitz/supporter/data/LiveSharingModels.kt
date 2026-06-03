@@ -64,6 +64,7 @@ enum class PushPlatform {
 
 interface LiveRaceRepository {
     suspend fun createRun(estimate: RaceEstimate): LiveRunInfo?
+    fun deleteRun(runCode: String)
     fun publishRunInfo(info: LiveRunInfo)
     fun publish(event: CheckEvent)
     fun registerSupporterPushToken(runCode: String, platform: PushPlatform, deviceToken: String)
@@ -77,6 +78,8 @@ interface LiveRaceSubscription {
 
 class NoOpLiveRaceRepository : LiveRaceRepository {
     override suspend fun createRun(estimate: RaceEstimate): LiveRunInfo? = null
+
+    override fun deleteRun(runCode: String) = Unit
 
     override fun publishRunInfo(info: LiveRunInfo) = Unit
 

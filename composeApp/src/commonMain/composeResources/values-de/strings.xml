@@ -127,7 +127,7 @@
     <string name="live_event_check_out">Check-out</string>
     <string name="live_event_status">%1$s %2$s um %3$s</string>
     <string name="reset_all_data">Alle Daten zurücksetzen</string>
-    <string name="reset_all_data_hint">Löscht Setup, Check-ins und letzte Ansicht. Danach startet die App wieder im Setup.</string>
+    <string name="reset_all_data_hint">Löscht Setup, Check-ins und letzte Ansicht. Als Läufer werden auch die Live-Daten zum Support-Code gelöscht.</string>
     <string name="map_offline_title">Offline-Kartenpaket</string>
     <string name="map_offline_hint">VP-Daten bleiben lokal verfügbar. Lade vor dem Rennen die Kartenkacheln für die Region.</string>
     <string name="map_preparing">Karte wird vorbereitet...</string>

@@ -62,7 +62,7 @@ to authenticated
 using (true)
 with check (true);
 
-grant select, insert, update on public.runs to authenticated;
+grant select, insert, update, delete on public.runs to authenticated;
 grant select, insert, update on public.events to authenticated;
 
 create or replace function public.upsert_supporter_push_token(
