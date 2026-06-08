@@ -28,9 +28,23 @@ create table if not exists public.supporter_push_tokens (
     primary key (run_code, platform, device_token)
 );
 
+create table if not exists public.runner_locations (
+    run_code text primary key references public.runs(run_code) on delete cascade,
+    race_id text not null,
+    latitude double precision not null,
+    longitude double precision not null,
+    distance_km double precision not null,
+    elevation_meters double precision not null,
+    distance_from_route_meters double precision not null,
+    accuracy_meters double precision,
+    is_on_route boolean not null,
+    updated_at_epoch_millis bigint not null
+);
+
 alter table public.runs enable row level security;
 alter table public.events enable row level security;
 alter table public.supporter_push_tokens enable row level security;
+alter table public.runner_locations enable row level security;
 
 drop policy if exists "authenticated can read runs" on public.runs;
 create policy "authenticated can read runs"
@@ -64,6 +78,33 @@ with check (true);
 
 grant select, insert, update, delete on public.runs to authenticated;
 grant select, insert, update on public.events to authenticated;
+grant select, insert, update, delete on public.runner_locations to authenticated;
+
+drop policy if exists "authenticated can read runner locations" on public.runner_locations;
+create policy "authenticated can read runner locations"
+on public.runner_locations
+for select
+to authenticated
+using (true);
+
+drop policy if exists "authenticated can write runner locations" on public.runner_locations;
+create policy "authenticated can write runner locations"
+on public.runner_locations
+for all
+to authenticated
+using (true)
+with check (true);
+
+do $$
+begin
+    alter publication supabase_realtime add table public.runner_locations;
+exception
+    when duplicate_object then
+        null;
+    when undefined_object then
+        null;
+end;
+$$;
 
 create or replace function public.upsert_supporter_push_token(
     p_run_code text,

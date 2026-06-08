@@ -30,7 +30,10 @@ import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterTheme
 import androidx.compose.ui.tooling.preview.Preview
 import de.zugspitz.supporter.data.LiveRaceRepository
+import de.zugspitz.supporter.data.LiveRunnerLocation
 import de.zugspitz.supporter.data.NoOpLiveRaceRepository
+import de.zugspitz.supporter.screens.RouteLocationUiState
+import de.zugspitz.supporter.screens.rememberRouteLocationTrackingState
 import kotlinx.coroutines.delay
 
 @Composable
@@ -61,7 +64,28 @@ fun SupporterAppRoot(
             supporterPushNotifications = supporterPushNotifications,
         )
     }
+    val runnerLocationProvider = rememberRunnerLocationProvider()
     val state by viewModel.uiState.collectAsState()
+    val liveRunLink = state.settings.liveRunLink
+    val localRouteLocation by rememberRouteLocationTrackingState(
+        raceId = state.setup.estimate.raceId,
+        locationProvider = runnerLocationProvider,
+        enabled = liveRunLink.canPublish,
+    )
+    val localLiveRunnerLocation = localRouteLocation?.toLiveRunnerLocation(
+        runCode = liveRunLink.runCode,
+        raceId = state.setup.estimate.raceId,
+    )
+    LaunchedEffect(localLiveRunnerLocation, liveRunLink.canPublish) {
+        if (liveRunLink.canPublish) {
+            localLiveRunnerLocation?.let(viewModel::onRunnerLocationChanged)
+        }
+    }
+    val visibleRunnerLocation = when {
+        liveRunLink.canSubscribe -> state.runnerLocation
+        liveRunLink.canPublish -> localLiveRunnerLocation
+        else -> null
+    }
     val density = LocalDensity.current
     val isKeyboardVisible = WindowInsets.ime.getBottom(density) > 0
 
@@ -139,6 +163,7 @@ fun SupporterAppRoot(
                 )
                 AppTab.Summary -> RunOverviewScreen(
                     projection = state.vp.projection,
+                    runnerLocation = visibleRunnerLocation,
                     onStationClick = viewModel::onStationSelected,
                 )
                 AppTab.Map -> OfflineMapScreen(
@@ -149,6 +174,7 @@ fun SupporterAppRoot(
                 )
                 AppTab.List -> VpListScreen(
                     projection = state.vp.projection,
+                    runnerLocation = visibleRunnerLocation,
                     onStationClick = viewModel::onStationSelected,
                 )
                 AppTab.Settings -> SettingsScreen(
@@ -167,6 +193,19 @@ fun SupporterAppRoot(
         }
     }
 }
+
+private fun RouteLocationUiState.toLiveRunnerLocation(runCode: String, raceId: String) = LiveRunnerLocation(
+    runCode = runCode,
+    raceId = raceId,
+    latitude = latitude,
+    longitude = longitude,
+    distanceKm = distanceKm,
+    elevationMeters = elevationMeters,
+    distanceFromRouteMeters = distanceFromRouteMeters,
+    accuracyMeters = accuracyMeters,
+    isOnRoute = isOnRoute,
+    updatedAtEpochMillis = updatedAtEpochMillis,
+)
 
 @Preview
 @Composable

@@ -93,6 +93,13 @@ class SupabaseLiveRaceRepository(
         )
     }
 
+    override fun publishRunnerLocation(location: LiveRunnerLocation) {
+        enqueue(
+            key = "runner-location:${location.runCode}",
+            write = PendingWrite.RunnerLocation(location),
+        )
+    }
+
     override fun registerSupporterPushToken(runCode: String, platform: PushPlatform, deviceToken: String) {
         enqueue(
             key = "push-token:$runCode:${platform.name}:$deviceToken",
@@ -122,9 +129,16 @@ class SupabaseLiveRaceRepository(
         val channel = supabase.channel("live:$runCode")
         var latestInfo: LiveRunInfo? = null
         var latestEvents: List<CheckEvent> = emptyList()
+        var latestRunnerLocation: LiveRunnerLocation? = null
 
         fun emitSnapshot() {
-            onSnapshotChanged(LiveRunSnapshot(info = latestInfo, events = latestEvents))
+            onSnapshotChanged(
+                LiveRunSnapshot(
+                    info = latestInfo,
+                    events = latestEvents,
+                    runnerLocation = latestRunnerLocation,
+                ),
+            )
         }
 
         val bootstrapJob = scope.launch {
@@ -132,7 +146,11 @@ class SupabaseLiveRaceRepository(
                 ensureSignedIn()
                 latestInfo = fetchRunInfo(runCode)
                 latestEvents = fetchEvents(runCode)
-                LiveSharingLogger.d("Initial snapshot loaded for runCode=$runCode info=${latestInfo != null} events=${latestEvents.size}")
+                latestRunnerLocation = fetchRunnerLocation(runCode)
+                LiveSharingLogger.d(
+                    "Initial snapshot loaded for runCode=$runCode info=${latestInfo != null} " +
+                        "events=${latestEvents.size} location=${latestRunnerLocation != null}",
+                )
                 emitSnapshot()
             }.onFailure { throwable ->
                 logError("Initial snapshot load failed for runCode=$runCode", throwable)
@@ -169,6 +187,24 @@ class SupabaseLiveRaceRepository(
             }
         }
 
+        val locationJob = scope.launch {
+            runCatching {
+                channel.postgresChangeFlow<PostgresAction>(schema = PUBLIC_SCHEMA) {
+                    table = RUNNER_LOCATIONS_TABLE
+                    filter(RUNNER_LOCATIONS_RUN_CODE_COLUMN, FilterOperator.EQ, runCode)
+                }.collectLatest { action ->
+                    latestRunnerLocation = fetchRunnerLocation(runCode)
+                    LiveSharingLogger.d(
+                        "Realtime runner location sync runCode=$runCode " +
+                            "action=${action::class.simpleName} location=${latestRunnerLocation != null}",
+                    )
+                    emitSnapshot()
+                }
+            }.onFailure { throwable ->
+                logError("Realtime runner location subscription failed for runCode=$runCode", throwable)
+            }
+        }
+
         val subscribeJob = scope.launch {
             runCatching {
                 ensureSignedIn()
@@ -182,7 +218,7 @@ class SupabaseLiveRaceRepository(
         return object : LiveRaceSubscription {
             override fun close() {
                 LiveSharingLogger.d("Closing live subscription for runCode=$runCode")
-                listOf(bootstrapJob, runInfoJob, eventsJob, subscribeJob).forEach { it.cancel() }
+                listOf(bootstrapJob, runInfoJob, eventsJob, locationJob, subscribeJob).forEach { it.cancel() }
                 scope.launch {
                     runCatching {
                         channel.unsubscribe()
@@ -252,6 +288,14 @@ class SupabaseLiveRaceRepository(
                             .from(EVENTS_TABLE)
                             .upsert(write.event.toRow()) {
                                 onConflict = EVENTS_ID_COLUMN
+                            }
+                    }
+                    is PendingWrite.RunnerLocation -> {
+                        LiveSharingLogger.d("Publishing runner location runCode=${write.location.runCode}")
+                        supabase
+                            .from(RUNNER_LOCATIONS_TABLE)
+                            .upsert(write.location.toRow()) {
+                                onConflict = RUNNER_LOCATIONS_RUN_CODE_COLUMN
                             }
                     }
                     is PendingWrite.PushToken -> {
@@ -329,6 +373,18 @@ class SupabaseLiveRaceRepository(
             .decodeList<SupabaseEventRow>()
             .map(SupabaseEventRow::toModel)
 
+    private suspend fun fetchRunnerLocation(runCode: String): LiveRunnerLocation? =
+        supabase
+            .from(RUNNER_LOCATIONS_TABLE)
+            .select {
+                filter {
+                    eq(RUNNER_LOCATIONS_RUN_CODE_COLUMN, runCode)
+                }
+            }
+            .decodeList<SupabaseRunnerLocationRow>()
+            .firstOrNull()
+            ?.toModel()
+
     private fun logError(message: String, throwable: Throwable) {
         LiveSharingLogger.e(message, throwable)
         onError(throwable)
@@ -340,10 +396,12 @@ class SupabaseLiveRaceRepository(
         const val PUBLIC_SCHEMA = "public"
         const val RUNS_TABLE = "runs"
         const val EVENTS_TABLE = "events"
+        const val RUNNER_LOCATIONS_TABLE = "runner_locations"
         const val RUNS_RUN_CODE_COLUMN = "run_code"
         const val EVENTS_ID_COLUMN = "id"
         const val EVENTS_RUN_CODE_COLUMN = "run_code"
         const val EVENTS_CREATED_AT_COLUMN = "created_at_epoch_millis"
+        const val RUNNER_LOCATIONS_RUN_CODE_COLUMN = "run_code"
         const val INITIAL_RETRY_DELAY_MS = 2_000L
         const val MAX_RETRY_DELAY_MS = 60_000L
     }
@@ -374,6 +432,28 @@ private data class SupabaseEventRow(
     val raceMinutes: Int,
     @SerialName("created_at_epoch_millis")
     val createdAtEpochMillis: Long,
+)
+
+@Serializable
+private data class SupabaseRunnerLocationRow(
+    @SerialName("run_code")
+    val runCode: String,
+    @SerialName("race_id")
+    val raceId: String,
+    val latitude: Double,
+    val longitude: Double,
+    @SerialName("distance_km")
+    val distanceKm: Double,
+    @SerialName("elevation_meters")
+    val elevationMeters: Double,
+    @SerialName("distance_from_route_meters")
+    val distanceFromRouteMeters: Double,
+    @SerialName("accuracy_meters")
+    val accuracyMeters: Double? = null,
+    @SerialName("is_on_route")
+    val isOnRoute: Boolean,
+    @SerialName("updated_at_epoch_millis")
+    val updatedAtEpochMillis: Long,
 )
 
 private fun LiveRunInfo.toRow() = SupabaseRunRow(
@@ -410,6 +490,32 @@ private fun SupabaseEventRow.toModel() = CheckEvent(
     createdAtEpochMillis = createdAtEpochMillis,
 )
 
+private fun LiveRunnerLocation.toRow() = SupabaseRunnerLocationRow(
+    runCode = runCode,
+    raceId = raceId,
+    latitude = latitude,
+    longitude = longitude,
+    distanceKm = distanceKm,
+    elevationMeters = elevationMeters,
+    distanceFromRouteMeters = distanceFromRouteMeters,
+    accuracyMeters = accuracyMeters,
+    isOnRoute = isOnRoute,
+    updatedAtEpochMillis = updatedAtEpochMillis,
+)
+
+private fun SupabaseRunnerLocationRow.toModel() = LiveRunnerLocation(
+    runCode = runCode,
+    raceId = raceId,
+    latitude = latitude,
+    longitude = longitude,
+    distanceKm = distanceKm,
+    elevationMeters = elevationMeters,
+    distanceFromRouteMeters = distanceFromRouteMeters,
+    accuracyMeters = accuracyMeters,
+    isOnRoute = isOnRoute,
+    updatedAtEpochMillis = updatedAtEpochMillis,
+)
+
 private sealed interface PendingWrite {
     val runCode: String
 
@@ -425,6 +531,11 @@ private sealed interface PendingWrite {
             get() = event.runCode
     }
 
+    data class RunnerLocation(val location: LiveRunnerLocation) : PendingWrite {
+        override val runCode: String
+            get() = location.runCode
+    }
+
     data class PushToken(
         override val runCode: String,
         val platform: PushPlatform,
@@ -437,6 +548,7 @@ private fun PendingWrite.logLabel(): String = when (this) {
     is PendingWrite.RunInfo -> "run-info:${info.runCode}"
     is PendingWrite.DeleteRun -> "delete-run:$runCode"
     is PendingWrite.Event -> "event:${event.id}"
+    is PendingWrite.RunnerLocation -> "runner-location:$runCode"
     is PendingWrite.PushToken -> "push-token:$runCode:${platform.databaseValue()}:$isEnabled"
 }
 

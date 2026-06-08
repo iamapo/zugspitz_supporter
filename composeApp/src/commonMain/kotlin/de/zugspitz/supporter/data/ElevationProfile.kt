@@ -13,6 +13,22 @@ data class ElevationSample(
     val elevationMeters: Double,
 )
 
+@Immutable
+data class RouteSample(
+    val latitude: Double,
+    val longitude: Double,
+    val distanceKm: Double,
+    val elevationMeters: Double,
+)
+
+@Immutable
+data class RouteLocationMatch(
+    val distanceKm: Double,
+    val elevationMeters: Double,
+    val distanceFromRouteMeters: Double,
+    val isOnRoute: Boolean,
+)
+
 private data class GpxElevationPoint(
     val latitude: Double,
     val longitude: Double,
@@ -20,6 +36,7 @@ private data class GpxElevationPoint(
 )
 
 private const val EarthRadiusKm = 6371.0
+private const val MaxOnRouteDistanceMeters = 300.0
 
 private val gpxElevationPointRegex = Regex(
     pattern = """<(?:trkpt|rtept)\b([^>]*)>(.*?)</(?:trkpt|rtept)>""",
@@ -28,6 +45,12 @@ private val gpxElevationPointRegex = Regex(
 private val elevationTagRegex = Regex("""<ele>([^<]+)</ele>""", RegexOption.IGNORE_CASE)
 
 internal fun parseElevationProfile(gpxContent: String): List<ElevationSample> {
+    return parseRouteSamples(gpxContent).map { sample ->
+        ElevationSample(sample.distanceKm, sample.elevationMeters)
+    }
+}
+
+internal fun parseRouteSamples(gpxContent: String): List<RouteSample> {
     val points = gpxElevationPointRegex
         .findAll(gpxContent)
         .mapNotNull { match ->
@@ -58,7 +81,52 @@ internal fun parseElevationProfile(gpxContent: String): List<ElevationSample> {
             distanceKm += haversineKm(previous, point)
             previous = point
         }
-        ElevationSample(distanceKm, point.elevationMeters)
+        RouteSample(
+            latitude = point.latitude,
+            longitude = point.longitude,
+            distanceKm = distanceKm,
+            elevationMeters = point.elevationMeters,
+        )
+    }
+}
+
+internal fun matchLocationToRoute(
+    routeSamples: List<RouteSample>,
+    latitude: Double,
+    longitude: Double,
+    maxOnRouteDistanceMeters: Double = MaxOnRouteDistanceMeters,
+): RouteLocationMatch? {
+    if (routeSamples.size < 2) return null
+
+    val origin = routeSamples.minByOrNull {
+        haversineKm(
+            GpxElevationPoint(latitude, longitude, 0.0),
+            GpxElevationPoint(it.latitude, it.longitude, it.elevationMeters),
+        )
+    } ?: return null
+    val current = localPoint(latitude, longitude, origin.latitude, origin.longitude)
+
+    var best: ProjectedRoutePoint? = null
+    routeSamples.zipWithNext().forEach { (start, end) ->
+        val projected = projectOnSegment(
+            current = current,
+            start = localPoint(start.latitude, start.longitude, origin.latitude, origin.longitude),
+            end = localPoint(end.latitude, end.longitude, origin.latitude, origin.longitude),
+            startSample = start,
+            endSample = end,
+        )
+        if (best == null || projected.distanceFromRouteMeters < best.distanceFromRouteMeters) {
+            best = projected
+        }
+    }
+
+    return best?.let { projected ->
+        RouteLocationMatch(
+            distanceKm = projected.distanceKm,
+            elevationMeters = projected.elevationMeters,
+            distanceFromRouteMeters = projected.distanceFromRouteMeters,
+            isOnRoute = projected.distanceFromRouteMeters <= maxOnRouteDistanceMeters,
+        )
     }
 }
 
@@ -130,3 +198,50 @@ private fun haversineKm(from: GpxElevationPoint, to: GpxElevationPoint): Double 
 }
 
 private fun Double.toRadians(): Double = this * PI / 180.0
+
+private data class LocalPoint(val xMeters: Double, val yMeters: Double)
+
+private data class ProjectedRoutePoint(
+    val distanceKm: Double,
+    val elevationMeters: Double,
+    val distanceFromRouteMeters: Double,
+)
+
+private fun localPoint(latitude: Double, longitude: Double, originLatitude: Double, originLongitude: Double): LocalPoint {
+    val metersPerDegreeLatitude = 111_320.0
+    val metersPerDegreeLongitude = metersPerDegreeLatitude * cos(originLatitude.toRadians())
+    return LocalPoint(
+        xMeters = (longitude - originLongitude) * metersPerDegreeLongitude,
+        yMeters = (latitude - originLatitude) * metersPerDegreeLatitude,
+    )
+}
+
+private fun projectOnSegment(
+    current: LocalPoint,
+    start: LocalPoint,
+    end: LocalPoint,
+    startSample: RouteSample,
+    endSample: RouteSample,
+): ProjectedRoutePoint {
+    val segmentX = end.xMeters - start.xMeters
+    val segmentY = end.yMeters - start.yMeters
+    val segmentLengthSquared = segmentX * segmentX + segmentY * segmentY
+    val rawFraction = if (segmentLengthSquared <= 0.0) {
+        0.0
+    } else {
+        ((current.xMeters - start.xMeters) * segmentX + (current.yMeters - start.yMeters) * segmentY) /
+            segmentLengthSquared
+    }
+    val fraction = rawFraction.coerceIn(0.0, 1.0)
+    val projectedX = start.xMeters + segmentX * fraction
+    val projectedY = start.yMeters + segmentY * fraction
+    val distanceX = current.xMeters - projectedX
+    val distanceY = current.yMeters - projectedY
+
+    return ProjectedRoutePoint(
+        distanceKm = startSample.distanceKm + (endSample.distanceKm - startSample.distanceKm) * fraction,
+        elevationMeters = startSample.elevationMeters +
+            (endSample.elevationMeters - startSample.elevationMeters) * fraction,
+        distanceFromRouteMeters = sqrt(distanceX * distanceX + distanceY * distanceY),
+    )
+}

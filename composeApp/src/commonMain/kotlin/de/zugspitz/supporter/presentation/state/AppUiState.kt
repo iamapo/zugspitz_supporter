@@ -3,6 +3,7 @@ package de.zugspitz.supporter.presentation.state
 import de.zugspitz.supporter.components.AppTab
 import de.zugspitz.supporter.data.CheckEvent
 import de.zugspitz.supporter.data.CheckIn
+import de.zugspitz.supporter.data.LiveRunnerLocation
 
 data class AppUiState(
     val tab: AppTab,
@@ -12,4 +13,5 @@ data class AppUiState(
     val vp: VpUiState,
     val offlineMap: OfflineMapUiState,
     val settings: SettingsUiState,
+    val runnerLocation: LiveRunnerLocation? = null,
 )

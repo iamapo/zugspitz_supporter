@@ -15,12 +15,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.zugspitz.supporter.components.ElevationProfileChart
+import de.zugspitz.supporter.components.ElevationProfileLocationMarker
 import de.zugspitz.supporter.components.ElevationProfileMarker
 import de.zugspitz.supporter.components.InfoCard
 import de.zugspitz.supporter.components.ScreenHeader
 import de.zugspitz.supporter.components.StatTile
 import de.zugspitz.supporter.components.VpListRow
 import de.zugspitz.supporter.data.CheckIn
+import de.zugspitz.supporter.data.LiveRunnerLocation
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceDefinitions
 import de.zugspitz.supporter.data.RaceEstimate
@@ -46,6 +48,7 @@ import zugspitz_supporter.composeapp.generated.resources.summary_title
 @Composable
 fun RunOverviewScreen(
     projection: RaceProjection,
+    runnerLocation: LiveRunnerLocation?,
     onStationClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -106,6 +109,12 @@ fun RunOverviewScreen(
                         points = routeElevationProfile,
                         title = stringResource(Res.string.summary_route_profile),
                         markers = routeMarkers,
+                        locationMarker = runnerLocation?.takeIf { it.raceId == projection.estimate.raceId }?.let {
+                            ElevationProfileLocationMarker(
+                                distanceKm = it.distanceKm,
+                                isOnRoute = it.isOnRoute,
+                            )
+                        },
                         containerColor = SupporterColors.Card,
                         headerValue = "+$completedClimbMeters / +$totalClimbMeters hm",
                         modifier = Modifier.fillMaxWidth(),
@@ -213,6 +222,7 @@ fun RunSummaryScreenPreview() {
                 ),
                 selectedIndex = 1,
             ),
+            runnerLocation = null,
             onStationClick = {},
         )
     }

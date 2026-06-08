@@ -10,7 +10,9 @@ import de.zugspitz.supporter.data.LiveRaceRepository
 import de.zugspitz.supporter.data.LiveRaceSubscription
 import de.zugspitz.supporter.data.LiveRole
 import de.zugspitz.supporter.data.LiveRunInfo
+import de.zugspitz.supporter.data.LiveRunLink
 import de.zugspitz.supporter.data.LiveRunSnapshot
+import de.zugspitz.supporter.data.LiveRunnerLocation
 import de.zugspitz.supporter.data.PushPlatform
 import de.zugspitz.supporter.data.RaceDefinitions
 import de.zugspitz.supporter.data.RaceEstimate
@@ -684,6 +686,53 @@ class SupporterViewModelTest {
         assertTrue(state.setup.estimate.fixedDurationMinutes > 1)
         assertTrue(state.vp.projection.stations.isNotEmpty())
     }
+
+    @Test
+    fun `runner location is published when live runner sharing is active`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(
+                AppSessionState(
+                    liveRunLink = LiveRunLink(
+                        role = LiveRole.Runner,
+                        runCode = "ABC123",
+                        isEnabled = true,
+                    ),
+                ),
+            ),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+        )
+        val location = testRunnerLocation(runCode = "ABC123")
+
+        viewModel.onRunnerLocationChanged(location)
+
+        assertEquals(location, liveRepository.runnerLocations.single())
+        assertEquals(location, viewModel.uiState.value.runnerLocation)
+    }
+
+    @Test
+    fun `supporter receives runner location from live snapshot`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(
+                AppSessionState(
+                    liveRunLink = LiveRunLink(
+                        role = LiveRole.Supporter,
+                        runCode = "ABC123",
+                        isEnabled = true,
+                    ),
+                ),
+            ),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+        )
+        val location = testRunnerLocation(runCode = "ABC123")
+
+        liveRepository.emit("ABC123", LiveRunSnapshot(info = null, runnerLocation = location))
+
+        assertEquals(location, viewModel.uiState.value.runnerLocation)
+    }
 }
 
 private class FakeSessionRepository(
@@ -703,6 +752,7 @@ private class FakeSessionRepository(
 private class FakeLiveRaceRepository : LiveRaceRepository {
     val runInfos = mutableListOf<LiveRunInfo>()
     val events = mutableListOf<CheckEvent>()
+    val runnerLocations = mutableListOf<LiveRunnerLocation>()
     val pushTokens = mutableListOf<String>()
     val deletedRuns = mutableListOf<String>()
     private val listeners = mutableMapOf<String, (LiveRunSnapshot) -> Unit>()
@@ -725,6 +775,10 @@ private class FakeLiveRaceRepository : LiveRaceRepository {
 
     override fun publish(event: CheckEvent) {
         events += event
+    }
+
+    override fun publishRunnerLocation(location: LiveRunnerLocation) {
+        runnerLocations += location
     }
 
     override fun registerSupporterPushToken(runCode: String, platform: PushPlatform, deviceToken: String) {
@@ -762,6 +816,19 @@ private class FakeSupporterPushNotifications(
 private fun PushPlatform.databaseValue(): String = when (this) {
     PushPlatform.Ios -> "ios"
 }
+
+private fun testRunnerLocation(runCode: String) = LiveRunnerLocation(
+    runCode = runCode,
+    raceId = RaceDefinitions.ZugspitzUltratrailId,
+    latitude = 47.4710978,
+    longitude = 11.0550948,
+    distanceKm = 5.0,
+    elevationMeters = 741.0,
+    distanceFromRouteMeters = 3.0,
+    accuracyMeters = 25.0,
+    isOnRoute = true,
+    updatedAtEpochMillis = 1_000L,
+)
 
 private fun waitUntil(timeoutMs: Long = 1_000L, condition: () -> Boolean) = runBlocking {
     val attempts = (timeoutMs / 25L).coerceAtLeast(1L).toInt()

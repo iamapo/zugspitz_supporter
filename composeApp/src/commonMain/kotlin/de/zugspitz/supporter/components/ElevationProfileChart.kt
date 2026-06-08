@@ -41,12 +41,18 @@ data class ElevationProfileMarker(
     val isCheckedIn: Boolean,
 )
 
+data class ElevationProfileLocationMarker(
+    val distanceKm: Double,
+    val isOnRoute: Boolean,
+)
+
 @Composable
 fun ElevationProfileChart(
     points: List<ElevationSample>,
     title: String,
     modifier: Modifier = Modifier,
     markers: List<ElevationProfileMarker> = emptyList(),
+    locationMarker: ElevationProfileLocationMarker? = null,
     containerColor: Color = SupporterColors.Paper,
     headerValue: String? = null,
 ) {
@@ -228,6 +234,25 @@ fun ElevationProfileChart(
                         center = offset,
                     )
                 }
+            }
+            locationMarker?.let { marker ->
+                val offset = offsetForMarker(ElevationProfileMarker(marker.distanceKm, isCheckedIn = true))
+                    ?: return@let
+                drawCircle(
+                    color = if (marker.isOnRoute) SupporterColors.Amber.copy(alpha = 0.22f) else SupporterColors.Danger.copy(alpha = 0.18f),
+                    radius = 9.dp.toPx(),
+                    center = offset,
+                )
+                drawCircle(
+                    color = Color.White,
+                    radius = 6.dp.toPx(),
+                    center = offset,
+                )
+                drawCircle(
+                    color = if (marker.isOnRoute) SupporterColors.Amber else SupporterColors.Danger,
+                    radius = 4.dp.toPx(),
+                    center = offset,
+                )
             }
         }
     }

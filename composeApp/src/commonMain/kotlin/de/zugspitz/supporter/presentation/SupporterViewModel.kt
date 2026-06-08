@@ -15,6 +15,7 @@ import de.zugspitz.supporter.data.LiveRole
 import de.zugspitz.supporter.data.LiveRunInfo
 import de.zugspitz.supporter.data.LiveRunLink
 import de.zugspitz.supporter.data.LiveRunSnapshot
+import de.zugspitz.supporter.data.LiveRunnerLocation
 import de.zugspitz.supporter.data.NoOpLiveRaceRepository
 import de.zugspitz.supporter.data.PushPlatform
 import de.zugspitz.supporter.data.RaceCalculator
@@ -448,6 +449,16 @@ class SupporterViewModel(
         syncSupporterPushRegistration()
     }
 
+    fun onRunnerLocationChanged(location: LiveRunnerLocation) {
+        if (!liveSharingEnabled) return
+        updateState {
+            val link = settings.liveRunLink
+            if (!link.canPublish || location.runCode != link.runCode) return@updateState this
+            liveRaceRepository.publishRunnerLocation(location)
+            copy(runnerLocation = location)
+        }
+    }
+
     fun onResetAllData() {
         val liveRunLink = _uiState.value.settings.liveRunLink
         if (liveSharingEnabled && liveRunLink.canPublish) {
@@ -486,6 +497,7 @@ class SupporterViewModel(
             checkAction = CheckAction.CheckIn,
             checkMinutesOverride = null,
             offlineMap = OfflineMapUiState(),
+            runnerLocation = null,
         )
     }
 
@@ -505,6 +517,7 @@ class SupporterViewModel(
                 checkAction = mutated.vp.checkAction,
                 checkMinutesOverride = mutated.vp.checkMinutes,
                 offlineMap = mutated.offlineMap,
+                runnerLocation = mutated.runnerLocation,
             )
             persist(rebuilt)
             rebuilt
@@ -524,6 +537,7 @@ class SupporterViewModel(
         checkAction: CheckAction,
         checkMinutesOverride: Int?,
         offlineMap: OfflineMapUiState,
+        runnerLocation: LiveRunnerLocation?,
     ): AppUiState {
         val normalizedPauseMinutes = mergePauseMinutesBySection(
             raceId = estimate.raceId,
@@ -567,6 +581,7 @@ class SupporterViewModel(
                 liveRunLink = liveRunLink,
                 lastLiveEvent = checkEvents.lastOrNull()?.toLastLiveEventUiState(estimate.startTimeMinutes),
             ),
+            runnerLocation = runnerLocation?.takeIf { it.raceId == safeEstimate.raceId },
         )
     }
 
@@ -717,6 +732,7 @@ class SupporterViewModel(
                 ),
                 checkIns = remoteCheckIns,
                 checkEvents = mergedEvents,
+                runnerLocation = remoteSnapshot.runnerLocation,
                 vp = vp.copy(
                     selectedIndex = when {
                         tab == AppTab.SupportCode -> firstOpenIndex

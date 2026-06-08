@@ -37,6 +37,7 @@ data class LiveRunInfo(
 data class LiveRunSnapshot(
     val info: LiveRunInfo?,
     val events: List<CheckEvent> = emptyList(),
+    val runnerLocation: LiveRunnerLocation? = null,
 )
 
 @Serializable
@@ -57,6 +58,21 @@ data class CheckEvent(
     val createdAtEpochMillis: Long,
 )
 
+@Immutable
+@Serializable
+data class LiveRunnerLocation(
+    val runCode: String,
+    val raceId: String,
+    val latitude: Double,
+    val longitude: Double,
+    val distanceKm: Double,
+    val elevationMeters: Double,
+    val distanceFromRouteMeters: Double,
+    val accuracyMeters: Double? = null,
+    val isOnRoute: Boolean,
+    val updatedAtEpochMillis: Long,
+)
+
 @Serializable
 enum class PushPlatform {
     Ios,
@@ -67,6 +83,7 @@ interface LiveRaceRepository {
     fun deleteRun(runCode: String)
     fun publishRunInfo(info: LiveRunInfo)
     fun publish(event: CheckEvent)
+    fun publishRunnerLocation(location: LiveRunnerLocation)
     fun registerSupporterPushToken(runCode: String, platform: PushPlatform, deviceToken: String)
     fun unregisterSupporterPushToken(runCode: String, platform: PushPlatform, deviceToken: String)
     fun subscribe(runCode: String, onSnapshotChanged: (LiveRunSnapshot) -> Unit): LiveRaceSubscription
@@ -84,6 +101,8 @@ class NoOpLiveRaceRepository : LiveRaceRepository {
     override fun publishRunInfo(info: LiveRunInfo) = Unit
 
     override fun publish(event: CheckEvent) = Unit
+
+    override fun publishRunnerLocation(location: LiveRunnerLocation) = Unit
 
     override fun registerSupporterPushToken(runCode: String, platform: PushPlatform, deviceToken: String) = Unit
 
