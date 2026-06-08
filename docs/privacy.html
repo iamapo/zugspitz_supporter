@@ -122,6 +122,7 @@
         <li>ein optional eingegebener Laeufername,</li>
         <li>ausgewaehlte Lauf- und Zielzeitdaten,</li>
         <li>Station, Stationsnummer, Check-in- oder Check-out-Ereignis, Rennzeit und Zeitstempel,</li>
+        <li>im Runner-Modus bei aktivem Live-Sharing: die zuletzt berechnete GPS-Position, Streckenkilometer, Hoehe, Genauigkeit, Routenabstand und Zeitstempel,</li>
         <li>bei aktivierten Push-Benachrichtigungen fuer Supporter: ein APNs-Geraetetoken, Plattform, Aktivierungsstatus und Zeitstempel,</li>
         <li>eine anonyme Supabase-Authentifizierungs-ID.</li>
       </ul>
@@ -130,19 +131,19 @@
         "MOZJ3KZP-1-CheckIn-1778402818210" gespeichert werden. Der Laufcode dient
         dazu, die Ereignisse einer geteilten Laufsitzung zuzuordnen.
       </p>
-      <h2>4. Keine Standortverfolgung</h2>
+      <h2>4. Standortdaten im Runner-Modus</h2>
       <p>
-        Die App verfolgt den Standort der Nutzerinnen und Nutzer nicht und
-        speichert oder teilt keine GPS-Standortdaten. Offline-Karten,
-        Streckeninformationen und GPX-Daten werden zur Anzeige der Strecke
-        verwendet, nicht zur Standortverfolgung.
+        Standortdaten werden nur im Runner-Modus verwendet, wenn Live-Sharing
+        aktiv ist. In diesem Fall berechnet die App aus der GPS-Position den
+        Streckenkilometer auf der ausgewaehlten GPX-Route und speichert die
+        zuletzt bekannte Position in Supabase, damit verbundene Supporter den
+        Fortschritt sehen koennen.
       </p>
       <p>
-        Falls iOS wegen der eingebundenen Kartenbibliothek nach Standortzugriff
-        fragt oder eine Standortanzeige auf der Karte verwendet wird, wird der
-        Standort nur auf dem Geraet zur Anzeige der eigenen Position auf der
-        Karte genutzt. Standortdaten werden dabei nicht in Supabase gespeichert
-        und nicht mit anderen Nutzerinnen oder Nutzern geteilt.
+        Die App speichert dabei keine vollstaendige Standort-Historie, sondern
+        ueberschreibt fuer den betreffenden Laufcode den jeweils zuletzt
+        bekannten Standort. Im Supporter-Modus wird der eigene Standort nicht
+        erfasst oder geteilt.
       </p>
 
       <h2>5. Keine Werbung, kein Tracking, keine Analytics</h2>
@@ -219,10 +220,11 @@
         loescht den geteilten Lauf in Supabase nicht.
       </p>
       <p>
-        Live-Sharing-Daten in Supabase, einschliesslich mit einem Laufcode
-        verknuepfter Push-Geraetetokens, werden grundsaetzlich spaetestens
-        30 Tage nach dem betreffenden Event geloescht, sofern keine laengere
-        Speicherung aus technischen oder rechtlichen Gruenden erforderlich ist.
+        Live-Sharing-Daten in Supabase, einschliesslich zuletzt bekannter
+        Runner-Positionen und mit einem Laufcode verknuepfter
+        Push-Geraetetokens, werden grundsaetzlich spaetestens 30 Tage nach dem
+        betreffenden Event geloescht, sofern keine laengere Speicherung aus
+        technischen oder rechtlichen Gruenden erforderlich ist.
       </p>
       <p>
         Lokal sichtbare technische Protokolle werden im Rahmen des jeweiligen

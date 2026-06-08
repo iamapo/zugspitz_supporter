@@ -27,9 +27,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Zugspitz Supporter verwendet deinen Standort, um deine Position auf der Karte anzuzeigen. Standortdaten werden nicht gespeichert oder geteilt.</string>
+	<string>Zugspitz Supporter verwendet deinen Standort im Runner-Modus, um deine Position auf der Strecke zu berechnen und mit deinen Supportern zu teilen.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Zugspitz Supporter verwendet deinen Standort, um deine Position auf der Karte anzuzeigen. Standortdaten werden nicht gespeichert oder geteilt.</string>
+	<string>Zugspitz Supporter verwendet deinen Standort im Runner-Modus, um deine Position auf der Strecke zu berechnen und mit deinen Supportern zu teilen.</string>
 	<key>SUPABASE_PUBLISHABLE_KEY</key>
 	<string>$(INFOPLIST_KEY_SUPABASE_PUBLISHABLE_KEY)</string>
 	<key>SUPABASE_URL</key>
@@ -41,6 +41,10 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

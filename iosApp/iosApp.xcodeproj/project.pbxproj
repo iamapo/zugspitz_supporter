@@ -307,8 +307,8 @@
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Zugspitz Supporter";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Zugspitz Supporter verwendet deinen Standort, um deine Position auf der Karte anzuzeigen. Standortdaten werden nicht gespeichert oder geteilt.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Zugspitz Supporter verwendet deinen Standort, um deine Position auf der Karte anzuzeigen. Standortdaten werden nicht gespeichert oder geteilt.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Zugspitz Supporter verwendet deinen Standort im Runner-Modus, um deine Position auf der Strecke zu berechnen und mit deinen Supportern zu teilen.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Zugspitz Supporter verwendet deinen Standort im Runner-Modus, um deine Position auf der Strecke zu berechnen und mit deinen Supportern zu teilen.";
 				INFOPLIST_KEY_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_FB9-1dCoQZU0FW-4-8lPfw_LxPuOquj";
 				INFOPLIST_KEY_SUPABASE_URL = "https://vkzenojgumfmbstadscl.supabase.co";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -355,8 +355,8 @@
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Zugspitz Supporter";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Zugspitz Supporter verwendet deinen Standort, um deine Position auf der Karte anzuzeigen. Standortdaten werden nicht gespeichert oder geteilt.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Zugspitz Supporter verwendet deinen Standort, um deine Position auf der Karte anzuzeigen. Standortdaten werden nicht gespeichert oder geteilt.";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Zugspitz Supporter verwendet deinen Standort im Runner-Modus, um deine Position auf der Strecke zu berechnen und mit deinen Supportern zu teilen.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Zugspitz Supporter verwendet deinen Standort im Runner-Modus, um deine Position auf der Strecke zu berechnen und mit deinen Supportern zu teilen.";
 				INFOPLIST_KEY_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_FB9-1dCoQZU0FW-4-8lPfw_LxPuOquj";
 				INFOPLIST_KEY_SUPABASE_URL = "https://vkzenojgumfmbstadscl.supabase.co";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

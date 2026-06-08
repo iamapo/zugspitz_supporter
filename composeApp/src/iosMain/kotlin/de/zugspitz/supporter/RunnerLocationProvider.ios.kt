@@ -39,15 +39,19 @@ private class IosRunnerLocationProvider : RunnerLocationProvider {
         manager.delegate = delegate
         manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
         manager.distanceFilter = 50.0
+        manager.pausesLocationUpdatesAutomatically = false
+        manager.showsBackgroundLocationIndicator = true
     }
 
     override fun start() {
         manager.requestWhenInUseAuthorization()
+        manager.allowsBackgroundLocationUpdates = true
         manager.startUpdatingLocation()
     }
 
     override fun stop() {
         manager.stopUpdatingLocation()
+        manager.allowsBackgroundLocationUpdates = false
     }
 }
 
