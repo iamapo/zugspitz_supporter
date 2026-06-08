@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,6 +33,8 @@ import zugspitz_supporter.composeapp.generated.resources.next_label
 @Composable
 fun VpListRow(
     projection: StationProjection,
+    isHighlighted: Boolean = projection.isCurrent,
+    isCurrentVisit: Boolean = projection.isCurrent,
     isNextAfterCheckout: Boolean = false,
     timingText: String? = null,
     paceText: String? = null,
@@ -39,13 +42,13 @@ fun VpListRow(
     modifier: Modifier = Modifier,
 ) {
     val borderColor = when {
-        projection.isCurrent -> SupporterColors.Moss.copy(alpha = 0.75f)
-        projection.isCheckedOut -> SupporterColors.Pine.copy(alpha = 0.3f)
+        isHighlighted -> SupporterColors.Moss.copy(alpha = 0.75f)
+        projection.isCheckedOut -> SupporterColors.Line.copy(alpha = 0.85f)
         projection.isCheckedIn -> SupporterColors.Pine.copy(alpha = 0.45f)
         else -> SupporterColors.Line
     }
     val background = when {
-        projection.isCurrent -> ColorTokens.ActiveRow
+        isHighlighted -> ColorTokens.ActiveRow
         projection.isCheckedOut -> ColorTokens.DoneRow
         projection.isCheckedIn -> ColorTokens.ReachedRow
         else -> SupporterColors.Card
@@ -56,6 +59,7 @@ fun VpListRow(
         shape = RoundedCornerShape(8.dp),
         modifier = modifier
             .fillMaxWidth()
+            .alpha(if (projection.isCheckedOut) 0.72f else 1f)
             .border(1.dp, borderColor, RoundedCornerShape(8.dp)),
     ) {
         Row(
@@ -88,9 +92,9 @@ fun VpListRow(
                 Text(
                     text = when {
                         projection.isCheckedOut -> stringResource(Res.string.check_out)
+                        isCurrentVisit -> stringResource(Res.string.current_label)
                         projection.isCheckedIn -> stringResource(Res.string.checked_in)
-                        isNextAfterCheckout -> stringResource(Res.string.next_label)
-                        projection.isCurrent -> stringResource(Res.string.current_label)
+                        isNextAfterCheckout || (isHighlighted && !isCurrentVisit) -> stringResource(Res.string.next_label)
                         else -> stringResource(Res.string.expected)
                     },
                     color = SupporterColors.Muted,
@@ -104,7 +108,7 @@ fun VpListRow(
 private object ColorTokens {
     val ActiveRow = androidx.compose.ui.graphics.Color(0xFFFFE6CC)
     val ReachedRow = androidx.compose.ui.graphics.Color(0xFFF1F8F1)
-    val DoneRow = androidx.compose.ui.graphics.Color(0xFFE2F0E5)
+    val DoneRow = androidx.compose.ui.graphics.Color(0xFFE9E9E5)
 }
 
 @Preview

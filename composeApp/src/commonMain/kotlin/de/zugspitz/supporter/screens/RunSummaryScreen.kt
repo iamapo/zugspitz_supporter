@@ -158,13 +158,18 @@ private fun androidx.compose.foundation.lazy.LazyListScope.runStationListItems(
     onStationClick: (Int) -> Unit,
 ) {
     val stations = projection.stations
+    val highlightedStationIndex = highlightedStationIndexForList(stations)
     itemsIndexed(stations) { index, station ->
         val previousStation = stations.getOrNull(index - 1)
+        val isHighlighted = index == highlightedStationIndex
+        val isCurrentVisit = station.isCheckedIn && !station.isCheckedOut
         val isNextAfterCheckout = previousStation?.isCheckedOut == true && !station.isCheckedIn
         VpListRow(
             projection = station,
+            isHighlighted = isHighlighted,
+            isCurrentVisit = isCurrentVisit,
             isNextAfterCheckout = isNextAfterCheckout,
-            timingText = timingTextForRow(station),
+            timingText = timingTextForRow(station, isHighlighted),
             paceText = paceTextForRow(station, previousStation, projection.actualStartMinutes),
             onClick = { onStationClick(index) },
         )
@@ -172,12 +177,18 @@ private fun androidx.compose.foundation.lazy.LazyListScope.runStationListItems(
 }
 
 @Composable
-private fun timingTextForRow(station: StationProjection): String? {
+private fun timingTextForRow(station: StationProjection, isHighlighted: Boolean): String? {
     station.actualArrival?.let { return stringResource(Res.string.summary_arrived_at, it) }
-    if (station.isCurrent) {
+    if (isHighlighted) {
         return stringResource(Res.string.summary_expected_at, station.window)
     }
     return null
+}
+
+internal fun highlightedStationIndexForList(stations: List<StationProjection>): Int? {
+    return stations.indexOfFirst { it.isCheckedIn && !it.isCheckedOut }
+        .takeIf { it >= 0 }
+        ?: stations.indexOfFirst { !it.isCheckedIn }.takeIf { it >= 0 }
 }
 
 private fun paceTextForRow(
