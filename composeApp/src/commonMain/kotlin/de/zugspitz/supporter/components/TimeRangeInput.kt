@@ -1,19 +1,11 @@
 package de.zugspitz.supporter.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,7 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.zugspitz.supporter.theme.SupporterColors
-import de.zugspitz.supporter.theme.SupporterRadius
 import de.zugspitz.supporter.theme.SupporterSpacing
 import de.zugspitz.supporter.theme.SupporterTheme
 import org.jetbrains.compose.resources.stringResource
@@ -144,35 +135,6 @@ fun DurationPicker(
     }
 }
 
-@Composable
-private fun TimeField(
-    label: String?,
-    value: String,
-    selected: Boolean,
-    isError: Boolean,
-    onClick: () -> Unit,
-) {
-    val borderColor = when {
-        isError -> SupporterColors.Danger
-        selected -> SupporterColors.Moss
-        else -> SupporterColors.Line
-    }
-    val backgroundColor = if (selected) SupporterColors.Mint else SupporterColors.Field
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .background(backgroundColor, RoundedCornerShape(SupporterRadius.Card))
-            .border(1.dp, borderColor, RoundedCornerShape(SupporterRadius.Card))
-            .padding(SupporterSpacing.Md),
-    ) {
-        label?.let {
-            Text(it, color = SupporterColors.Muted, style = MaterialTheme.typography.bodySmall)
-        }
-        Text(value, fontWeight = FontWeight.Black, style = MaterialTheme.typography.headlineSmall)
-    }
-}
-
 private enum class TimeRangeField {
     From,
     To,
@@ -184,23 +146,6 @@ private fun formatDuration(totalMinutes: Int): String {
     val hours = totalMinutes / 60
     val minutes = totalMinutes % 60
     return "${hours}:${minutes.toString().padStart(2, '0')} h"
-}
-
-@Composable
-private fun StepperButton(label: String, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        color = SupporterColors.Card,
-        shape = RoundedCornerShape(SupporterRadius.Card),
-        modifier = Modifier
-            .width(44.dp)
-            .height(42.dp)
-            .border(1.dp, SupporterColors.Line, RoundedCornerShape(SupporterRadius.Card)),
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(label, color = SupporterColors.Moss, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleLarge)
-        }
-    }
 }
 
 @Preview

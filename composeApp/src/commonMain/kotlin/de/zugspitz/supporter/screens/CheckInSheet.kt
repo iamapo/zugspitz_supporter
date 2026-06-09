@@ -72,16 +72,16 @@ fun CheckInSheet(
                         style = MaterialTheme.typography.bodySmall,
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TimeOption(
+                        CheckInTimeOption(
                             label = stringResource(Res.string.now),
                             active = false,
                             modifier = Modifier.weight(1f),
                             onClick = onNow,
                         )
-                        TimeOption(label = inputTime, active = true, modifier = Modifier.weight(1f))
+                        CheckInTimeOption(label = inputTime, active = true, modifier = Modifier.weight(1f))
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Stepper(stringResource(Res.string.stepper_minus), onDecrease)
+                        CheckInStepper(stringResource(Res.string.stepper_minus), onDecrease)
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -92,7 +92,7 @@ fun CheckInSheet(
                         ) {
                             Text(inputTime, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black)
                         }
-                        Stepper(stringResource(Res.string.stepper_plus), onIncrease)
+                        CheckInStepper(stringResource(Res.string.stepper_plus), onIncrease)
                     }
                     Button(
                         onClick = onSave,
@@ -117,62 +117,6 @@ private fun sheetTitle(action: CheckAction): String = when (action) {
 private fun sheetSaveLabel(action: CheckAction): String = when (action) {
     CheckAction.CheckIn -> stringResource(Res.string.save_check_in)
     CheckAction.CheckOut -> stringResource(Res.string.save_check_out)
-}
-
-@Composable
-private fun TimeOption(
-    label: String,
-    active: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
-) {
-    val backgroundColor = if (active) SupporterColors.Pine else SupporterColors.TimeOption
-    val borderColor = if (active) SupporterColors.Pine else SupporterColors.Line
-
-    if (onClick != null) {
-        Surface(
-            onClick = onClick,
-            color = backgroundColor,
-            shape = RoundedCornerShape(8.dp),
-            modifier = modifier.border(1.dp, borderColor, RoundedCornerShape(8.dp)),
-        ) {
-            Box(
-                modifier = Modifier.padding(vertical = 13.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(label, color = if (active) SupporterColors.White else SupporterColors.Ink, fontWeight = FontWeight.Black)
-            }
-        }
-        return
-    }
-
-        Box(
-            modifier = modifier
-                .background(backgroundColor, RoundedCornerShape(8.dp))
-                .border(1.dp, borderColor, RoundedCornerShape(8.dp))
-                .padding(vertical = 13.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(label, color = if (active) SupporterColors.White else SupporterColors.Ink, fontWeight = FontWeight.Black)
-        }
-}
-
-@Composable
-private fun Stepper(label: String, onClick: () -> Unit) {
-        Surface(
-            onClick = onClick,
-            color = SupporterColors.Card,
-            shape = RoundedCornerShape(8.dp),
-            modifier = Modifier.border(1.dp, SupporterColors.Line, RoundedCornerShape(8.dp)),
-        ) {
-            Text(
-                label,
-                color = SupporterColors.Moss,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Black,
-                modifier = Modifier.padding(horizontal = 17.dp, vertical = 8.dp),
-            )
-        }
 }
 
 @Preview

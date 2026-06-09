@@ -2,7 +2,6 @@ package de.zugspitz.supporter.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,7 +17,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -108,13 +106,13 @@ fun SetupScreen(
 
             SetupCard(title = stringResource(Res.string.target_time_mode)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(SupporterSpacing.Sm), modifier = Modifier.fillMaxWidth()) {
-                    Segment(
+                    SetupSegment(
                         label = stringResource(Res.string.fixed_time),
                         selected = estimate.targetMode == TargetTimeMode.Fixed,
                         modifier = Modifier.weight(1f),
                         onClick = { onEstimateChange(estimate.copy(targetMode = TargetTimeMode.Fixed)) },
                     )
-                    Segment(
+                    SetupSegment(
                         label = stringResource(Res.string.range_time),
                         selected = estimate.targetMode == TargetTimeMode.Range,
                         modifier = Modifier.weight(1f),
@@ -297,35 +295,6 @@ fun SetupScreen(
                 Text(stringResource(Res.string.calculate_plan), fontWeight = FontWeight.Black, modifier = Modifier.padding(SupporterSpacing.Sm))
             }
         }
-}
-
-@Composable
-private fun SetupCard(title: String, content: @Composable () -> Unit) {
-        Surface(
-            color = SupporterColors.Card,
-            shape = RoundedCornerShape(SupporterRadius.Card),
-            modifier = Modifier.border(1.dp, SupporterColors.Line, RoundedCornerShape(SupporterRadius.Card)),
-        ) {
-            Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(title.uppercase(), color = SupporterColors.Muted, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.ExtraBold)
-                content()
-            }
-        }
-}
-
-@Composable
-private fun Segment(label: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
-        Text(
-            text = label,
-            color = if (selected) SupporterColors.Pine else SupporterColors.Muted,
-            fontWeight = FontWeight.Black,
-            modifier = modifier
-                .clickable(onClick = onClick)
-                .background(if (selected) SupporterColors.Mint else SupporterColors.SoftChip, RoundedCornerShape(SupporterRadius.Card))
-                .then(if (selected) Modifier.border(1.dp, SupporterColors.Moss.copy(alpha = 0.35f), RoundedCornerShape(SupporterRadius.Card)) else Modifier)
-                .padding(vertical = 10.dp),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-        )
 }
 
 private fun RaceEstimate.canSupportStopMinutes(totalStopMinutes: Int): Boolean = when (targetMode) {

@@ -3,7 +3,6 @@ package de.zugspitz.supporter.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,9 +16,7 @@ import androidx.compose.ui.unit.dp
 import de.zugspitz.supporter.components.ElevationProfileChart
 import de.zugspitz.supporter.components.ElevationProfileLocationMarker
 import de.zugspitz.supporter.components.ElevationProfileMarker
-import de.zugspitz.supporter.components.InfoCard
 import de.zugspitz.supporter.components.ScreenHeader
-import de.zugspitz.supporter.components.StatTile
 import de.zugspitz.supporter.components.VpListRow
 import de.zugspitz.supporter.data.CheckIn
 import de.zugspitz.supporter.data.ElevationSample
@@ -36,14 +33,8 @@ import de.zugspitz.supporter.util.ComposeUiUtils
 import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
 import zugspitz_supporter.composeapp.generated.resources.current_label
-import zugspitz_supporter.composeapp.generated.resources.summary_average_pace
 import zugspitz_supporter.composeapp.generated.resources.summary_arrived_at
-import zugspitz_supporter.composeapp.generated.resources.summary_distance_done
 import zugspitz_supporter.composeapp.generated.resources.summary_expected_at
-import zugspitz_supporter.composeapp.generated.resources.summary_last_known
-import zugspitz_supporter.composeapp.generated.resources.summary_next_vp
-import zugspitz_supporter.composeapp.generated.resources.summary_next_vp_detail
-import zugspitz_supporter.composeapp.generated.resources.summary_progress
 import zugspitz_supporter.composeapp.generated.resources.summary_route_profile
 import zugspitz_supporter.composeapp.generated.resources.summary_started
 import zugspitz_supporter.composeapp.generated.resources.summary_subtitle
@@ -136,73 +127,6 @@ fun RunOverviewScreen(
             )
         }
     }
-}
-
-@Composable
-private fun RunSummaryContent(
-    projection: RaceProjection,
-    runnerLocation: LiveRunnerLocation?,
-) {
-    val completedStations = projection.stations.filter { it.isCheckedIn }
-    val lastKnown = completedStations.maxByOrNull { it.station.section }
-    val lastKnownMinutes = lastKnown?.actualDepartureMinutes ?: lastKnown?.actualArrivalMinutes
-    val elapsedMinutes = lastKnownMinutes?.minus(projection.actualStartMinutes ?: 0)
-    val liveDistanceKm = runnerLocation
-        ?.takeIf { it.raceId == projection.estimate.raceId && it.isOnRoute }
-        ?.distanceKm
-    val stationDistanceKm = lastKnown?.station?.totalKm ?: 0.0
-    val distanceDone = liveDistanceKm ?: stationDistanceKm
-
-    Column(
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        InfoCard(title = stringResource(Res.string.summary_progress)) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                    StatTile(
-                        label = stringResource(Res.string.summary_distance_done),
-                        value = ComposeUiUtils.formattedKm(distanceDone),
-                        modifier = Modifier.weight(1f),
-                    )
-                    StatTile(
-                        label = stringResource(Res.string.summary_average_pace),
-                        value = ComposeUiUtils.averagePace(elapsedMinutes, stationDistanceKm),
-
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                nextVpProgress(projection, runnerLocation)?.let { progress ->
-                    StatTile(
-                        label = stringResource(Res.string.summary_next_vp),
-                        value = ComposeUiUtils.formattedKm(progress.remainingKm),
-                        detail = stringResource(Res.string.summary_next_vp_detail, progress.stationName),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }
-        }
-    }
-}
-
-private data class NextVpProgress(
-    val remainingKm: Double,
-    val stationName: String,
-)
-
-private fun nextVpProgress(
-    projection: RaceProjection,
-    runnerLocation: LiveRunnerLocation?,
-): NextVpProgress? {
-    if (runnerLocation == null || !runnerLocation.isOnRoute || runnerLocation.raceId != projection.estimate.raceId) {
-        return null
-    }
-    val nextStation = projection.stations.firstOrNull { stationProjection ->
-        stationProjection.station.totalKm > runnerLocation.distanceKm
-    } ?: return null
-    return NextVpProgress(
-        remainingKm = (nextStation.station.totalKm - runnerLocation.distanceKm).coerceAtLeast(0.0),
-        stationName = nextStation.station.name,
-    )
 }
 
 private fun androidx.compose.foundation.lazy.LazyListScope.runStationListItems(
