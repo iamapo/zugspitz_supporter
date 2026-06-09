@@ -10,14 +10,11 @@ import de.zugspitz.supporter.data.CheckEventType
 import de.zugspitz.supporter.data.CheckIn
 import de.zugspitz.supporter.data.DefaultSessionRepository
 import de.zugspitz.supporter.data.LiveRaceRepository
-import de.zugspitz.supporter.data.LiveRaceSubscription
 import de.zugspitz.supporter.data.LiveRole
-import de.zugspitz.supporter.data.LiveRunInfo
 import de.zugspitz.supporter.data.LiveRunLink
 import de.zugspitz.supporter.data.LiveRunSnapshot
 import de.zugspitz.supporter.data.LiveRunnerLocation
 import de.zugspitz.supporter.data.NoOpLiveRaceRepository
-import de.zugspitz.supporter.data.PushPlatform
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceDefinitions
 import de.zugspitz.supporter.data.RaceEstimate
@@ -74,13 +71,15 @@ class SupporterViewModel(
     private val autoCheckInOut = AutoCheckInOutUseCase()
     private val applyCheckEventUseCase = ApplyCheckEventUseCase(saveCheckIn)
     private val mergeRemoteSnapshot = RemoteSnapshotMergeUseCase()
+    private val liveSharingService = LiveSharingService(
+        repository = liveRaceRepository,
+        pushNotifications = supporterPushNotifications,
+        enabled = liveSharingEnabled,
+    )
 
     private val _uiState = MutableStateFlow(createInitialState())
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
 
-    private var liveSubscription: LiveRaceSubscription? = null
-    private var liveSubscriptionCode: String? = null
-    private var registeredPushRunCode: String? = null
     private val autoCheckedInSections = mutableSetOf<Int>()
     private val autoCheckedOutSections = mutableSetOf<Int>()
 
@@ -396,11 +395,7 @@ class SupporterViewModel(
         if (!liveSharingEnabled) return
         val estimate = _uiState.value.setup.estimate
         scope.launch {
-            val liveRunInfo = runCatching {
-                liveRaceRepository.createRun(estimate)
-            }.onFailure { throwable ->
-                LiveSharingLogger.e("Creating run code failed", throwable)
-            }.getOrNull()
+            val liveRunInfo = liveSharingService.createRun(estimate)
 
             if (liveRunInfo == null) {
                 return@launch
@@ -417,7 +412,6 @@ class SupporterViewModel(
                     ),
                 )
             }
-            LiveSharingLogger.d("Run code created runCode=${liveRunInfo.runCode}")
             publishCurrentRunInfo()
             syncLiveSubscription()
             syncSupporterPushRegistration()
@@ -446,16 +440,14 @@ class SupporterViewModel(
         updateState {
             val link = settings.liveRunLink
             if (!link.canPublish || location.runCode != link.runCode) return@updateState this
-            liveRaceRepository.publishRunnerLocation(location)
+            liveSharingService.publishRunnerLocation(location)
             copy(runnerLocation = location).applyAutomaticCheckInOut(location)
         }
     }
 
     fun onResetAllData() {
         val liveRunLink = _uiState.value.settings.liveRunLink
-        if (liveSharingEnabled && liveRunLink.canPublish) {
-            liveRaceRepository.deleteRun(liveRunLink.runCode)
-        }
+        liveSharingService.deleteRun(liveRunLink)
         syncLiveSubscription(LiveRunLink())
         syncSupporterPushRegistration(LiveRunLink())
         resetSession()
@@ -596,7 +588,7 @@ class SupporterViewModel(
         raceMinutes = raceMinutes,
         createdAtEpochMillis = Clock.System.now().toEpochMilliseconds(),
     ).also { result ->
-        result.event?.let(liveRaceRepository::publish)
+        result.event?.let(liveSharingService::publishEvent)
     }
 
     private fun persist(state: AppUiState) {
@@ -700,51 +692,14 @@ class SupporterViewModel(
     }
 
     private fun syncLiveSubscription(link: LiveRunLink = _uiState.value.settings.liveRunLink) {
-        if (!liveSharingEnabled) return
-        val requestedCode = link.runCode.takeIf { link.canSubscribe }
-        if (requestedCode == liveSubscriptionCode) return
-
-        liveSubscription?.close()
-        liveSubscription = null
-        liveSubscriptionCode = null
-
-        if (requestedCode == null) return
-
-        liveSubscriptionCode = requestedCode
-        liveSubscription = liveRaceRepository.subscribe(requestedCode) { remoteSnapshot ->
-            applyRemoteSnapshot(requestedCode, remoteSnapshot)
-        }
+        liveSharingService.syncSubscription(link, ::applyRemoteSnapshot)
     }
 
     private fun syncSupporterPushRegistration(link: LiveRunLink = _uiState.value.settings.liveRunLink) {
-        if (!liveSharingEnabled) return
-
-        val requestedCode = link.runCode.takeIf { link.canSubscribe }
-        val previousCode = registeredPushRunCode
-        if (previousCode != null && previousCode != requestedCode) {
-            supporterPushNotifications.currentToken()?.let { token ->
-                liveRaceRepository.unregisterSupporterPushToken(
-                    runCode = previousCode,
-                    platform = PushPlatform.Ios,
-                    deviceToken = token,
-                )
-            }
-            registeredPushRunCode = null
-        }
-
-        if (requestedCode == null || requestedCode == registeredPushRunCode) return
-
-        supporterPushNotifications.requestToken { token ->
-            val currentLink = _uiState.value.settings.liveRunLink
-            if (currentLink.runCode != requestedCode || !currentLink.canSubscribe) return@requestToken
-            if (requestedCode == registeredPushRunCode) return@requestToken
-            liveRaceRepository.registerSupporterPushToken(
-                runCode = requestedCode,
-                platform = PushPlatform.Ios,
-                deviceToken = token,
-            )
-            registeredPushRunCode = requestedCode
-        }
+        liveSharingService.syncSupporterPushRegistration(
+            link = link,
+            currentLink = { _uiState.value.settings.liveRunLink },
+        )
     }
 
     private fun applyRemoteSnapshot(runCode: String, remoteSnapshot: LiveRunSnapshot) {
@@ -782,18 +737,10 @@ class SupporterViewModel(
     }
 
     private fun publishCurrentRunInfo() {
-        if (!liveSharingEnabled) return
         val state = _uiState.value
-        val link = state.settings.liveRunLink
-        if (!link.canPublish) return
-
-        liveRaceRepository.publishRunInfo(
-            LiveRunInfo(
-                runCode = link.runCode,
-                estimate = state.setup.estimate,
-                createdAtEpochMillis = Clock.System.now().toEpochMilliseconds(),
-                runnerName = link.runnerName,
-            ),
+        liveSharingService.publishRunInfo(
+            link = state.settings.liveRunLink,
+            estimate = state.setup.estimate,
         )
     }
 
