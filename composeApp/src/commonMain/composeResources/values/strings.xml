@@ -93,6 +93,8 @@
     <string name="summary_last_known">Last known</string>
     <string name="summary_average_pace">Average pace</string>
     <string name="summary_distance_done">Distance covered</string>
+    <string name="summary_next_vp">To next VP</string>
+    <string name="summary_next_vp_detail">to %1$s</string>
     <string name="summary_no_checkins">No check-ins yet.</string>
     <string name="summary_checkin_label">Check-in</string>
     <string name="summary_checkout_label">Checkout</string>

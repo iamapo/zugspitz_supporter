@@ -21,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -152,7 +151,7 @@ fun OfflineMapScreen(
                         LineLayer(
                             id = "race-route-line",
                             source = routeSource,
-                            color = const(Color(0xFF2A9D8F)),
+                            color = const(SupporterColors.RouteLine),
                             width = const(3.dp),
                         )
                     }
@@ -162,9 +161,9 @@ fun OfflineMapScreen(
                     CircleLayer(
                         id = "vp-circles-unchecked",
                         source = uncheckedVpSource,
-                        color = const(Color(0xFF264653)),
+                        color = const(SupporterColors.CheckpointPending),
                         radius = const(6.dp),
-                        strokeColor = const(Color.White),
+                        strokeColor = const(SupporterColors.White),
                         strokeWidth = const(2.dp),
                     )
                     val checkedInVpSource = rememberGeoJsonSource(
@@ -173,9 +172,9 @@ fun OfflineMapScreen(
                     CircleLayer(
                         id = "vp-circles-checked",
                         source = checkedInVpSource,
-                        color = const(Color(0xFFD62828)),
+                        color = const(SupporterColors.CheckpointChecked),
                         radius = const(7.dp),
-                        strokeColor = const(Color.White),
+                        strokeColor = const(SupporterColors.White),
                         strokeWidth = const(2.dp),
                     )
                     runnerLocationJson?.let { locationJson ->
@@ -185,17 +184,17 @@ fun OfflineMapScreen(
                         CircleLayer(
                             id = "runner-location-halo",
                             source = runnerLocationSource,
-                            color = const(Color(0xFFE9C46A).copy(alpha = 0.24f)),
+                            color = const(SupporterColors.RunnerLocation.copy(alpha = 0.24f)),
                             radius = const(14.dp),
-                            strokeColor = const(Color.White),
+                            strokeColor = const(SupporterColors.White),
                             strokeWidth = const(1.dp),
                         )
                         CircleLayer(
                             id = "runner-location-dot",
                             source = runnerLocationSource,
-                            color = const(Color(0xFFE9C46A)),
+                            color = const(SupporterColors.RunnerLocation),
                             radius = const(7.dp),
-                            strokeColor = const(Color.White),
+                            strokeColor = const(SupporterColors.White),
                             strokeWidth = const(3.dp),
                         )
                     }
@@ -204,7 +203,7 @@ fun OfflineMapScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color(0xFFF4F1E8)),
+                            .background(SupporterColors.MapLoading),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(stringResource(Res.string.map_preparing), fontWeight = FontWeight.SemiBold)

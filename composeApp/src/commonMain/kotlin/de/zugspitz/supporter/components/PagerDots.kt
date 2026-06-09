@@ -35,7 +35,7 @@ fun PagerDots(
                     .padding(horizontal = 3.dp)
                     .clickable { onDotClick(dotIndex) }
                     .background(
-                        if (dotIndex == index) SupporterColors.Moss else androidx.compose.ui.graphics.Color(0xFFCBD4CB),
+                        if (dotIndex == index) SupporterColors.Moss else SupporterColors.PagerInactive,
                         RoundedCornerShape(SupporterRadius.Pill),
                     )
                     .padding(horizontal = if (dotIndex == index) 11.dp else 4.dp, vertical = 4.dp),

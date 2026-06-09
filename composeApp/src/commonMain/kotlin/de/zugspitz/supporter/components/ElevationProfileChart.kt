@@ -224,12 +224,16 @@ fun ElevationProfileChart(
                 markers.forEach { marker ->
                     val offset = offsetForMarker(marker) ?: return@forEach
                     drawCircle(
-                        color = Color.White,
+                        color = SupporterColors.White,
                         radius = 6.dp.toPx(),
                         center = offset,
                     )
                     drawCircle(
-                        color = if (marker.isCheckedIn) Color(0xFFD62828) else Color(0xFF264653),
+                        color = if (marker.isCheckedIn) {
+                            SupporterColors.CheckpointChecked
+                        } else {
+                            SupporterColors.CheckpointPending
+                        },
                         radius = 4.dp.toPx(),
                         center = offset,
                     )
@@ -244,7 +248,7 @@ fun ElevationProfileChart(
                     center = offset,
                 )
                 drawCircle(
-                    color = Color.White,
+                    color = SupporterColors.White,
                     radius = 6.dp.toPx(),
                     center = offset,
                 )

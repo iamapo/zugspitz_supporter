@@ -31,20 +31,20 @@ fun StatTile(
             )
             .border(
                 width = 1.dp,
-                color = if (inverted) androidx.compose.ui.graphics.Color.White.copy(alpha = 0.13f) else SupporterColors.Line,
+                color = if (inverted) SupporterColors.White.copy(alpha = 0.13f) else SupporterColors.Line,
                 shape = RoundedCornerShape(8.dp),
             )
             .padding(11.dp),
     ) {
         Text(
             text = label.uppercase(),
-            color = if (inverted) androidx.compose.ui.graphics.Color.White.copy(alpha = 0.68f) else SupporterColors.Muted,
+            color = if (inverted) SupporterColors.White.copy(alpha = 0.68f) else SupporterColors.Muted,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.ExtraBold,
         )
         Text(
             text = value,
-            color = if (inverted) androidx.compose.ui.graphics.Color.White else SupporterColors.Ink,
+            color = if (inverted) SupporterColors.White else SupporterColors.Ink,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Black,
             modifier = Modifier.padding(top = 4.dp),
@@ -52,7 +52,7 @@ fun StatTile(
         if (detail != null) {
             Text(
                 text = detail,
-                color = if (inverted) androidx.compose.ui.graphics.Color.White.copy(alpha = 0.72f) else SupporterColors.Muted,
+                color = if (inverted) SupporterColors.White.copy(alpha = 0.72f) else SupporterColors.Muted,
                 style = MaterialTheme.typography.bodySmall,
             )
         }

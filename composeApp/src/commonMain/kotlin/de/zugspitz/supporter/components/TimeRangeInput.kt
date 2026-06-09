@@ -22,7 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -158,7 +157,7 @@ private fun TimeField(
         selected -> SupporterColors.Moss
         else -> SupporterColors.Line
     }
-    val backgroundColor = if (selected) SupporterColors.Mint else Color(0xFFFBFCFA)
+    val backgroundColor = if (selected) SupporterColors.Mint else SupporterColors.Field
     Column(
         modifier = Modifier
             .fillMaxWidth()

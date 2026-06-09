@@ -22,6 +22,7 @@ import de.zugspitz.supporter.components.ScreenHeader
 import de.zugspitz.supporter.components.StatTile
 import de.zugspitz.supporter.components.VpListRow
 import de.zugspitz.supporter.data.CheckIn
+import de.zugspitz.supporter.data.ElevationSample
 import de.zugspitz.supporter.data.LiveRunnerLocation
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceDefinitions
@@ -34,11 +35,14 @@ import de.zugspitz.supporter.theme.SupporterTheme
 import de.zugspitz.supporter.util.ComposeUiUtils
 import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
+import zugspitz_supporter.composeapp.generated.resources.current_label
 import zugspitz_supporter.composeapp.generated.resources.summary_average_pace
 import zugspitz_supporter.composeapp.generated.resources.summary_arrived_at
 import zugspitz_supporter.composeapp.generated.resources.summary_distance_done
 import zugspitz_supporter.composeapp.generated.resources.summary_expected_at
 import zugspitz_supporter.composeapp.generated.resources.summary_last_known
+import zugspitz_supporter.composeapp.generated.resources.summary_next_vp
+import zugspitz_supporter.composeapp.generated.resources.summary_next_vp_detail
 import zugspitz_supporter.composeapp.generated.resources.summary_progress
 import zugspitz_supporter.composeapp.generated.resources.summary_route_profile
 import zugspitz_supporter.composeapp.generated.resources.summary_started
@@ -51,6 +55,7 @@ fun RunOverviewScreen(
     runnerLocation: LiveRunnerLocation?,
     onStationClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    previewRouteElevationProfile: List<ElevationSample>? = null,
 ) {
     val race = RaceDefinitions.byId(projection.estimate.raceId)
     val paceShiftMinutes = -projection.activeShiftMinutes
@@ -64,7 +69,8 @@ fun RunOverviewScreen(
     } else {
         SupporterColors.Danger.copy(alpha = 0.16f)
     }
-    val routeElevationProfile = rememberRouteElevationProfile(projection.estimate.raceId)
+    val loadedRouteElevationProfile = rememberRouteElevationProfile(projection.estimate.raceId)
+    val routeElevationProfile = previewRouteElevationProfile ?: loadedRouteElevationProfile
     val routeMarkers = remember(projection.stations) {
         projection.stations.map { stationProjection ->
             ElevationProfileMarker(
@@ -101,6 +107,7 @@ fun RunOverviewScreen(
             item {
                 RunSummaryContent(
                     projection = projection,
+                    runnerLocation = runnerLocation,
                 )
             }
             if (routeElevationProfile.size >= 2) {
@@ -134,34 +141,68 @@ fun RunOverviewScreen(
 @Composable
 private fun RunSummaryContent(
     projection: RaceProjection,
+    runnerLocation: LiveRunnerLocation?,
 ) {
     val completedStations = projection.stations.filter { it.isCheckedIn }
     val lastKnown = completedStations.maxByOrNull { it.station.section }
     val lastKnownMinutes = lastKnown?.actualDepartureMinutes ?: lastKnown?.actualArrivalMinutes
     val elapsedMinutes = lastKnownMinutes?.minus(projection.actualStartMinutes ?: 0)
-    val distanceDone = lastKnown?.station?.totalKm ?: 0.0
+    val liveDistanceKm = runnerLocation
+        ?.takeIf { it.raceId == projection.estimate.raceId && it.isOnRoute }
+        ?.distanceKm
+    val stationDistanceKm = lastKnown?.station?.totalKm ?: 0.0
+    val distanceDone = liveDistanceKm ?: stationDistanceKm
 
     Column(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         InfoCard(title = stringResource(Res.string.summary_progress)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                StatTile(
-                    label = stringResource(Res.string.summary_distance_done),
-                    value = ComposeUiUtils.formattedKm(distanceDone),
-                    detail = lastKnown?.station?.name ?: stringResource(Res.string.summary_started),
-                    modifier = Modifier.weight(1f),
-                )
-                StatTile(
-                    label = stringResource(Res.string.summary_average_pace),
-                    value = ComposeUiUtils.averagePace(elapsedMinutes, distanceDone),
-                    detail = lastKnownMinutes?.let { formatRaceTime(projection.estimate.startTimeMinutes + it) }
-                        ?: stringResource(Res.string.summary_last_known),
-                    modifier = Modifier.weight(1f),
-                )
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                    StatTile(
+                        label = stringResource(Res.string.summary_distance_done),
+                        value = ComposeUiUtils.formattedKm(distanceDone),
+                        modifier = Modifier.weight(1f),
+                    )
+                    StatTile(
+                        label = stringResource(Res.string.summary_average_pace),
+                        value = ComposeUiUtils.averagePace(elapsedMinutes, stationDistanceKm),
+
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                nextVpProgress(projection, runnerLocation)?.let { progress ->
+                    StatTile(
+                        label = stringResource(Res.string.summary_next_vp),
+                        value = ComposeUiUtils.formattedKm(progress.remainingKm),
+                        detail = stringResource(Res.string.summary_next_vp_detail, progress.stationName),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
         }
     }
+}
+
+private data class NextVpProgress(
+    val remainingKm: Double,
+    val stationName: String,
+)
+
+private fun nextVpProgress(
+    projection: RaceProjection,
+    runnerLocation: LiveRunnerLocation?,
+): NextVpProgress? {
+    if (runnerLocation == null || !runnerLocation.isOnRoute || runnerLocation.raceId != projection.estimate.raceId) {
+        return null
+    }
+    val nextStation = projection.stations.firstOrNull { stationProjection ->
+        stationProjection.station.totalKm > runnerLocation.distanceKm
+    } ?: return null
+    return NextVpProgress(
+        remainingKm = (nextStation.station.totalKm - runnerLocation.distanceKm).coerceAtLeast(0.0),
+        stationName = nextStation.station.name,
+    )
 }
 
 private fun androidx.compose.foundation.lazy.LazyListScope.runStationListItems(
@@ -224,7 +265,28 @@ fun RunSummaryScreenPreview() {
                 ),
                 selectedIndex = 1,
             ),
-            runnerLocation = null,
+            runnerLocation = LiveRunnerLocation(
+                runCode = "PREVIEW",
+                raceId = RaceDefinitions.ZugspitzUltratrailId,
+                latitude = 47.3844085,
+                longitude = 10.9714273,
+                distanceKm = 26.0,
+                elevationMeters = 1518.0,
+                distanceFromRouteMeters = 0.0,
+                accuracyMeters = 8.0,
+                isOnRoute = true,
+                updatedAtEpochMillis = 0L,
+            ),
+            previewRouteElevationProfile = listOf(
+                ElevationSample(0.0, 700.0),
+                ElevationSample(5.0, 741.0),
+                ElevationSample(12.0, 1220.0),
+                ElevationSample(17.0, 1390.0),
+                ElevationSample(26.0, 1518.0),
+                ElevationSample(34.0, 980.0),
+                ElevationSample(48.0, 1180.0),
+                ElevationSample(64.0, 720.0),
+            ),
             onStationClick = {},
         )
     }

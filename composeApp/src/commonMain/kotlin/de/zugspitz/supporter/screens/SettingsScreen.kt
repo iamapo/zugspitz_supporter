@@ -301,7 +301,7 @@ private fun RoleSegment(
         modifier = modifier
             .clickable(onClick = onClick)
             .background(
-                if (selected) SupporterColors.Mint else androidx.compose.ui.graphics.Color(0xFFEEF2EC),
+                if (selected) SupporterColors.Mint else SupporterColors.SoftChip,
                 RoundedCornerShape(8.dp),
             )
             .then(

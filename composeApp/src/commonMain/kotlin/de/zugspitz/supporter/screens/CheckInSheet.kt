@@ -55,7 +55,7 @@ fun CheckInSheet(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(Color(0x550F1712)),
+                .background(SupporterColors.SheetScrim),
             contentAlignment = Alignment.BottomCenter,
         ) {
             Surface(onClick = onDismiss, color = Color.Transparent, modifier = Modifier.fillMaxSize()) {}
@@ -85,7 +85,7 @@ fun CheckInSheet(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .background(Color(0xFFFBFCFA), RoundedCornerShape(8.dp))
+                                .background(SupporterColors.Field, RoundedCornerShape(8.dp))
                                 .border(1.dp, SupporterColors.Line, RoundedCornerShape(8.dp))
                                 .padding(vertical = 11.dp),
                             contentAlignment = Alignment.Center,
@@ -126,7 +126,7 @@ private fun TimeOption(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
 ) {
-    val backgroundColor = if (active) SupporterColors.Pine else Color(0xFFF1F4EF)
+    val backgroundColor = if (active) SupporterColors.Pine else SupporterColors.TimeOption
     val borderColor = if (active) SupporterColors.Pine else SupporterColors.Line
 
     if (onClick != null) {
@@ -140,7 +140,7 @@ private fun TimeOption(
                 modifier = Modifier.padding(vertical = 13.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(label, color = if (active) Color.White else SupporterColors.Ink, fontWeight = FontWeight.Black)
+                Text(label, color = if (active) SupporterColors.White else SupporterColors.Ink, fontWeight = FontWeight.Black)
             }
         }
         return
@@ -153,7 +153,7 @@ private fun TimeOption(
                 .padding(vertical = 13.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Text(label, color = if (active) Color.White else SupporterColors.Ink, fontWeight = FontWeight.Black)
+            Text(label, color = if (active) SupporterColors.White else SupporterColors.Ink, fontWeight = FontWeight.Black)
         }
 }
 

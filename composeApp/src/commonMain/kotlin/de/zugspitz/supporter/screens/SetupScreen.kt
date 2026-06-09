@@ -173,7 +173,7 @@ fun SetupScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(androidx.compose.ui.graphics.Color(0xFFFBFCFA), RoundedCornerShape(SupporterRadius.Card))
+                        .background(SupporterColors.Field, RoundedCornerShape(SupporterRadius.Card))
                         .border(1.dp, SupporterColors.Line, RoundedCornerShape(SupporterRadius.Card))
                         .padding(SupporterSpacing.Md),
                 ) {
@@ -207,7 +207,7 @@ fun SetupScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(
-                                    color = androidx.compose.ui.graphics.Color(0xFFFBFCFA),
+                                    color = SupporterColors.Field,
                                     shape = RoundedCornerShape(SupporterRadius.Card),
                                 )
                                 .border(
@@ -264,8 +264,8 @@ fun SetupScreen(
                                     textAlign = androidx.compose.ui.text.style.TextAlign.End,
                                 ),
                                 colors = TextFieldDefaults.colors(
-                                    focusedContainerColor = androidx.compose.ui.graphics.Color(0xFFFBFCFA),
-                                    unfocusedContainerColor = androidx.compose.ui.graphics.Color(0xFFFBFCFA),
+                                    focusedContainerColor = SupporterColors.Field,
+                                    unfocusedContainerColor = SupporterColors.Field,
                                 ),
                             )
                         }
@@ -321,7 +321,7 @@ private fun Segment(label: String, selected: Boolean, modifier: Modifier, onClic
             fontWeight = FontWeight.Black,
             modifier = modifier
                 .clickable(onClick = onClick)
-                .background(if (selected) SupporterColors.Mint else androidx.compose.ui.graphics.Color(0xFFEEF2EC), RoundedCornerShape(SupporterRadius.Card))
+                .background(if (selected) SupporterColors.Mint else SupporterColors.SoftChip, RoundedCornerShape(SupporterRadius.Card))
                 .then(if (selected) Modifier.border(1.dp, SupporterColors.Moss.copy(alpha = 0.35f), RoundedCornerShape(SupporterRadius.Card)) else Modifier)
                 .padding(vertical = 10.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,

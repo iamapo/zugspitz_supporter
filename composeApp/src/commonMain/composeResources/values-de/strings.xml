@@ -93,6 +93,8 @@
     <string name="summary_last_known">Letzter Stand</string>
     <string name="summary_average_pace">Durchschnittspace</string>
     <string name="summary_distance_done">Bisher gelaufen</string>
+    <string name="summary_next_vp">Bis nächster VP</string>
+    <string name="summary_next_vp_detail">bis %1$s</string>
     <string name="summary_no_checkins">Noch keine Check-ins vorhanden.</string>
     <string name="summary_checkin_label">Check-in</string>
     <string name="summary_checkout_label">Checkout</string>

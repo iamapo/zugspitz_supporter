@@ -116,8 +116,8 @@ fun VpPauseSetupScreen(
                         textAlign = TextAlign.End,
                     ),
                     colors = TextFieldDefaults.colors(
-                        focusedContainerColor = androidx.compose.ui.graphics.Color(0xFFFBFCFA),
-                        unfocusedContainerColor = androidx.compose.ui.graphics.Color(0xFFFBFCFA),
+                        focusedContainerColor = SupporterColors.Field,
+                        unfocusedContainerColor = SupporterColors.Field,
                     ),
                 )
             }

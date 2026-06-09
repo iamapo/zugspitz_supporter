@@ -106,9 +106,9 @@ fun VpListRow(
 }
 
 private object ColorTokens {
-    val ActiveRow = androidx.compose.ui.graphics.Color(0xFFFFE6CC)
-    val ReachedRow = androidx.compose.ui.graphics.Color(0xFFF1F8F1)
-    val DoneRow = androidx.compose.ui.graphics.Color(0xFFE9E9E5)
+    val ActiveRow = SupporterColors.VpActiveRow
+    val ReachedRow = SupporterColors.VpReachedRow
+    val DoneRow = SupporterColors.VpDoneRow
 }
 
 @Preview
