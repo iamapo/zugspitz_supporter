@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Zugspitz Race Tracker</string>
+    <string name="runner_location_notification_title">Live location sharing active</string>
+    <string name="runner_location_notification_text">Your route position is being shared with your supporters.</string>
 </resources>

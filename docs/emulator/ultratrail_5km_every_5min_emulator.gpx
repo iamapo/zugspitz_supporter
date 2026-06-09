@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Codex emulator route sampler" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>Ultratrail ZUT emulator route - 5 km every 5 minutes</name>
+    <time>2026-06-09T08:00:00Z</time>
+  </metadata>
+  <trk>
+    <name>Ultratrail ZUT emulator route - 5 km every 5 minutes</name>
+    <trkseg>
+      <trkpt lat="47.4946130" lon="11.0919550">
+        <ele>697.4</ele>
+        <time>2026-06-09T08:00:00Z</time>
+        <name>0.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4710978" lon="11.0550948">
+        <ele>741.3</ele>
+        <time>2026-06-09T08:05:00Z</time>
+        <name>5.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4558403" lon="11.0017110">
+        <ele>1063.3</ele>
+        <time>2026-06-09T08:10:00Z</time>
+        <name>10.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4328513" lon="10.9722018">
+        <ele>1585.0</ele>
+        <time>2026-06-09T08:15:00Z</time>
+        <name>15.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4086469" lon="10.9424055">
+        <ele>1308.7</ele>
+        <time>2026-06-09T08:20:00Z</time>
+        <name>20.0 km</name>
+      </trkpt>
+      <trkpt lat="47.3889392" lon="10.9629476">
+        <ele>1445.3</ele>
+        <time>2026-06-09T08:25:00Z</time>
+        <name>25.0 km</name>
+      </trkpt>
+      <trkpt lat="47.3903604" lon="11.0095078">
+        <ele>2098.3</ele>
+        <time>2026-06-09T08:30:00Z</time>
+        <name>30.0 km</name>
+      </trkpt>
+      <trkpt lat="47.3866154" lon="11.0564480">
+        <ele>2110.5</ele>
+        <time>2026-06-09T08:35:00Z</time>
+        <name>35.0 km</name>
+      </trkpt>
+      <trkpt lat="47.3683969" lon="11.0759425">
+        <ele>1413.7</ele>
+        <time>2026-06-09T08:40:00Z</time>
+        <name>40.0 km</name>
+      </trkpt>
+      <trkpt lat="47.3821088" lon="11.1091618">
+        <ele>1750.3</ele>
+        <time>2026-06-09T08:45:00Z</time>
+        <name>45.0 km</name>
+      </trkpt>
+      <trkpt lat="47.3951273" lon="11.1513634">
+        <ele>1565.3</ele>
+        <time>2026-06-09T08:50:00Z</time>
+        <name>50.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4026454" lon="11.1927920">
+        <ele>1059.4</ele>
+        <time>2026-06-09T08:55:00Z</time>
+        <name>55.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4279118" lon="11.2361033">
+        <ele>1024.1</ele>
+        <time>2026-06-09T09:00:00Z</time>
+        <name>60.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4344757" lon="11.2472082">
+        <ele>1072.5</ele>
+        <time>2026-06-09T09:05:00Z</time>
+        <name>65.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4486752" lon="11.1976156">
+        <ele>1077.6</ele>
+        <time>2026-06-09T09:10:00Z</time>
+        <name>70.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4744576" lon="11.1807027">
+        <ele>1247.0</ele>
+        <time>2026-06-09T09:15:00Z</time>
+        <name>75.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4635723" lon="11.1301102">
+        <ele>1114.2</ele>
+        <time>2026-06-09T09:20:00Z</time>
+        <name>80.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4455036" lon="11.1075763">
+        <ele>942.0</ele>
+        <time>2026-06-09T09:25:00Z</time>
+        <name>85.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4450729" lon="11.0620221">
+        <ele>1657.1</ele>
+        <time>2026-06-09T09:30:00Z</time>
+        <name>90.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4443947" lon="11.0520331">
+        <ele>1681.2</ele>
+        <time>2026-06-09T09:35:00Z</time>
+        <name>95.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4595281" lon="11.1001182">
+        <ele>1282.0</ele>
+        <time>2026-06-09T09:40:00Z</time>
+        <name>100.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4901061" lon="11.0972369">
+        <ele>707.4</ele>
+        <time>2026-06-09T09:45:00Z</time>
+        <name>105.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4946480" lon="11.0922120">
+        <ele>697.4</ele>
+        <time>2026-06-09T09:50:00Z</time>
+        <name>106.1 km</name>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>

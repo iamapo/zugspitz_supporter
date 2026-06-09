@@ -9,6 +9,7 @@ import de.zugspitz.supporter.data.SupabaseLiveRaceRepository
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        currentActivity = this
         val liveSharingEnabled = BuildConfig.LIVE_SHARING_ENABLED
         val liveSharingConfig = platformLiveSharingConfig()
         when {
@@ -26,5 +27,17 @@ class MainActivity : ComponentActivity() {
                 liveSharingEnabled = liveSharingEnabled,
             )
         }
+    }
+
+    override fun onDestroy() {
+        if (currentActivity === this) {
+            currentActivity = null
+        }
+        super.onDestroy()
+    }
+
+    companion object {
+        internal var currentActivity: MainActivity? = null
+            private set
     }
 }
