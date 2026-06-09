@@ -31,6 +31,7 @@ import de.zugspitz.supporter.domain.usecase.LoadSessionUseCase
 import de.zugspitz.supporter.domain.usecase.ResetSessionUseCase
 import de.zugspitz.supporter.domain.usecase.AutoCheckAction
 import de.zugspitz.supporter.domain.usecase.AutoCheckInOutUseCase
+import de.zugspitz.supporter.domain.usecase.ApplyCheckEventUseCase
 import de.zugspitz.supporter.domain.usecase.RemoteSnapshotMergeUseCase
 import de.zugspitz.supporter.domain.usecase.SaveCheckInUseCase
 import de.zugspitz.supporter.domain.usecase.SaveSessionUseCase
@@ -71,6 +72,7 @@ class SupporterViewModel(
     private val selectVp = SelectVpUseCase()
     private val saveCheckIn = SaveCheckInUseCase()
     private val autoCheckInOut = AutoCheckInOutUseCase()
+    private val applyCheckEventUseCase = ApplyCheckEventUseCase(saveCheckIn)
     private val mergeRemoteSnapshot = RemoteSnapshotMergeUseCase()
 
     private val _uiState = MutableStateFlow(createInitialState())
@@ -279,37 +281,28 @@ class SupporterViewModel(
 
     fun onActualStartNowSave() = updateState {
         val startMinutes = currentCheckMinutes()
-        val newCheckIns = saveCheckIn(
-            existingCheckIns = checkIns,
-            stationSection = START_LINE_SECTION,
-            actualArrivalMinutes = startMinutes,
-        )
-        val newEvents = appendRaceEvent(
+        val result = applyCheckEvent(
             stationSection = START_LINE_SECTION,
             stationName = START_LINE_NAME,
             type = CheckEventType.CheckIn,
             raceMinutes = startMinutes,
         )
-        copy(checkIns = newCheckIns, checkEvents = newEvents)
+        copy(checkIns = result.checkIns, checkEvents = result.checkEvents)
     }
 
     fun onCheckInNowSave(stationIndex: Int = uiState.value.vp.selectedIndex) = updateState {
         val selectedIndex = stationIndex.coerceIn(0, vp.projection.stations.lastIndex)
-        val stationSection = vp.projection.stations[selectedIndex].station.section
+        val station = vp.projection.stations[selectedIndex].station
         val checkMinutes = currentCheckMinutes()
-        val newCheckIns = saveCheckIn(
-            existingCheckIns = checkIns,
-            stationSection = stationSection,
-            actualArrivalMinutes = checkMinutes,
-        )
-        val newEvents = appendLiveEvent(
-            selectedIndex = selectedIndex,
+        val result = applyCheckEvent(
+            stationSection = station.section,
+            stationName = station.name,
             type = CheckEventType.CheckIn,
             raceMinutes = checkMinutes,
         )
         copy(
-            checkIns = newCheckIns,
-            checkEvents = newEvents,
+            checkIns = result.checkIns,
+            checkEvents = result.checkEvents,
             vp = vp.copy(selectedIndex = selectedIndex, checkSheetOpen = false),
         )
     }
@@ -321,20 +314,16 @@ class SupporterViewModel(
             return@updateState this
         }
         val checkMinutes = currentCheckMinutes()
-        val newCheckIns = saveCheckIn(
-            existingCheckIns = checkIns,
+        val result = applyCheckEvent(
             stationSection = selected.station.section,
-            actualDepartureMinutes = checkMinutes,
-        )
-        val newEvents = appendLiveEvent(
-            selectedIndex = selectedIndex,
+            stationName = selected.station.name,
             type = CheckEventType.CheckOut,
             raceMinutes = checkMinutes,
         )
         val nextIndex = selectVp(selectedIndex + 1, vp.projection.stations.lastIndex)
         copy(
-            checkIns = newCheckIns,
-            checkEvents = newEvents,
+            checkIns = result.checkIns,
+            checkEvents = result.checkEvents,
             vp = vp.copy(selectedIndex = nextIndex, checkSheetOpen = false),
         )
     }
@@ -342,21 +331,10 @@ class SupporterViewModel(
     fun onCheckInDismiss() = updateState { copy(vp = vp.copy(checkSheetOpen = false)) }
 
     fun onCheckInSave() = updateState {
-        val stationSection = vp.projection.stations[vp.selectedIndex].station.section
-        val newCheckIns = when (vp.checkAction) {
-            CheckAction.CheckIn -> saveCheckIn(
-                existingCheckIns = checkIns,
-                stationSection = stationSection,
-                actualArrivalMinutes = vp.checkMinutes,
-            )
-            CheckAction.CheckOut -> saveCheckIn(
-                existingCheckIns = checkIns,
-                stationSection = stationSection,
-                actualDepartureMinutes = vp.checkMinutes,
-            )
-        }
-        val newEvents = appendLiveEvent(
-            selectedIndex = vp.selectedIndex,
+        val station = vp.projection.stations[vp.selectedIndex].station
+        val result = applyCheckEvent(
+            stationSection = station.section,
+            stationName = station.name,
             type = when (vp.checkAction) {
                 CheckAction.CheckIn -> CheckEventType.CheckIn
                 CheckAction.CheckOut -> CheckEventType.CheckOut
@@ -369,8 +347,8 @@ class SupporterViewModel(
         }
         copy(
             tab = if (vp.checkAction == CheckAction.CheckOut) AppTab.Vp else AppTab.List,
-            checkIns = newCheckIns,
-            checkEvents = newEvents,
+            checkIns = result.checkIns,
+            checkEvents = result.checkEvents,
             vp = vp.copy(selectedIndex = nextIndex, checkSheetOpen = false),
         )
     }
@@ -603,39 +581,22 @@ class SupporterViewModel(
         )
     }
 
-    private fun AppUiState.appendLiveEvent(selectedIndex: Int, type: CheckEventType, raceMinutes: Int): List<CheckEvent> {
-        val station = vp.projection.stations[selectedIndex].station
-        return appendRaceEvent(
-            stationSection = station.section,
-            stationName = station.name,
-            type = type,
-            raceMinutes = raceMinutes,
-        )
-    }
-
-    private fun AppUiState.appendRaceEvent(
+    private fun AppUiState.applyCheckEvent(
         stationSection: Int,
         stationName: String,
         type: CheckEventType,
         raceMinutes: Int,
-    ): List<CheckEvent> {
-        val link = settings.liveRunLink
-        if (!link.canPublish) return checkEvents
-
-        val createdAtEpochMillis = Clock.System.now().toEpochMilliseconds()
-        val event = CheckEvent(
-            id = "${link.runCode}-$stationSection-${type.name}-$createdAtEpochMillis",
-            runCode = link.runCode,
-            stationSection = stationSection,
-            stationName = stationName,
-            type = type,
-            raceMinutes = raceMinutes,
-            createdAtEpochMillis = createdAtEpochMillis,
-        )
-        liveRaceRepository.publish(event)
-        return checkEvents.filterNot {
-            it.stationSection == stationSection && it.type == type
-        } + event
+    ) = applyCheckEventUseCase(
+        checkIns = checkIns,
+        checkEvents = checkEvents,
+        runCode = settings.liveRunLink.runCode.takeIf { settings.liveRunLink.canPublish },
+        stationSection = stationSection,
+        stationName = stationName,
+        type = type,
+        raceMinutes = raceMinutes,
+        createdAtEpochMillis = Clock.System.now().toEpochMilliseconds(),
+    ).also { result ->
+        result.event?.let(liveRaceRepository::publish)
     }
 
     private fun persist(state: AppUiState) {
@@ -689,19 +650,15 @@ class SupporterViewModel(
                 "deltaMeters=${(action.distanceDeltaKm * 1000.0).formatForLog()}",
         )
         autoCheckedInSections.add(action.stationSection)
-        val newCheckIns = saveCheckIn(
-            existingCheckIns = checkIns,
+        val result = applyCheckEvent(
             stationSection = station.section,
-            actualArrivalMinutes = action.raceMinutes,
-        )
-        val newEvents = appendLiveEvent(
-            selectedIndex = action.stationIndex,
+            stationName = station.name,
             type = CheckEventType.CheckIn,
             raceMinutes = action.raceMinutes,
         )
         return copy(
-            checkIns = newCheckIns,
-            checkEvents = newEvents,
+            checkIns = result.checkIns,
+            checkEvents = result.checkEvents,
             vp = vp.copy(selectedIndex = action.stationIndex, checkSheetOpen = false),
         )
     }
@@ -716,20 +673,16 @@ class SupporterViewModel(
                 "pastMeters=${(action.distancePastStationKm * 1000.0).formatForLog()}",
         )
         autoCheckedOutSections.add(action.stationSection)
-        val newCheckIns = saveCheckIn(
-            existingCheckIns = checkIns,
+        val result = applyCheckEvent(
             stationSection = station.station.section,
-            actualDepartureMinutes = action.raceMinutes,
-        )
-        val newEvents = appendLiveEvent(
-            selectedIndex = action.stationIndex,
+            stationName = station.station.name,
             type = CheckEventType.CheckOut,
             raceMinutes = action.raceMinutes,
         )
         val nextIndex = selectVp(action.stationIndex + 1, vp.projection.stations.lastIndex)
         return copy(
-            checkIns = newCheckIns,
-            checkEvents = newEvents,
+            checkIns = result.checkIns,
+            checkEvents = result.checkEvents,
             vp = vp.copy(selectedIndex = nextIndex, checkSheetOpen = false),
         )
     }
