@@ -123,6 +123,8 @@
     <string name="live_code_empty">Not generated yet</string>
     <string name="live_runner_name">Runner name (optional)</string>
     <string name="create_support_code">Create support code</string>
+    <string name="auto_check_in_out">Automatic VP check-in/out</string>
+    <string name="auto_check_in_out_hint">Uses on-route GPS only. Manual check-in and check-out stay available.</string>
     <string name="live_last_event">Last live event:</string>
     <string name="live_not_connected">none yet</string>
     <string name="live_event_check_in">Check-in</string>

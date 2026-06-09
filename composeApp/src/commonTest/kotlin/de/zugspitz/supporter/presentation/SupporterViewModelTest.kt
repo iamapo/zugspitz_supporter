@@ -712,6 +712,110 @@ class SupporterViewModelTest {
     }
 
     @Test
+    fun `automatic check in is ignored when toggle is disabled`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(
+                AppSessionState(
+                    liveRunLink = liveRunnerLink(),
+                    autoCheckInOutEnabled = false,
+                ),
+            ),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+        )
+
+        viewModel.onRunnerLocationChanged(testRunnerLocation(runCode = "ABC123", distanceKm = 10.7))
+
+        assertEquals(emptyList(), viewModel.uiState.value.checkIns)
+        assertEquals(emptyList(), liveRepository.events)
+    }
+
+    @Test
+    fun `automatic check in is created once when runner reaches next vp corridor`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(
+                AppSessionState(
+                    liveRunLink = liveRunnerLink(),
+                    autoCheckInOutEnabled = true,
+                ),
+            ),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+        )
+        val location = testRunnerLocation(runCode = "ABC123", distanceKm = 10.7)
+
+        viewModel.onRunnerLocationChanged(location)
+        viewModel.onRunnerLocationChanged(location.copy(updatedAtEpochMillis = location.updatedAtEpochMillis + 60_000L))
+
+        val checkIn = viewModel.uiState.value.checkIns.single()
+        assertEquals(1, checkIn.stationSection)
+        assertEquals(null, checkIn.actualDepartureMinutes)
+        assertEquals(listOf(CheckEventType.CheckIn), liveRepository.events.map { it.type })
+    }
+
+    @Test
+    fun `automatic check in is skipped when gps accuracy is too low`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(
+                AppSessionState(
+                    liveRunLink = liveRunnerLink(),
+                    autoCheckInOutEnabled = true,
+                ),
+            ),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+        )
+
+        viewModel.onRunnerLocationChanged(
+            testRunnerLocation(runCode = "ABC123", distanceKm = 10.7, accuracyMeters = 75.0),
+        )
+
+        assertEquals(emptyList(), viewModel.uiState.value.checkIns)
+        assertEquals(emptyList(), liveRepository.events)
+    }
+
+    @Test
+    fun `automatic check out is created after runner leaves vp corridor and minimum stop elapsed`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val firstLocation = testRunnerLocation(runCode = "ABC123", distanceKm = 10.7)
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(
+                AppSessionState(
+                    liveRunLink = liveRunnerLink(),
+                    autoCheckInOutEnabled = true,
+                ),
+            ),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+        )
+
+        viewModel.onRunnerLocationChanged(firstLocation)
+        viewModel.onRunnerLocationChanged(
+            firstLocation.copy(
+                distanceKm = 10.9,
+                updatedAtEpochMillis = firstLocation.updatedAtEpochMillis + 60_000L,
+            ),
+        )
+        viewModel.onRunnerLocationChanged(
+            firstLocation.copy(
+                distanceKm = 11.2,
+                updatedAtEpochMillis = firstLocation.updatedAtEpochMillis + 3 * 60_000L,
+            ),
+        )
+
+        val checkIn = viewModel.uiState.value.checkIns.single()
+        assertEquals(1, checkIn.stationSection)
+        assertTrue(checkIn.actualDepartureMinutes != null)
+        assertEquals(
+            listOf(CheckEventType.CheckIn, CheckEventType.CheckOut),
+            liveRepository.events.map { it.type },
+        )
+    }
+
+    @Test
     fun `supporter receives runner location from live snapshot`() {
         val liveRepository = FakeLiveRaceRepository()
         val viewModel = SupporterViewModel(
@@ -817,17 +921,27 @@ private fun PushPlatform.databaseValue(): String = when (this) {
     PushPlatform.Ios -> "ios"
 }
 
-private fun testRunnerLocation(runCode: String) = LiveRunnerLocation(
+private fun liveRunnerLink() = LiveRunLink(
+    role = LiveRole.Runner,
+    runCode = "ABC123",
+    isEnabled = true,
+)
+
+private fun testRunnerLocation(
+    runCode: String,
+    distanceKm: Double = 5.0,
+    accuracyMeters: Double = 25.0,
+) = LiveRunnerLocation(
     runCode = runCode,
     raceId = RaceDefinitions.ZugspitzUltratrailId,
     latitude = 47.4710978,
     longitude = 11.0550948,
-    distanceKm = 5.0,
+    distanceKm = distanceKm,
     elevationMeters = 741.0,
     distanceFromRouteMeters = 3.0,
-    accuracyMeters = 25.0,
+    accuracyMeters = accuracyMeters,
     isOnRoute = true,
-    updatedAtEpochMillis = 1_000L,
+    updatedAtEpochMillis = 1_789_509_000_000L,
 )
 
 private fun waitUntil(timeoutMs: Long = 1_000L, condition: () -> Boolean) = runBlocking {

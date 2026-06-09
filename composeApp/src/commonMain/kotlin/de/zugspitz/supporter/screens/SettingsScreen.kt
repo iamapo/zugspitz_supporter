@@ -37,6 +37,7 @@ fun SettingsScreen(
     onRunnerNameChanged: (String) -> Unit,
     onCreateRunCode: () -> Unit,
     onLiveSharingToggle: (Boolean) -> Unit,
+    onAutoCheckInOutToggle: (Boolean) -> Unit,
     onResetClick: () -> Unit,
     modifier: Modifier = Modifier,
     isKeyboardVisible: Boolean = false,
@@ -84,6 +85,7 @@ fun SettingsScreen(
                     onRunnerNameChanged = onRunnerNameChanged,
                     onCreateRunCode = onCreateRunCode,
                     onLiveSharingToggle = onLiveSharingToggle,
+                    onAutoCheckInOutToggle = onAutoCheckInOutToggle,
                     onRunnerNameDone = { focusManager.clearFocus() },
                 )
             }
@@ -120,6 +122,7 @@ fun SettingsScreenPreview() {
             onRunnerNameChanged = {},
             onCreateRunCode = {},
             onLiveSharingToggle = {},
+            onAutoCheckInOutToggle = {},
             onResetClick = {},
         )
     }

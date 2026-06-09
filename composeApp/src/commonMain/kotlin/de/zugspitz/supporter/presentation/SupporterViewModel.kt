@@ -74,6 +74,8 @@ class SupporterViewModel(
     private var liveSubscription: LiveRaceSubscription? = null
     private var liveSubscriptionCode: String? = null
     private var registeredPushRunCode: String? = null
+    private val autoCheckedInSections = mutableSetOf<Int>()
+    private val autoCheckedOutSections = mutableSetOf<Int>()
 
     init {
         syncLiveSubscription(_uiState.value.settings.liveRunLink)
@@ -449,13 +451,20 @@ class SupporterViewModel(
         syncSupporterPushRegistration()
     }
 
+    fun onAutoCheckInOutToggle(enabled: Boolean) {
+        if (!liveSharingEnabled) return
+        updateState {
+            copy(settings = settings.copy(autoCheckInOutEnabled = enabled))
+        }
+    }
+
     fun onRunnerLocationChanged(location: LiveRunnerLocation) {
         if (!liveSharingEnabled) return
         updateState {
             val link = settings.liveRunLink
             if (!link.canPublish || location.runCode != link.runCode) return@updateState this
             liveRaceRepository.publishRunnerLocation(location)
-            copy(runnerLocation = location)
+            copy(runnerLocation = location).applyAutomaticCheckInOut(location)
         }
     }
 
@@ -493,6 +502,7 @@ class SupporterViewModel(
             checkIns = session.checkIns,
             checkEvents = session.checkEvents,
             liveRunLink = liveRunLink,
+            autoCheckInOutEnabled = session.autoCheckInOutEnabled,
             checkSheetOpen = false,
             checkAction = CheckAction.CheckIn,
             checkMinutesOverride = null,
@@ -513,6 +523,7 @@ class SupporterViewModel(
                 checkIns = mutated.checkIns,
                 checkEvents = mutated.checkEvents,
                 liveRunLink = mutated.settings.liveRunLink,
+                autoCheckInOutEnabled = mutated.settings.autoCheckInOutEnabled,
                 checkSheetOpen = mutated.vp.checkSheetOpen,
                 checkAction = mutated.vp.checkAction,
                 checkMinutesOverride = mutated.vp.checkMinutes,
@@ -533,6 +544,7 @@ class SupporterViewModel(
         checkIns: List<CheckIn>,
         checkEvents: List<CheckEvent>,
         liveRunLink: LiveRunLink,
+        autoCheckInOutEnabled: Boolean,
         checkSheetOpen: Boolean,
         checkAction: CheckAction,
         checkMinutesOverride: Int?,
@@ -579,6 +591,7 @@ class SupporterViewModel(
             offlineMap = offlineMap,
             settings = SettingsUiState(
                 liveRunLink = liveRunLink,
+                autoCheckInOutEnabled = autoCheckInOutEnabled,
                 lastLiveEvent = checkEvents.lastOrNull()?.toLastLiveEventUiState(estimate.startTimeMinutes),
             ),
             runnerLocation = runnerLocation?.takeIf { it.raceId == safeEstimate.raceId },
@@ -630,9 +643,102 @@ class SupporterViewModel(
                 selectedIndex = state.vp.selectedIndex,
                 checkIns = state.checkIns,
                 liveRunLink = state.settings.liveRunLink,
+                autoCheckInOutEnabled = state.settings.autoCheckInOutEnabled,
                 checkEvents = state.checkEvents,
             ),
         )
+    }
+
+    private fun AppUiState.applyAutomaticCheckInOut(location: LiveRunnerLocation): AppUiState {
+        if (!settings.autoCheckInOutEnabled || !settings.liveRunLink.canPublish) return this
+        if (!location.isOnRoute || location.raceId != setup.estimate.raceId) return this
+        val accuracy = location.accuracyMeters ?: return this
+        if (accuracy > AutoCheckMaxAccuracyMeters) {
+            LiveSharingLogger.d(
+                "Skipping automatic check-in/out because accuracy=${accuracy.formatForLog()}m is too low.",
+            )
+            return this
+        }
+
+        val checkedInOpenStation = vp.projection.stations.firstOrNull { it.isCheckedIn && !it.isCheckedOut }
+        if (checkedInOpenStation != null) {
+            return applyAutomaticCheckOut(location, checkedInOpenStation.station.section)
+        }
+
+        val nextOpenIndex = vp.projection.stations.indexOfFirst { !it.isCheckedIn }
+        if (nextOpenIndex < 0) return this
+        val nextOpenStation = vp.projection.stations[nextOpenIndex].station
+        if (autoCheckedInSections.contains(nextOpenStation.section)) return this
+        val distanceDeltaKm = kotlin.math.abs(location.distanceKm - nextOpenStation.totalKm)
+        if (distanceDeltaKm > AutoCheckInRadiusKm) return this
+
+        val raceMinutes = raceMinutesForEpochMillis(location.updatedAtEpochMillis)
+        LiveSharingLogger.d(
+            "Automatic check-in station=${nextOpenStation.section} km=${location.distanceKm.formatForLog()} " +
+                "deltaMeters=${(distanceDeltaKm * 1000.0).formatForLog()}",
+        )
+        autoCheckedInSections.add(nextOpenStation.section)
+        val newCheckIns = saveCheckIn(
+            existingCheckIns = checkIns,
+            stationSection = nextOpenStation.section,
+            actualArrivalMinutes = raceMinutes,
+        )
+        val newEvents = appendLiveEvent(
+            selectedIndex = nextOpenIndex,
+            type = CheckEventType.CheckIn,
+            raceMinutes = raceMinutes,
+        )
+        return copy(
+            checkIns = newCheckIns,
+            checkEvents = newEvents,
+            vp = vp.copy(selectedIndex = nextOpenIndex, checkSheetOpen = false),
+        )
+    }
+
+    private fun AppUiState.applyAutomaticCheckOut(location: LiveRunnerLocation, stationSection: Int): AppUiState {
+        if (autoCheckedOutSections.contains(stationSection)) return this
+        val stationIndex = vp.projection.stations.indexOfFirst { it.station.section == stationSection }
+        if (stationIndex < 0) return this
+        val station = vp.projection.stations[stationIndex]
+        val arrivalMinutes = station.actualArrivalMinutes ?: return this
+        val raceMinutes = raceMinutesForEpochMillis(location.updatedAtEpochMillis)
+        if (raceMinutes - arrivalMinutes < AutoCheckOutMinStopMinutes) return this
+        val distancePastStationKm = location.distanceKm - station.station.totalKm
+        if (distancePastStationKm < AutoCheckOutDistancePastVpKm) return this
+
+        LiveSharingLogger.d(
+            "Automatic check-out station=${station.station.section} km=${location.distanceKm.formatForLog()} " +
+                "pastMeters=${(distancePastStationKm * 1000.0).formatForLog()}",
+        )
+        autoCheckedOutSections.add(station.station.section)
+        val newCheckIns = saveCheckIn(
+            existingCheckIns = checkIns,
+            stationSection = station.station.section,
+            actualDepartureMinutes = raceMinutes,
+        )
+        val newEvents = appendLiveEvent(
+            selectedIndex = stationIndex,
+            type = CheckEventType.CheckOut,
+            raceMinutes = raceMinutes,
+        )
+        val nextIndex = selectVp(stationIndex + 1, vp.projection.stations.lastIndex)
+        return copy(
+            checkIns = newCheckIns,
+            checkEvents = newEvents,
+            vp = vp.copy(selectedIndex = nextIndex, checkSheetOpen = false),
+        )
+    }
+
+    private fun AppUiState.raceMinutesForEpochMillis(epochMillis: Long): Int {
+        val localDateTime = kotlin.time.Instant.fromEpochMilliseconds(epochMillis)
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+        val locationMinutesOfDay = localDateTime.hour * 60 + localDateTime.minute
+        val diff = locationMinutesOfDay - setup.estimate.startTimeMinutes
+        return when {
+            diff < -HALF_DAY_MINUTES -> diff + FULL_DAY_MINUTES
+            diff > HALF_DAY_MINUTES -> diff - FULL_DAY_MINUTES
+            else -> diff
+        }
     }
 
     private fun syncLiveSubscription(link: LiveRunLink = _uiState.value.settings.liveRunLink) {
@@ -815,6 +921,15 @@ private fun RaceEstimate.coerceToValidTargetDurations(totalStopMinutes: Int): Ra
             )
         }
     }
+}
+
+private const val AutoCheckInRadiusKm = 0.2
+private const val AutoCheckOutDistancePastVpKm = 0.4
+private const val AutoCheckOutMinStopMinutes = 2
+private const val AutoCheckMaxAccuracyMeters = 50.0
+
+private fun Double.formatForLog(): String = (this * 10.0).toInt().let { roundedTenths ->
+    "${roundedTenths / 10}.${roundedTenths % 10}"
 }
 
 private fun String.normalizeRunnerName(): String =

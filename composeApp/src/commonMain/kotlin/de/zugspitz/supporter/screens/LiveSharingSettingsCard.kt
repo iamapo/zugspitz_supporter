@@ -31,6 +31,8 @@ import de.zugspitz.supporter.theme.SupporterColors
 import de.zugspitz.supporter.theme.SupporterTheme
 import org.jetbrains.compose.resources.stringResource
 import zugspitz_supporter.composeapp.generated.resources.Res
+import zugspitz_supporter.composeapp.generated.resources.auto_check_in_out
+import zugspitz_supporter.composeapp.generated.resources.auto_check_in_out_hint
 import zugspitz_supporter.composeapp.generated.resources.create_support_code
 import zugspitz_supporter.composeapp.generated.resources.live_code
 import zugspitz_supporter.composeapp.generated.resources.live_event_check_in
@@ -52,6 +54,7 @@ internal fun LiveSharingSettingsCard(
     onRunnerNameChanged: (String) -> Unit,
     onCreateRunCode: () -> Unit,
     onLiveSharingToggle: (Boolean) -> Unit,
+    onAutoCheckInOutToggle: (Boolean) -> Unit,
     onRunnerNameDone: () -> Unit,
 ) {
     Column(
@@ -117,6 +120,21 @@ internal fun LiveSharingSettingsCard(
                 runCode = state.liveRunLink.runCode,
                 modifier = Modifier.fillMaxWidth(),
             )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(Res.string.auto_check_in_out), fontWeight = FontWeight.Black)
+                    Text(
+                        stringResource(Res.string.auto_check_in_out_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = SupporterColors.Muted,
+                    )
+                }
+                Switch(
+                    checked = state.autoCheckInOutEnabled,
+                    onCheckedChange = onAutoCheckInOutToggle,
+                    enabled = state.liveRunLink.canPublish,
+                )
+            }
         } else {
             OutlinedTextField(
                 value = state.liveRunLink.runCode,
@@ -162,6 +180,7 @@ fun LiveSharingSettingsCardRunnerPreview() {
             onRunnerNameChanged = {},
             onCreateRunCode = {},
             onLiveSharingToggle = {},
+            onAutoCheckInOutToggle = {},
             onRunnerNameDone = {},
         )
     }
@@ -189,6 +208,7 @@ fun LiveSharingSettingsCardSupporterPreview() {
             onRunnerNameChanged = {},
             onCreateRunCode = {},
             onLiveSharingToggle = {},
+            onAutoCheckInOutToggle = {},
             onRunnerNameDone = {},
         )
     }

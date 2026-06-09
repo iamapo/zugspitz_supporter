@@ -198,6 +198,7 @@ fun SupporterAppRoot(
                     onRunnerNameChanged = viewModel::onRunnerNameChanged,
                     onCreateRunCode = viewModel::onCreateRunCode,
                     onLiveSharingToggle = viewModel::onLiveSharingToggle,
+                    onAutoCheckInOutToggle = viewModel::onAutoCheckInOutToggle,
                     onResetClick = viewModel::onResetAllData,
                     isKeyboardVisible = isKeyboardVisible,
                 )

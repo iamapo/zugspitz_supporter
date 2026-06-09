@@ -36,6 +36,7 @@ data class AppSessionState(
     val selectedIndex: Int = 0,
     val checkIns: List<CheckIn> = emptyList(),
     val liveRunLink: LiveRunLink = LiveRunLink(),
+    val autoCheckInOutEnabled: Boolean = false,
     val checkEvents: List<CheckEvent> = emptyList(),
 )
 
