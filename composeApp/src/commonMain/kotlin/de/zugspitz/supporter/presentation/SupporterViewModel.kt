@@ -29,6 +29,8 @@ import de.zugspitz.supporter.data.toAppTab
 import de.zugspitz.supporter.data.toSavedTab
 import de.zugspitz.supporter.domain.usecase.LoadSessionUseCase
 import de.zugspitz.supporter.domain.usecase.ResetSessionUseCase
+import de.zugspitz.supporter.domain.usecase.AutoCheckAction
+import de.zugspitz.supporter.domain.usecase.AutoCheckInOutUseCase
 import de.zugspitz.supporter.domain.usecase.SaveCheckInUseCase
 import de.zugspitz.supporter.domain.usecase.SaveSessionUseCase
 import de.zugspitz.supporter.domain.usecase.SelectVpUseCase
@@ -67,6 +69,7 @@ class SupporterViewModel(
     private val updateEstimate = UpdateEstimateUseCase()
     private val selectVp = SelectVpUseCase()
     private val saveCheckIn = SaveCheckInUseCase()
+    private val autoCheckInOut = AutoCheckInOutUseCase()
 
     private val _uiState = MutableStateFlow(createInitialState())
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
@@ -650,78 +653,78 @@ class SupporterViewModel(
     }
 
     private fun AppUiState.applyAutomaticCheckInOut(location: LiveRunnerLocation): AppUiState {
-        if (!settings.autoCheckInOutEnabled || !settings.liveRunLink.canPublish) return this
-        if (!location.isOnRoute || location.raceId != setup.estimate.raceId) return this
-        val accuracy = location.accuracyMeters ?: return this
-        if (accuracy > AutoCheckMaxAccuracyMeters) {
-            LiveSharingLogger.d(
-                "Skipping automatic check-in/out because accuracy=${accuracy.formatForLog()}m is too low.",
-            )
-            return this
-        }
-
-        val checkedInOpenStation = vp.projection.stations.firstOrNull { it.isCheckedIn && !it.isCheckedOut }
-        if (checkedInOpenStation != null) {
-            return applyAutomaticCheckOut(location, checkedInOpenStation.station.section)
-        }
-
-        val nextOpenIndex = vp.projection.stations.indexOfFirst { !it.isCheckedIn }
-        if (nextOpenIndex < 0) return this
-        val nextOpenStation = vp.projection.stations[nextOpenIndex].station
-        if (autoCheckedInSections.contains(nextOpenStation.section)) return this
-        val distanceDeltaKm = kotlin.math.abs(location.distanceKm - nextOpenStation.totalKm)
-        if (distanceDeltaKm > AutoCheckInRadiusKm) return this
-
         val raceMinutes = raceMinutesForEpochMillis(location.updatedAtEpochMillis)
+        return when (
+            val action = autoCheckInOut(
+                projection = vp.projection,
+                location = location,
+                enabled = settings.autoCheckInOutEnabled,
+                canPublish = settings.liveRunLink.canPublish,
+                alreadyAutoCheckedIn = autoCheckedInSections,
+                alreadyAutoCheckedOut = autoCheckedOutSections,
+                raceMinutes = raceMinutes,
+            )
+        ) {
+            AutoCheckAction.None -> this
+            is AutoCheckAction.SkippedLowAccuracy -> {
+                LiveSharingLogger.d(
+                    "Skipping automatic check-in/out because accuracy=${action.accuracyMeters.formatForLog()}m is too low.",
+                )
+                this
+            }
+            is AutoCheckAction.CheckIn -> applyAutomaticCheckIn(location, action)
+            is AutoCheckAction.CheckOut -> applyAutomaticCheckOut(location, action)
+        }
+    }
+
+    private fun AppUiState.applyAutomaticCheckIn(
+        location: LiveRunnerLocation,
+        action: AutoCheckAction.CheckIn,
+    ): AppUiState {
+        val station = vp.projection.stations[action.stationIndex].station
         LiveSharingLogger.d(
-            "Automatic check-in station=${nextOpenStation.section} km=${location.distanceKm.formatForLog()} " +
-                "deltaMeters=${(distanceDeltaKm * 1000.0).formatForLog()}",
+            "Automatic check-in station=${action.stationSection} km=${location.distanceKm.formatForLog()} " +
+                "deltaMeters=${(action.distanceDeltaKm * 1000.0).formatForLog()}",
         )
-        autoCheckedInSections.add(nextOpenStation.section)
+        autoCheckedInSections.add(action.stationSection)
         val newCheckIns = saveCheckIn(
             existingCheckIns = checkIns,
-            stationSection = nextOpenStation.section,
-            actualArrivalMinutes = raceMinutes,
+            stationSection = station.section,
+            actualArrivalMinutes = action.raceMinutes,
         )
         val newEvents = appendLiveEvent(
-            selectedIndex = nextOpenIndex,
+            selectedIndex = action.stationIndex,
             type = CheckEventType.CheckIn,
-            raceMinutes = raceMinutes,
+            raceMinutes = action.raceMinutes,
         )
         return copy(
             checkIns = newCheckIns,
             checkEvents = newEvents,
-            vp = vp.copy(selectedIndex = nextOpenIndex, checkSheetOpen = false),
+            vp = vp.copy(selectedIndex = action.stationIndex, checkSheetOpen = false),
         )
     }
 
-    private fun AppUiState.applyAutomaticCheckOut(location: LiveRunnerLocation, stationSection: Int): AppUiState {
-        if (autoCheckedOutSections.contains(stationSection)) return this
-        val stationIndex = vp.projection.stations.indexOfFirst { it.station.section == stationSection }
-        if (stationIndex < 0) return this
-        val station = vp.projection.stations[stationIndex]
-        val arrivalMinutes = station.actualArrivalMinutes ?: return this
-        val raceMinutes = raceMinutesForEpochMillis(location.updatedAtEpochMillis)
-        if (raceMinutes - arrivalMinutes < AutoCheckOutMinStopMinutes) return this
-        val distancePastStationKm = location.distanceKm - station.station.totalKm
-        if (distancePastStationKm < AutoCheckOutDistancePastVpKm) return this
-
+    private fun AppUiState.applyAutomaticCheckOut(
+        location: LiveRunnerLocation,
+        action: AutoCheckAction.CheckOut,
+    ): AppUiState {
+        val station = vp.projection.stations[action.stationIndex]
         LiveSharingLogger.d(
-            "Automatic check-out station=${station.station.section} km=${location.distanceKm.formatForLog()} " +
-                "pastMeters=${(distancePastStationKm * 1000.0).formatForLog()}",
+            "Automatic check-out station=${action.stationSection} km=${location.distanceKm.formatForLog()} " +
+                "pastMeters=${(action.distancePastStationKm * 1000.0).formatForLog()}",
         )
-        autoCheckedOutSections.add(station.station.section)
+        autoCheckedOutSections.add(action.stationSection)
         val newCheckIns = saveCheckIn(
             existingCheckIns = checkIns,
             stationSection = station.station.section,
-            actualDepartureMinutes = raceMinutes,
+            actualDepartureMinutes = action.raceMinutes,
         )
         val newEvents = appendLiveEvent(
-            selectedIndex = stationIndex,
+            selectedIndex = action.stationIndex,
             type = CheckEventType.CheckOut,
-            raceMinutes = raceMinutes,
+            raceMinutes = action.raceMinutes,
         )
-        val nextIndex = selectVp(stationIndex + 1, vp.projection.stations.lastIndex)
+        val nextIndex = selectVp(action.stationIndex + 1, vp.projection.stations.lastIndex)
         return copy(
             checkIns = newCheckIns,
             checkEvents = newEvents,
@@ -922,11 +925,6 @@ private fun RaceEstimate.coerceToValidTargetDurations(totalStopMinutes: Int): Ra
         }
     }
 }
-
-private const val AutoCheckInRadiusKm = 0.2
-private const val AutoCheckOutDistancePastVpKm = 0.4
-private const val AutoCheckOutMinStopMinutes = 2
-private const val AutoCheckMaxAccuracyMeters = 50.0
 
 private fun Double.formatForLog(): String = (this * 10.0).toInt().let { roundedTenths ->
     "${roundedTenths / 10}.${roundedTenths % 10}"
