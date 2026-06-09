@@ -31,6 +31,7 @@ import de.zugspitz.supporter.domain.usecase.LoadSessionUseCase
 import de.zugspitz.supporter.domain.usecase.ResetSessionUseCase
 import de.zugspitz.supporter.domain.usecase.AutoCheckAction
 import de.zugspitz.supporter.domain.usecase.AutoCheckInOutUseCase
+import de.zugspitz.supporter.domain.usecase.RemoteSnapshotMergeUseCase
 import de.zugspitz.supporter.domain.usecase.SaveCheckInUseCase
 import de.zugspitz.supporter.domain.usecase.SaveSessionUseCase
 import de.zugspitz.supporter.domain.usecase.SelectVpUseCase
@@ -70,6 +71,7 @@ class SupporterViewModel(
     private val selectVp = SelectVpUseCase()
     private val saveCheckIn = SaveCheckInUseCase()
     private val autoCheckInOut = AutoCheckInOutUseCase()
+    private val mergeRemoteSnapshot = RemoteSnapshotMergeUseCase()
 
     private val _uiState = MutableStateFlow(createInitialState())
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
@@ -796,58 +798,31 @@ class SupporterViewModel(
         updateState {
             if (settings.liveRunLink.runCode != runCode || !settings.liveRunLink.canSubscribe) return@updateState this
 
-            val activeEstimate = remoteSnapshot.info?.estimate ?: setup.estimate
-            val mergedEvents = (checkEvents + remoteSnapshot.events)
-                .distinctBy { it.id }
-                .sortedBy { it.createdAtEpochMillis }
-            val remoteCheckIns = mergedEvents
-                .groupBy { it.stationSection }
-                .mapNotNull { (_, events) ->
-                    val latestCheckIn = events
-                        .filter { it.type == CheckEventType.CheckIn }
-                        .maxByOrNull { it.createdAtEpochMillis }
-                        ?: return@mapNotNull null
-                    val latestCheckOut = events
-                        .filter { it.type == CheckEventType.CheckOut }
-                        .maxByOrNull { it.createdAtEpochMillis }
-                    CheckIn(
-                        stationSection = latestCheckIn.stationSection,
-                        actualArrivalMinutes = latestCheckIn.raceMinutes,
-                        actualDepartureMinutes = latestCheckOut?.raceMinutes,
-                    )
-                }
             val currentStationSection = vp.projection.stations.getOrNull(vp.selectedIndex)?.station?.section
-            val firstOpenIndex = RaceDefinitions.byId(activeEstimate.raceId).stations
-                .indexOfFirst { station ->
-                    remoteCheckIns.none {
-                        it.stationSection == station.section && it.actualDepartureMinutes != null
-                    }
-                }
-                .let { index -> if (index >= 0) index else RaceDefinitions.byId(activeEstimate.raceId).stations.lastIndex }
-            val shouldAdvanceAfterCheckout = currentStationSection != null &&
-                remoteCheckIns.any {
-                    it.stationSection == currentStationSection && it.actualDepartureMinutes != null
-                } &&
-                vp.selectedIndex < vp.projection.stations.lastIndex
+            val merged = mergeRemoteSnapshot(
+                currentTab = tab,
+                currentEstimate = setup.estimate,
+                currentEvents = checkEvents,
+                currentSelectedIndex = vp.selectedIndex,
+                currentStationSection = currentStationSection,
+                currentLastStationIndex = vp.projection.stations.lastIndex,
+                remoteSnapshot = remoteSnapshot,
+            )
             copy(
-                tab = if (remoteSnapshot.info != null && tab == AppTab.SupportCode) AppTab.Vp else tab,
+                tab = merged.tab,
                 setup = setup.copy(
-                    estimate = activeEstimate,
+                    estimate = merged.estimate,
                     hasSelectedRace = true,
                     pauseMinutesBySection = mergePauseMinutesBySection(
-                        raceId = activeEstimate.raceId,
+                        raceId = merged.estimate.raceId,
                         overrides = setup.pauseMinutesBySection,
                     ),
                 ),
-                checkIns = remoteCheckIns,
-                checkEvents = mergedEvents,
-                runnerLocation = remoteSnapshot.runnerLocation,
+                checkIns = merged.checkIns,
+                checkEvents = merged.checkEvents,
+                runnerLocation = merged.runnerLocation,
                 vp = vp.copy(
-                    selectedIndex = when {
-                        tab == AppTab.SupportCode -> firstOpenIndex
-                        shouldAdvanceAfterCheckout -> vp.selectedIndex + 1
-                        else -> vp.selectedIndex
-                    },
+                    selectedIndex = merged.selectedIndex,
                 ),
             )
         }
