@@ -109,12 +109,14 @@ fun RunOverviewScreen(
                         points = routeElevationProfile,
                         title = stringResource(Res.string.summary_route_profile),
                         markers = routeMarkers,
-                        locationMarker = runnerLocation?.takeIf { it.raceId == projection.estimate.raceId }?.let {
-                            ElevationProfileLocationMarker(
-                                distanceKm = it.distanceKm,
-                                isOnRoute = it.isOnRoute,
-                            )
-                        },
+                        locationMarker = runnerLocation
+                            ?.takeIf { it.raceId == projection.estimate.raceId && it.isOnRoute }
+                            ?.let {
+                                ElevationProfileLocationMarker(
+                                    distanceKm = it.distanceKm,
+                                    isOnRoute = it.isOnRoute,
+                                )
+                            },
                         containerColor = SupporterColors.Card,
                         headerValue = "+$completedClimbMeters / +$totalClimbMeters hm",
                         modifier = Modifier.fillMaxWidth(),

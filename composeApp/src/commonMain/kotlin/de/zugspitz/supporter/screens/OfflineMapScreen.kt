@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import de.zugspitz.supporter.components.ScreenHeader
 import de.zugspitz.supporter.data.AidStation
 import de.zugspitz.supporter.data.CheckIn
+import de.zugspitz.supporter.data.LiveRunnerLocation
 import de.zugspitz.supporter.data.RaceCalculator
 import de.zugspitz.supporter.data.RaceEstimate
 import de.zugspitz.supporter.data.RaceProjection
@@ -63,6 +64,7 @@ import kotlin.math.round
 fun OfflineMapScreen(
     projection: RaceProjection,
     offlineMap: OfflineMapUiState,
+    runnerLocation: LiveRunnerLocation? = null,
     onDownloadStart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -122,6 +124,11 @@ fun OfflineMapScreen(
             projection = projection,
             onlyCheckedIn = true,
         )
+        val runnerLocationJson = remember(runnerLocation, raceId) {
+            runnerLocation
+                ?.takeIf { it.raceId == raceId && it.isOnRoute }
+                ?.let(::buildRunnerLocationGeoJson)
+        }
         var mapReady by remember { mutableStateOf(false) }
         var mapBaseStyle by remember(raceId) { mutableStateOf<BaseStyle>(BaseStyle.Empty) }
         LaunchedEffect(raceId) {
@@ -171,6 +178,27 @@ fun OfflineMapScreen(
                         strokeColor = const(Color.White),
                         strokeWidth = const(2.dp),
                     )
+                    runnerLocationJson?.let { locationJson ->
+                        val runnerLocationSource = rememberGeoJsonSource(
+                            data = GeoJsonData.JsonString(locationJson),
+                        )
+                        CircleLayer(
+                            id = "runner-location-halo",
+                            source = runnerLocationSource,
+                            color = const(Color(0xFFE9C46A).copy(alpha = 0.24f)),
+                            radius = const(14.dp),
+                            strokeColor = const(Color.White),
+                            strokeWidth = const(1.dp),
+                        )
+                        CircleLayer(
+                            id = "runner-location-dot",
+                            source = runnerLocationSource,
+                            color = const(Color(0xFFE9C46A)),
+                            radius = const(7.dp),
+                            strokeColor = const(Color.White),
+                            strokeWidth = const(3.dp),
+                        )
+                    }
                 }
                 if (!mapReady) {
                     Box(
@@ -276,6 +304,10 @@ private fun buildLineStringGeoJson(coordinates: List<String>): String {
 }
 
 private fun geoJsonHasCoordinates(geoJson: String): Boolean = "\"coordinates\":[" in geoJson && geoJson.count { it == '[' } > 2
+
+private fun buildRunnerLocationGeoJson(location: LiveRunnerLocation): String {
+    return """{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"kind":"runner","distanceKm":${location.distanceKm}},"geometry":{"type":"Point","coordinates":[${location.longitude},${location.latitude}]}}]}"""
+}
 
 @Composable
 private fun rememberVpPointsGeoJson(

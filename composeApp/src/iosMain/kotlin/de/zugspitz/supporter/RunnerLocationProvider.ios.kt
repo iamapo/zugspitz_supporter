@@ -44,12 +44,14 @@ private class IosRunnerLocationProvider : RunnerLocationProvider {
     }
 
     override fun start() {
-        manager.requestWhenInUseAuthorization()
+        LiveSharingLogger.d("Starting iOS runner location updates with background support.")
+        manager.requestAlwaysAuthorization()
         manager.allowsBackgroundLocationUpdates = true
         manager.startUpdatingLocation()
     }
 
     override fun stop() {
+        LiveSharingLogger.d("Stopping iOS runner location updates.")
         manager.stopUpdatingLocation()
         manager.allowsBackgroundLocationUpdates = false
     }
@@ -61,8 +63,13 @@ private class LocationDelegate(
     override fun locationManager(manager: CLLocationManager, didUpdateLocations: List<*>) {
         didUpdateLocations.lastOrNull()
             ?.let { it as? CLLocation }
-            ?.let(onLocation)
+            ?.let { location ->
+                LiveSharingLogger.d("Received iOS runner location accuracy=${location.horizontalAccuracy}.")
+                onLocation(location)
+            }
     }
 
-    override fun locationManager(manager: CLLocationManager, didFailWithError: NSError) = Unit
+    override fun locationManager(manager: CLLocationManager, didFailWithError: NSError) {
+        LiveSharingLogger.e("iOS runner location update failed", Throwable(didFailWithError.localizedDescription))
+    }
 }

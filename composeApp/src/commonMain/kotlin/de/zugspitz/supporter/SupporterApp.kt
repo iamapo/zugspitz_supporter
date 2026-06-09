@@ -71,18 +71,30 @@ fun SupporterAppRoot(
         raceId = state.setup.estimate.raceId,
         locationProvider = runnerLocationProvider,
         enabled = liveRunLink.canPublish,
+        onAcceptedLocation = { routeLocation ->
+            if (liveRunLink.canPublish) {
+                viewModel.onRunnerLocationChanged(
+                    routeLocation.toLiveRunnerLocation(
+                        runCode = liveRunLink.runCode,
+                        raceId = state.setup.estimate.raceId,
+                    ),
+                )
+            }
+        },
     )
-    val localLiveRunnerLocation = localRouteLocation?.toLiveRunnerLocation(
-        runCode = liveRunLink.runCode,
-        raceId = state.setup.estimate.raceId,
-    )
-    LaunchedEffect(localLiveRunnerLocation, liveRunLink.canPublish) {
-        if (liveRunLink.canPublish) {
-            localLiveRunnerLocation?.let(viewModel::onRunnerLocationChanged)
+    val localLiveRunnerLocation = localRouteLocation
+        ?.takeIf { it.isOnRoute }
+        ?.toLiveRunnerLocation(
+            runCode = liveRunLink.runCode,
+            raceId = state.setup.estimate.raceId,
+        )
+    LaunchedEffect(localRouteLocation, liveRunLink.canPublish) {
+        if (liveRunLink.canPublish && localRouteLocation?.isOnRoute == false) {
+            LiveSharingLogger.d("Skipping runner location publish because location is off route.")
         }
     }
     val visibleRunnerLocation = when {
-        liveRunLink.canSubscribe -> state.runnerLocation
+        liveRunLink.canSubscribe -> state.runnerLocation?.takeIf { it.isOnRoute }
         liveRunLink.canPublish -> localLiveRunnerLocation
         else -> null
     }
@@ -169,6 +181,7 @@ fun SupporterAppRoot(
                 AppTab.Map -> OfflineMapScreen(
                     projection = state.vp.projection,
                     offlineMap = state.offlineMap,
+                    runnerLocation = visibleRunnerLocation,
                     onDownloadStart = viewModel::onOfflineMapDownloadStart,
                     modifier = Modifier.fillMaxSize(),
                 )
