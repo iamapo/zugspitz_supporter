@@ -177,13 +177,11 @@ private fun LiveSharingSettingsCard(
             )
         }
         if (state.liveRunLink.role == LiveRole.Runner) {
-            SupportCodeDisplay(
-                runCode = state.liveRunLink.runCode,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            val hasRunCode = state.liveRunLink.runCode.isNotBlank()
             OutlinedTextField(
                 value = state.liveRunLink.runnerName,
                 onValueChange = onRunnerNameChanged,
+                enabled = !hasRunCode,
                 label = { Text(stringResource(Res.string.live_runner_name)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -195,12 +193,17 @@ private fun LiveSharingSettingsCard(
             )
             Button(
                 onClick = onCreateRunCode,
+                enabled = !hasRunCode,
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = SupporterColors.Pine),
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(Res.string.create_support_code), fontWeight = FontWeight.Black)
             }
+            SupportCodeDisplay(
+                runCode = state.liveRunLink.runCode,
+                modifier = Modifier.fillMaxWidth(),
+            )
         } else {
             OutlinedTextField(
                 value = state.liveRunLink.runCode,
