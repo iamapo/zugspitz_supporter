@@ -3,6 +3,7 @@ package de.zugspitz.supporter.domain.usecase
 import de.zugspitz.supporter.data.CheckEvent
 import de.zugspitz.supporter.data.CheckEventType
 import de.zugspitz.supporter.data.CheckIn
+import de.zugspitz.supporter.data.LiveRunnerLocation
 
 class ApplyCheckEventUseCase(
     private val saveCheckIn: SaveCheckInUseCase = SaveCheckInUseCase(),
@@ -16,6 +17,7 @@ class ApplyCheckEventUseCase(
         type: CheckEventType,
         raceMinutes: Int,
         createdAtEpochMillis: Long,
+        runnerLocation: LiveRunnerLocation? = null,
     ): ApplyCheckEventResult {
         val updatedCheckIns = when (type) {
             CheckEventType.CheckIn -> saveCheckIn(
@@ -38,6 +40,7 @@ class ApplyCheckEventUseCase(
                 type = type,
                 raceMinutes = raceMinutes,
                 createdAtEpochMillis = createdAtEpochMillis,
+                runnerLocation = runnerLocation?.takeIf { it.runCode == safeRunCode },
             )
         }
         return ApplyCheckEventResult(

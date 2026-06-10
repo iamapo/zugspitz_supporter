@@ -432,6 +432,8 @@ private data class SupabaseEventRow(
     val raceMinutes: Int,
     @SerialName("created_at_epoch_millis")
     val createdAtEpochMillis: Long,
+    @SerialName("runner_location")
+    val runnerLocation: LiveRunnerLocation? = null,
 )
 
 @Serializable
@@ -478,6 +480,7 @@ private fun CheckEvent.toRow() = SupabaseEventRow(
     type = type,
     raceMinutes = raceMinutes,
     createdAtEpochMillis = createdAtEpochMillis,
+    runnerLocation = runnerLocation,
 )
 
 private fun SupabaseEventRow.toModel() = CheckEvent(
@@ -488,6 +491,7 @@ private fun SupabaseEventRow.toModel() = CheckEvent(
     type = type,
     raceMinutes = raceMinutes,
     createdAtEpochMillis = createdAtEpochMillis,
+    runnerLocation = runnerLocation,
 )
 
 private fun LiveRunnerLocation.toRow() = SupabaseRunnerLocationRow(

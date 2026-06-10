@@ -15,8 +15,12 @@ create table if not exists public.events (
     station_name text not null,
     type text not null check (type in ('CheckIn', 'CheckOut')),
     race_minutes integer not null,
-    created_at_epoch_millis bigint not null
+    created_at_epoch_millis bigint not null,
+    runner_location jsonb
 );
+
+alter table public.events
+add column if not exists runner_location jsonb;
 
 create table if not exists public.supporter_push_tokens (
     run_code text not null references public.runs(run_code) on delete cascade,

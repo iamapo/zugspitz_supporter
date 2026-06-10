@@ -72,6 +72,25 @@ class LiveSharingServiceTest {
     }
 
     @Test
+    fun `sync subscription reconnects same run code when forced`() {
+        val repository = FakeLiveSharingRepository()
+        val service = LiveSharingService(repository = repository, enabled = true)
+
+        service.syncSubscription(
+            link = LiveRunLink(role = LiveRole.Supporter, runCode = "FIRST", isEnabled = true),
+            onSnapshot = { _, _ -> },
+        )
+        service.syncSubscription(
+            link = LiveRunLink(role = LiveRole.Supporter, runCode = "FIRST", isEnabled = true),
+            onSnapshot = { _, _ -> },
+            forceReconnect = true,
+        )
+
+        assertEquals(listOf("FIRST", "FIRST"), repository.subscribedCodes)
+        assertEquals(listOf("FIRST"), repository.closedCodes)
+    }
+
+    @Test
     fun `sync supporter push registration registers new code and unregisters previous code`() {
         val repository = FakeLiveSharingRepository()
         val service = LiveSharingService(

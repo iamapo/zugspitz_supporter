@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Codex emulator auto checkin checkout route" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata>
+    <name>Ultratrail ZUT emulator route - auto check-in checkout</name>
+    <time>2026-06-10T20:00:00Z</time>
+  </metadata>
+  <trk>
+    <name>Ultratrail ZUT emulator route - 5 km plus VP auto check-in/out points</name>
+    <trkseg>
+      <trkpt lat="47.4946130" lon="11.0919550">
+        <ele>697.4</ele>
+        <time>2026-06-10T20:00:00Z</time>
+        <name>0.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4710978" lon="11.0550948">
+        <ele>741.3</ele>
+        <time>2026-06-10T20:05:00Z</time>
+        <name>5.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4558403" lon="11.0017110">
+        <ele>1063.3</ele>
+        <time>2026-06-10T20:10:00Z</time>
+        <name>10.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4551434" lon="10.9974863">
+        <ele>1030.8</ele>
+        <time>2026-06-10T20:15:00Z</time>
+        <name>Z1 Eibsee approach 10.45 km</name>
+      </trkpt>
+      <trkpt lat="47.4551136" lon="10.9949172">
+        <ele>1016.9</ele>
+        <time>2026-06-10T20:20:00Z</time>
+        <name>Z1 Eibsee check-in 10.70 km</name>
+      </trkpt>
+      <trkpt lat="47.4522539" lon="10.9979495">
+        <ele>1107.5</ele>
+        <time>2026-06-10T20:25:00Z</time>
+        <name>Z1 Eibsee auto-check-out 11.15 km</name>
+      </trkpt>
+      <trkpt lat="47.4328513" lon="10.9722018">
+        <ele>1585.0</ele>
+        <time>2026-06-10T20:30:00Z</time>
+        <name>15.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4142717" lon="10.9429675">
+        <ele>1303.8</ele>
+        <time>2026-06-10T20:35:00Z</time>
+        <name>Z2 Gamsalm approach 19.15 km</name>
+      </trkpt>
+      <trkpt lat="47.4135424" lon="10.9400980">
+        <ele>1261.0</ele>
+        <time>2026-06-10T20:40:00Z</time>
+        <name>Z2 Gamsalm check-in 19.40 km</name>
+      </trkpt>
+      <trkpt lat="47.4099146" lon="10.9418348">
+        <ele>1304.4</ele>
+        <time>2026-06-10T20:45:00Z</time>
+        <name>Z2 Gamsalm auto-check-out 19.85 km</name>
+      </trkpt>
+      <trkpt lat="47.4086469" lon="10.9424055">
+        <ele>1308.7</ele>
+        <time>2026-06-10T20:50:00Z</time>
+        <name>20.0 km</name>
+      </trkpt>
+      <trkpt lat="47.3889392" lon="10.9629476">
+        <ele>1445.3</ele>
+        <time>2026-06-10T20:55:00Z</time>
+        <name>25.0 km</name>
+      </trkpt>
+      <trkpt lat="47.3800812" lon="10.9826811">
+        <ele>1614.9</ele>
+        <time>2026-06-10T21:00:00Z</time>
+        <name>Z3 Pestkapelle approach 27.05 km</name>
+      </trkpt>
+      <trkpt lat="47.3811070" lon="10.9844968">
+        <ele>1663.8</ele>
+        <time>2026-06-10T21:05:00Z</time>
+        <name>Z3 Pestkapelle check-in 27.30 km</name>
+      </trkpt>
+      <trkpt lat="47.3821767" lon="10.9887455">
+        <ele>1728.8</ele>
+        <time>2026-06-10T21:10:00Z</time>
+        <name>Z3 Pestkapelle auto-check-out 27.75 km</name>
+      </trkpt>
+      <trkpt lat="47.3903604" lon="11.0095078">
+        <ele>2098.3</ele>
+        <time>2026-06-10T21:15:00Z</time>
+        <name>30.0 km</name>
+      </trkpt>
+      <trkpt lat="47.3866154" lon="11.0564480">
+        <ele>2110.5</ele>
+        <time>2026-06-10T21:20:00Z</time>
+        <name>35.0 km</name>
+      </trkpt>
+      <trkpt lat="47.3683969" lon="11.0759425">
+        <ele>1413.7</ele>
+        <time>2026-06-10T21:25:00Z</time>
+        <name>40.0 km</name>
+      </trkpt>
+      <trkpt lat="47.3725804" lon="11.0834676">
+        <ele>1428.8</ele>
+        <time>2026-06-10T21:30:00Z</time>
+        <name>Z4 Haemmermoosalm approach 40.85 km</name>
+      </trkpt>
+      <trkpt lat="47.3737161" lon="11.0819341">
+        <ele>1452.1</ele>
+        <time>2026-06-10T21:35:00Z</time>
+        <name>Z4 Haemmermoosalm check-in 41.10 km</name>
+      </trkpt>
+      <trkpt lat="47.3768476" lon="11.0840879">
+        <ele>1473.0</ele>
+        <time>2026-06-10T21:40:00Z</time>
+        <name>Z4 Haemmermoosalm auto-check-out 41.55 km</name>
+      </trkpt>
+      <trkpt lat="47.3821088" lon="11.1091618">
+        <ele>1750.3</ele>
+        <time>2026-06-10T21:45:00Z</time>
+        <name>45.0 km</name>
+      </trkpt>
+      <trkpt lat="47.3951273" lon="11.1513634">
+        <ele>1565.3</ele>
+        <time>2026-06-10T21:50:00Z</time>
+        <name>50.0 km</name>
+      </trkpt>
+      <trkpt lat="47.3990128" lon="11.1867017">
+        <ele>1065.3</ele>
+        <time>2026-06-10T21:55:00Z</time>
+        <name>Z5 Hubertushof approach 54.35 km</name>
+      </trkpt>
+      <trkpt lat="47.3998190" lon="11.1897777">
+        <ele>1062.8</ele>
+        <time>2026-06-10T22:00:00Z</time>
+        <name>Z5 Hubertushof check-in 54.60 km</name>
+      </trkpt>
+      <trkpt lat="47.4026454" lon="11.1927920">
+        <ele>1059.4</ele>
+        <time>2026-06-10T22:05:00Z</time>
+        <name>55.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4028416" lon="11.1933696">
+        <ele>1058.4</ele>
+        <time>2026-06-10T22:10:00Z</time>
+        <name>Z5 Hubertushof auto-check-out 55.05 km</name>
+      </trkpt>
+      <trkpt lat="47.4279118" lon="11.2361033">
+        <ele>1024.1</ele>
+        <time>2026-06-10T22:15:00Z</time>
+        <name>60.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4294960" lon="11.2599812">
+        <ele>920.5</ele>
+        <time>2026-06-10T22:20:00Z</time>
+        <name>Z6 Mittenwald approach 62.85 km</name>
+      </trkpt>
+      <trkpt lat="47.4316879" lon="11.2595253">
+        <ele>918.8</ele>
+        <time>2026-06-10T22:25:00Z</time>
+        <name>Z6 Mittenwald check-in 63.10 km</name>
+      </trkpt>
+      <trkpt lat="47.4355165" lon="11.2597161">
+        <ele>916.4</ele>
+        <time>2026-06-10T22:30:00Z</time>
+        <name>Z6 Mittenwald auto-check-out 63.55 km</name>
+      </trkpt>
+      <trkpt lat="47.4344757" lon="11.2472082">
+        <ele>1072.5</ele>
+        <time>2026-06-10T22:35:00Z</time>
+        <name>65.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4486752" lon="11.1976156">
+        <ele>1077.6</ele>
+        <time>2026-06-10T22:40:00Z</time>
+        <name>70.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4663571" lon="11.1902045">
+        <ele>994.5</ele>
+        <time>2026-06-10T22:45:00Z</time>
+        <name>Z7 Schloss Elmau approach 73.05 km</name>
+      </trkpt>
+      <trkpt lat="47.4683813" lon="11.1905023">
+        <ele>1030.6</ele>
+        <time>2026-06-10T22:50:00Z</time>
+        <name>Z7 Schloss Elmau check-in 73.30 km</name>
+      </trkpt>
+      <trkpt lat="47.4721623" lon="11.1912101">
+        <ele>1101.3</ele>
+        <time>2026-06-10T22:55:00Z</time>
+        <name>Z7 Schloss Elmau auto-check-out 73.75 km</name>
+      </trkpt>
+      <trkpt lat="47.4744576" lon="11.1807027">
+        <ele>1247.0</ele>
+        <time>2026-06-10T23:00:00Z</time>
+        <name>75.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4635723" lon="11.1301102">
+        <ele>1114.2</ele>
+        <time>2026-06-10T23:05:00Z</time>
+        <name>80.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4455036" lon="11.1075763">
+        <ele>942.0</ele>
+        <time>2026-06-10T23:10:00Z</time>
+        <name>85.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4428430" lon="11.0891556">
+        <ele>1074.3</ele>
+        <time>2026-06-10T23:15:00Z</time>
+        <name>Z8 Laubhuette approach 86.55 km</name>
+      </trkpt>
+      <trkpt lat="47.4431081" lon="11.0861677">
+        <ele>1101.3</ele>
+        <time>2026-06-10T23:20:00Z</time>
+        <name>Z8 Laubhuette check-in 86.80 km</name>
+      </trkpt>
+      <trkpt lat="47.4436654" lon="11.0805201">
+        <ele>1150.5</ele>
+        <time>2026-06-10T23:25:00Z</time>
+        <name>Z8 Laubhuette auto-check-out 87.25 km</name>
+      </trkpt>
+      <trkpt lat="47.4450729" lon="11.0620221">
+        <ele>1657.1</ele>
+        <time>2026-06-10T23:30:00Z</time>
+        <name>90.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4341687" lon="11.0603141">
+        <ele>1833.7</ele>
+        <time>2026-06-10T23:35:00Z</time>
+        <name>Z9 Hochalm approach 91.45 km</name>
+      </trkpt>
+      <trkpt lat="47.4341522" lon="11.0576540">
+        <ele>1851.6</ele>
+        <time>2026-06-10T23:40:00Z</time>
+        <name>Z9 Hochalm check-in 91.70 km</name>
+      </trkpt>
+      <trkpt lat="47.4350501" lon="11.0538413">
+        <ele>1925.2</ele>
+        <time>2026-06-10T23:45:00Z</time>
+        <name>Z9 Hochalm auto-check-out 92.15 km</name>
+      </trkpt>
+      <trkpt lat="47.4443947" lon="11.0520331">
+        <ele>1681.2</ele>
+        <time>2026-06-10T23:50:00Z</time>
+        <name>95.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4601495" lon="11.0983677">
+        <ele>1286.6</ele>
+        <time>2026-06-10T23:55:00Z</time>
+        <name>Z10 Troeglift approach 99.85 km</name>
+      </trkpt>
+      <trkpt lat="47.4595281" lon="11.1001182">
+        <ele>1282.0</ele>
+        <time>2026-06-11T00:00:00Z</time>
+        <name>100.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4592791" lon="11.1013953">
+        <ele>1275.0</ele>
+        <time>2026-06-11T00:05:00Z</time>
+        <name>Z10 Troeglift check-in 100.10 km</name>
+      </trkpt>
+      <trkpt lat="47.4618910" lon="11.1024920">
+        <ele>1243.3</ele>
+        <time>2026-06-11T00:10:00Z</time>
+        <name>Z10 Troeglift auto-check-out 100.55 km</name>
+      </trkpt>
+      <trkpt lat="47.4901061" lon="11.0972369">
+        <ele>707.4</ele>
+        <time>2026-06-11T00:15:00Z</time>
+        <name>105.0 km</name>
+      </trkpt>
+      <trkpt lat="47.4946480" lon="11.0922120">
+        <ele>697.4</ele>
+        <time>2026-06-11T00:20:00Z</time>
+        <name>106.1 km route end</name>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>

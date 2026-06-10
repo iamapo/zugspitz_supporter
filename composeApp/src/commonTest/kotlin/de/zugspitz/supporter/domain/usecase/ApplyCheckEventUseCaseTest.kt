@@ -3,6 +3,8 @@ package de.zugspitz.supporter.domain.usecase
 import de.zugspitz.supporter.data.CheckEvent
 import de.zugspitz.supporter.data.CheckEventType
 import de.zugspitz.supporter.data.CheckIn
+import de.zugspitz.supporter.data.LiveRunnerLocation
+import de.zugspitz.supporter.data.RaceDefinitions
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -30,6 +32,7 @@ class ApplyCheckEventUseCaseTest {
 
     @Test
     fun `creates live check in event when run code is available`() {
+        val location = testRunnerLocation(runCode = "ABC123")
         val result = useCase(
             checkIns = emptyList(),
             checkEvents = emptyList(),
@@ -39,11 +42,30 @@ class ApplyCheckEventUseCaseTest {
             type = CheckEventType.CheckIn,
             raceMinutes = 86,
             createdAtEpochMillis = 1_000L,
+            runnerLocation = location,
         )
 
         assertEquals(listOf(CheckIn(1, actualArrivalMinutes = 86)), result.checkIns)
         assertEquals("ABC123-1-CheckIn-1000", result.event?.id)
+        assertEquals(location, result.event?.runnerLocation)
         assertEquals(result.event, result.checkEvents.single())
+    }
+
+    @Test
+    fun `drops event location when it belongs to another run`() {
+        val result = useCase(
+            checkIns = emptyList(),
+            checkEvents = emptyList(),
+            runCode = "ABC123",
+            stationSection = 1,
+            stationName = "Z1 Eibsee",
+            type = CheckEventType.CheckIn,
+            raceMinutes = 86,
+            createdAtEpochMillis = 1_000L,
+            runnerLocation = testRunnerLocation(runCode = "OTHER"),
+        )
+
+        assertNull(result.event?.runnerLocation)
     }
 
     @Test
@@ -95,5 +117,18 @@ class ApplyCheckEventUseCaseTest {
         type = type,
         raceMinutes = raceMinutes,
         createdAtEpochMillis = createdAtEpochMillis,
+    )
+
+    private fun testRunnerLocation(runCode: String) = LiveRunnerLocation(
+        runCode = runCode,
+        raceId = RaceDefinitions.ZugspitzUltratrailId,
+        latitude = 47.4710978,
+        longitude = 11.0550948,
+        distanceKm = 5.0,
+        elevationMeters = 741.0,
+        distanceFromRouteMeters = 3.0,
+        accuracyMeters = 25.0,
+        isOnRoute = true,
+        updatedAtEpochMillis = 1_789_509_000_000L,
     )
 }

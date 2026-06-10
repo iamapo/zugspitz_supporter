@@ -93,6 +93,9 @@ fun SupporterAppRoot(
             LiveSharingLogger.d("Skipping runner location publish because location is off route.")
         }
     }
+    ObserveAppForeground {
+        viewModel.onAppForegrounded()
+    }
     val visibleRunnerLocation = when {
         liveRunLink.canSubscribe -> state.runnerLocation?.takeIf { it.isOnRoute }
         liveRunLink.canPublish -> localLiveRunnerLocation

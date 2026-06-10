@@ -67,10 +67,11 @@ class LiveSharingService(
     fun syncSubscription(
         link: LiveRunLink,
         onSnapshot: (runCode: String, snapshot: LiveRunSnapshot) -> Unit,
+        forceReconnect: Boolean = false,
     ) {
         if (!enabled) return
         val requestedCode = link.runCode.takeIf { link.canSubscribe }
-        if (requestedCode == liveSubscriptionCode) return
+        if (!forceReconnect && requestedCode == liveSubscriptionCode) return
 
         liveSubscription?.close()
         liveSubscription = null

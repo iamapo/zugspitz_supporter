@@ -56,6 +56,7 @@ data class CheckEvent(
     val type: CheckEventType,
     val raceMinutes: Int,
     val createdAtEpochMillis: Long,
+    val runnerLocation: LiveRunnerLocation? = null,
 )
 
 @Immutable

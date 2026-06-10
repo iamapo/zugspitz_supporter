@@ -439,6 +439,26 @@ class SupporterViewModelTest {
     }
 
     @Test
+    fun `manual check in event includes latest runner location`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+            currentMinutesOfDay = { 23 * 60 + 20 },
+        )
+        val location = testRunnerLocation(runCode = "ABC123", distanceKm = 10.7)
+
+        viewModel.onRunCodeChanged("ABC123")
+        viewModel.onLiveSharingToggle(true)
+        viewModel.onRunnerLocationChanged(location)
+        viewModel.onCalculateClick()
+        viewModel.onCheckInNowSave()
+
+        assertEquals(location, liveRepository.events.single().runnerLocation)
+    }
+
+    @Test
     fun `creating support code publishes selected race estimate`() {
         val liveRepository = FakeLiveRaceRepository()
         val viewModel = SupporterViewModel(
@@ -753,6 +773,7 @@ class SupporterViewModelTest {
         assertEquals(1, checkIn.stationSection)
         assertEquals(null, checkIn.actualDepartureMinutes)
         assertEquals(listOf(CheckEventType.CheckIn), liveRepository.events.map { it.type })
+        assertEquals(location, liveRepository.events.single().runnerLocation)
     }
 
     @Test

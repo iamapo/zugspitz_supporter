@@ -454,6 +454,14 @@ class SupporterViewModel(
         _uiState.value = createInitialState()
     }
 
+    fun onAppForegrounded() {
+        val link = _uiState.value.settings.liveRunLink
+        if (!link.canSubscribe) return
+        LiveSharingLogger.d("App foregrounded, reconnecting live subscription for runCode=${link.runCode}")
+        syncLiveSubscription(link = link, forceReconnect = true)
+        syncSupporterPushRegistration(link)
+    }
+
     private fun createInitialState(): AppUiState {
         val session = loadSession()
         val liveRunLink = if (liveSharingEnabled) session.liveRunLink else LiveRunLink()
@@ -587,6 +595,9 @@ class SupporterViewModel(
         type = type,
         raceMinutes = raceMinutes,
         createdAtEpochMillis = Clock.System.now().toEpochMilliseconds(),
+        runnerLocation = runnerLocation?.takeIf {
+            it.runCode == settings.liveRunLink.runCode && it.raceId == setup.estimate.raceId
+        },
     ).also { result ->
         result.event?.let(liveSharingService::publishEvent)
     }
@@ -691,8 +702,15 @@ class SupporterViewModel(
         }
     }
 
-    private fun syncLiveSubscription(link: LiveRunLink = _uiState.value.settings.liveRunLink) {
-        liveSharingService.syncSubscription(link, ::applyRemoteSnapshot)
+    private fun syncLiveSubscription(
+        link: LiveRunLink = _uiState.value.settings.liveRunLink,
+        forceReconnect: Boolean = false,
+    ) {
+        liveSharingService.syncSubscription(
+            link = link,
+            onSnapshot = ::applyRemoteSnapshot,
+            forceReconnect = forceReconnect,
+        )
     }
 
     private fun syncSupporterPushRegistration(link: LiveRunLink = _uiState.value.settings.liveRunLink) {
