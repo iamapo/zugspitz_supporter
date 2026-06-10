@@ -286,6 +286,7 @@ class SupporterViewModel(
             type = CheckEventType.CheckIn,
             raceMinutes = startMinutes,
         )
+        publishCurrentRunnerLocation()
         copy(checkIns = result.checkIns, checkEvents = result.checkEvents)
     }
 
@@ -435,13 +436,18 @@ class SupporterViewModel(
         }
     }
 
-    fun onRunnerLocationChanged(location: LiveRunnerLocation) {
+    fun onRunnerLocationChanged(location: LiveRunnerLocation, publishToLive: Boolean = true) {
         if (!liveSharingEnabled) return
         updateState {
             val link = settings.liveRunLink
             if (!link.canPublish || location.runCode != link.runCode) return@updateState this
-            liveSharingService.publishRunnerLocation(location)
-            copy(runnerLocation = location).applyAutomaticCheckInOut(location)
+            if (publishToLive) {
+                liveSharingService.publishRunnerLocation(location)
+            }
+            copy(runnerLocation = location).applyAutomaticCheckInOut(
+                location = location,
+                publishTriggerLocation = !publishToLive,
+            )
         }
     }
 
@@ -618,7 +624,10 @@ class SupporterViewModel(
         )
     }
 
-    private fun AppUiState.applyAutomaticCheckInOut(location: LiveRunnerLocation): AppUiState {
+    private fun AppUiState.applyAutomaticCheckInOut(
+        location: LiveRunnerLocation,
+        publishTriggerLocation: Boolean,
+    ): AppUiState {
         val raceMinutes = raceMinutesForEpochMillis(location.updatedAtEpochMillis)
         return when (
             val action = autoCheckInOut(
@@ -638,20 +647,24 @@ class SupporterViewModel(
                 )
                 this
             }
-            is AutoCheckAction.CheckIn -> applyAutomaticCheckIn(location, action)
-            is AutoCheckAction.CheckOut -> applyAutomaticCheckOut(location, action)
+            is AutoCheckAction.CheckIn -> applyAutomaticCheckIn(location, action, publishTriggerLocation)
+            is AutoCheckAction.CheckOut -> applyAutomaticCheckOut(location, action, publishTriggerLocation)
         }
     }
 
     private fun AppUiState.applyAutomaticCheckIn(
         location: LiveRunnerLocation,
         action: AutoCheckAction.CheckIn,
+        publishTriggerLocation: Boolean,
     ): AppUiState {
         val station = vp.projection.stations[action.stationIndex].station
         LiveSharingLogger.d(
             "Automatic check-in station=${action.stationSection} km=${location.distanceKm.formatForLog()} " +
                 "deltaMeters=${(action.distanceDeltaKm * 1000.0).formatForLog()}",
         )
+        if (publishTriggerLocation) {
+            liveSharingService.publishRunnerLocation(location)
+        }
         autoCheckedInSections.add(action.stationSection)
         val result = applyCheckEvent(
             stationSection = station.section,
@@ -669,12 +682,16 @@ class SupporterViewModel(
     private fun AppUiState.applyAutomaticCheckOut(
         location: LiveRunnerLocation,
         action: AutoCheckAction.CheckOut,
+        publishTriggerLocation: Boolean,
     ): AppUiState {
         val station = vp.projection.stations[action.stationIndex]
         LiveSharingLogger.d(
             "Automatic check-out station=${action.stationSection} km=${location.distanceKm.formatForLog()} " +
                 "pastMeters=${(action.distancePastStationKm * 1000.0).formatForLog()}",
         )
+        if (publishTriggerLocation) {
+            liveSharingService.publishRunnerLocation(location)
+        }
         autoCheckedOutSections.add(action.stationSection)
         val result = applyCheckEvent(
             stationSection = station.station.section,
@@ -760,6 +777,14 @@ class SupporterViewModel(
             link = state.settings.liveRunLink,
             estimate = state.setup.estimate,
         )
+    }
+
+    private fun AppUiState.publishCurrentRunnerLocation() {
+        val link = settings.liveRunLink
+        val location = runnerLocation?.takeIf {
+            link.canPublish && it.runCode == link.runCode && it.raceId == setup.estimate.raceId
+        } ?: return
+        liveSharingService.publishRunnerLocation(location)
     }
 
     private fun CheckEvent.toLastLiveEventUiState(startTimeMinutes: Int) = LastLiveEventUiState(

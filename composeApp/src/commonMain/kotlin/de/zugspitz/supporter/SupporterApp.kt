@@ -71,13 +71,25 @@ fun SupporterAppRoot(
         raceId = state.setup.estimate.raceId,
         locationProvider = runnerLocationProvider,
         enabled = liveRunLink.canPublish,
-        onAcceptedLocation = { routeLocation ->
+        onMatchedLocation = { routeLocation ->
             if (liveRunLink.canPublish) {
                 viewModel.onRunnerLocationChanged(
-                    routeLocation.toLiveRunnerLocation(
+                    location = routeLocation.toLiveRunnerLocation(
                         runCode = liveRunLink.runCode,
                         raceId = state.setup.estimate.raceId,
                     ),
+                    publishToLive = false,
+                )
+            }
+        },
+        onAcceptedLocation = { routeLocation ->
+            if (liveRunLink.canPublish) {
+                viewModel.onRunnerLocationChanged(
+                    location = routeLocation.toLiveRunnerLocation(
+                        runCode = liveRunLink.runCode,
+                        raceId = state.setup.estimate.raceId,
+                    ),
+                    publishToLive = true,
                 )
             }
         },

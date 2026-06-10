@@ -321,6 +321,25 @@ class SupporterViewModelTest {
     }
 
     @Test
+    fun `actual start publishes latest runner location`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(
+                AppSessionState(liveRunLink = liveRunnerLink()),
+            ),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+            currentMinutesOfDay = { 22 * 60 + 9 },
+        )
+        val location = testRunnerLocation(runCode = "ABC123", distanceKm = 5.0)
+
+        viewModel.onRunnerLocationChanged(location = location, publishToLive = false)
+        viewModel.onActualStartNowSave()
+
+        assertEquals(listOf(location), liveRepository.runnerLocations)
+    }
+
+    @Test
     fun `actual start before planned start remains a negative offset`() {
         val repository = FakeSessionRepository()
         val viewModel = SupporterViewModel(
@@ -772,6 +791,29 @@ class SupporterViewModelTest {
         val checkIn = viewModel.uiState.value.checkIns.single()
         assertEquals(1, checkIn.stationSection)
         assertEquals(null, checkIn.actualDepartureMinutes)
+        assertEquals(listOf(CheckEventType.CheckIn), liveRepository.events.map { it.type })
+        assertEquals(location, liveRepository.events.single().runnerLocation)
+    }
+
+    @Test
+    fun `automatic check in publishes trigger location when regular location publish is throttled`() {
+        val liveRepository = FakeLiveRaceRepository()
+        val viewModel = SupporterViewModel(
+            sessionRepository = FakeSessionRepository(
+                AppSessionState(
+                    liveRunLink = liveRunnerLink(),
+                    autoCheckInOutEnabled = true,
+                ),
+            ),
+            liveRaceRepository = liveRepository,
+            liveSharingEnabled = true,
+        )
+        val location = testRunnerLocation(runCode = "ABC123", distanceKm = 10.7)
+
+        viewModel.onRunnerLocationChanged(location = location, publishToLive = false)
+
+        assertEquals(1, viewModel.uiState.value.checkIns.single().stationSection)
+        assertEquals(listOf(location), liveRepository.runnerLocations)
         assertEquals(listOf(CheckEventType.CheckIn), liveRepository.events.map { it.type })
         assertEquals(location, liveRepository.events.single().runnerLocation)
     }

@@ -34,8 +34,10 @@ internal fun rememberRouteLocationTrackingState(
     raceId: String,
     locationProvider: RunnerLocationProvider,
     enabled: Boolean,
+    onMatchedLocation: (RouteLocationUiState) -> Unit = {},
     onAcceptedLocation: (RouteLocationUiState) -> Unit = {},
 ): State<RouteLocationUiState?> {
+    val currentOnMatchedLocation = rememberUpdatedState(onMatchedLocation)
     val currentOnAcceptedLocation = rememberUpdatedState(onAcceptedLocation)
     return produceState<RouteLocationUiState?>(
         initialValue = null,
@@ -103,6 +105,7 @@ internal fun rememberRouteLocationTrackingState(
                     isOnRoute = true,
                     updatedAtEpochMillis = location.timestampEpochMillis,
                 )
+                currentOnMatchedLocation.value(routeLocation)
                 val shouldAccept = lastAcceptedAt == 0L ||
                     location.timestampEpochMillis - lastAcceptedAt >= LocationUpdateIntervalMillis
                 if (!shouldAccept) {
